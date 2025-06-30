@@ -14,17 +14,23 @@
     "@blaze-cardano/sdk": "^0.2.27",
     "@sundaeswap/ui-toolkit": "^2.1.25",
     "@sundaeswap/wallet-lite": "^0.0.73",
-    "@tailwindcss/vite": "^4.0.15",
+    "@tailwindcss/vite": "^4.1.11",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.525.0",
     "react": "^19",
     "react-dom": "^19",
-    "tailwindcss": "^4.0.6"
+    "react-router-dom": "^7.6.3",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.2.2",
+    "tw-animate-css": "^1.3.4",
+    "vite": "^7.0.0",
     "vite-plugin-checker": "^0.9.1",
     "vite-plugin-node-polyfills": "^0.23.0"
   }

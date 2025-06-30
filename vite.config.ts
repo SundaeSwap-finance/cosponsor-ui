@@ -1,10 +1,10 @@
-import tailwind from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "fs";
 import path from "path";
 import { defineConfig, PluginOption } from "vite";
 import checker from "vite-plugin-checker";
 import { nodePolyfills, PolyfillOptions } from "vite-plugin-node-polyfills";
+import tailwindcss from '@tailwindcss/vite'
 
 const polyfills: PolyfillOptions["include"] = [
   "stream",
@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === "production") {
 
 const plugins: PluginOption[] = [
   injectConfig(),
-  tailwind(),
+  tailwindcss(),
   nodePolyfills({
     globals: {
       Buffer: true,
@@ -67,6 +67,7 @@ export default defineConfig({
       "uplc-node": "uplc-web",
       "node:stream/web": "stream-browserify",
       "stream/web": "stream-browserify",
+      "@": path.resolve(__dirname, "./src"),
       // "@emurgo/cardano-message-signing-nodejs":
       //   "@emurgo/cardano-message-signing-browser",
     },

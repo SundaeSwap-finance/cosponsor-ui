@@ -17,6 +17,9 @@ export default {
       "news-bg": "url('./backgrounds/news-bg.png')",
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-geist-sans)'],
+      },
       animation: {
         text: "text 3500ms ease infinite",
         float: "float 6s ease-in-out infinite",
