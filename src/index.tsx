@@ -1,16 +1,15 @@
-import { createRoot } from "react-dom/client";
+import { createRoot } from 'react-dom/client'
 
-import { App } from "./App";
-import "./css/index.css";
-import { Providers } from "./Providers";
+import { App } from './App'
+import './css/index.css'
+import { Providers } from './Providers'
 
-const container = document.querySelector("#app");
+const container = document.querySelector('#app')
 if (container) {
-  const root = createRoot(container);
+  const root = createRoot(container)
   root.render(
-
     <Providers>
       <App />
     </Providers>
-  );
+  )
 }

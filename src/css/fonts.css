@@ -80,7 +80,7 @@
 }
 
 @theme {
-  --font-sans: "Geist", sans-serif;
+  --font-sans: 'Geist', sans-serif;
 
   --font-weight-*: initial;
   --font-weight-light: 300;
@@ -283,7 +283,6 @@
     font-weight: var(--font-weight-bold);
   }
 
-
   .text-10-li {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-10);
@@ -307,8 +306,5 @@
     font-size: var(--text-10);
     line-height: var(--text-10-line-height);
     font-weight: var(--font-weight-bold);
-  }
-  h1{
-    @apply text-h1-rg;
   }
 }

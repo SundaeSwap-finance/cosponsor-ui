@@ -1,1 +1,1 @@
-export { config as default } from "@sundaeswap/prettier-config";
+export { config as default } from '@sundaeswap/prettier-config'
