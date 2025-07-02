@@ -1,8 +1,8 @@
 import { FC, useState } from 'react'
 import { IconCardano } from '@/icons/IconCardano'
 import { LayoutDashboard, LayoutGrid, LogIn, LogOut, PanelLeftClose } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ButtonSideNav } from '@/components/ButtonSideNav'
+import { Button } from '@/components/shadcn/button'
+import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { RenderWallet, RenderWalletState } from '@sundaeswap/wallet-lite'
 
 export const Sidebar: FC = () => {
@@ -26,7 +26,7 @@ export const Sidebar: FC = () => {
 
   return (
     <div
-      className={`bg-surface-muted flex h-full min-h-screen flex-col justify-between transition-all duration-500 ${expanded ? 'w-62' : 'w-17'}`}
+      className={`bg-sun-surface-muted flex h-full min-h-screen flex-col justify-between transition-all duration-500 ${expanded ? 'w-62' : 'w-17'}`}
     >
       <div className={'flex h-full w-full flex-col'}>
         <div className="flex h-17 flex-row items-center justify-between px-4">
@@ -41,7 +41,7 @@ export const Sidebar: FC = () => {
             title={expanded ? 'Collapse' : 'Expand'}
           >
             <PanelLeftClose
-              className={`text-content-muted size-4 transition-transform duration-300 ${expanded ? '' : 'rotate-180'}`}
+              className={`text-sun-muted size-4 transition-transform duration-300 ${expanded ? '' : 'rotate-180'}`}
             />
           </Button>
         </div>
@@ -62,12 +62,10 @@ export const Sidebar: FC = () => {
             {/*TODO: get the icon of the connected wallet here instead of the ADA logo.*/}
             <IconCardano classSvg={`size-6 shrink-0 fill-action-primary  `} />
             <div className={'flex h-full w-full min-w-0 flex-col gap-0.5'}>
-              <div className={'text-14-md text-content-header w-full leading-3.5 capitalize'}>
+              <div className={'text-14-md text-sun-header w-full leading-3.5 capitalize'}>
                 {activeWallet ?? 'Connect a wallet'}
               </div>
-              <div className={'text-12-rg text-content-header w-full truncate'}>
-                {usedAddresses}
-              </div>
+              <div className={'text-12-rg text-sun-header w-full truncate'}>{usedAddresses}</div>
             </div>
             <Button
               title="Log out"
@@ -77,10 +75,10 @@ export const Sidebar: FC = () => {
               className={'size-4'}
             >
               <LogIn
-                className={`text-content-muted size-4 shrink-0 ${activeWallet ? 'hidden' : 'block'}`}
+                className={`text-sun-muted size-4 shrink-0 ${activeWallet ? 'hidden' : 'block'}`}
               />
               <LogOut
-                className={`text-content-muted size-4 shrink-0 ${activeWallet ? 'block' : 'hidden'}`}
+                className={`text-sun-muted size-4 shrink-0 ${activeWallet ? 'block' : 'hidden'}`}
               />
             </Button>
           </div>

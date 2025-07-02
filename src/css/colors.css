@@ -2,44 +2,44 @@
 
   --color-*: initial;
 
-  --color-primary-default: #66a8ea;
-  --color-secondary-default: #dc53de;
-  --color-primary-muted: #4092E51F; /* 12% opacity */
-  --color-secondary-muted: #D328D61F; /* 12% opacity */
+  --color-sun-primary-default: #66a8ea;
+  --color-sun-secondary-default: #dc53de;
+  --color-sun-primary-muted: #4092E51F; /* 12% opacity */
+  --color-sun-secondary-muted: #D328D61F; /* 12% opacity */
 
-  --color-content-body-secondary: #B8B3C3; /* text-body-secondary */
+  --color-sun-content-body-secondary: #B8B3C3; /* text-body-secondary */
 
-  --color-success-primary: #58C7BA;
-  --color-success-muted: #58C7BA1F; /* 12% opacity */
+  --color-sun-success-primary: #58C7BA;
+  --color-sun-success-muted: #58C7BA1F; /* 12% opacity */
 
 
-  --color-border-tertiary: #E6E4E8;
+  --color-sun-border-tertiary: #E6E4E8;
 
   /* ABOVE is in components section Figma ONLY*/
   /* BELOW is in main section Figma. Removed text names as that creates confusing syntax in components.*/
 
-  --color-content-header:#374151; /* text-header */
-  --color-content-muted: #9EA4B0; /* text-muted */
-  --color-content-default: #6B7280; /* a.k.a. text-body */
-  --color-content-other: #828282;
-  --color-sidebar-foreground:#334155;
-  --color-muted-foreground: #64748B;
-  --color-sidebar-background: #F8FAFC;
+  --color-sun-header:#374151; /* a.k.a. text-header */
+  --color-sun-muted: #9EA4B0; /* a.k.a. text-muted */
+  --color-sun-default: #6B7280; /* a.k.a. text-body */
+  --color-sun-other: #828282;
+  --color-sun-sidebar-foreground:#334155;
+  --color-sun-muted-foreground: #64748B;
+  --color-sun-sidebar-background: #F8FAFC;
 
-  --color-action-primary: #0F172A;
-  --color-action-secondary: #e5e8ec;
-  --color-action-tertiary: #1D4ED8;
+  --color-sun-action-primary: #0F172A;
+  --color-sun-action-secondary: #e5e8ec;
+  --color-sun-action-tertiary: #1D4ED8;
 
-  --color-border-primary: #E5E7EB;
-  --color-border-secondary: #E2E8F0;
-  --color-surface-muted: #F1F5F9;
-  --color-surface-gray: #F9FAFB;
+  --color-sun-border-primary: #E5E7EB;
+  --color-sun-border-secondary: #E2E8F0;
+  --color-sun-surface-muted: #F1F5F9;
+  --color-sun-surface-gray: #F9FAFB;
 
-  --color-highlight-primary: #D328D6;
-  --color-highlight-secondary: #4092E5;
-  --color-error: #BE123C;
-  --color-white-pure: #FFFFFF;
-  --color-black-pure: #000000;
-  --color-ada: #1D4ED8;
-  --color-gada: #501DD3;
+  --color-sun-highlight-primary: #D328D6;
+  --color-sun-highlight-secondary: #4092E5;
+  --color-sun-error: #BE123C;
+  --color-sun-white-pure: #FFFFFF;
+  --color-sun-black-pure: #000000;
+  --color-sun-ada: #1D4ED8;
+  --color-sun-gada: #501DD3;
 }

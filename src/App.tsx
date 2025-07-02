@@ -1,11 +1,19 @@
-import { FC } from 'react'
-import { Sidebar } from './components/Sidebar'
+import { FC, StrictMode } from 'react'
+import { Sidebar } from './components/sidebar/Sidebar'
+import { Providers } from '@/components/Providers'
+import { Outlet } from 'react-router-dom'
 
 export const App: FC = () => {
   return (
-    <div className={`flex min-h-screen flex-row`}>
-      <Sidebar />
-      <div className="pt-32 pl-32">Page content here</div>
-    </div>
+    <StrictMode>
+      <Providers>
+        <div className={`flex min-h-screen w-full flex-row`}>
+          <Sidebar />
+          <div className="h-full w-full pt-32 pl-32">
+            <Outlet />
+          </div>
+        </div>
+      </Providers>
+    </StrictMode>
   )
 }

@@ -1,15 +1,10 @@
 import { createRoot } from 'react-dom/client'
-
-import { App } from './App'
+import { RouterProvider } from 'react-router-dom'
 import './css/index.css'
-import { Providers } from './components/Providers'
+import { router } from '@/Router'
 
 const container = document.querySelector('#app')
 if (container) {
   const root = createRoot(container)
-  root.render(
-    <Providers>
-      <App />
-    </Providers>
-  )
+  root.render(<RouterProvider router={router} />)
 }
