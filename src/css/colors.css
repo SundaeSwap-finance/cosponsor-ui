@@ -1,45 +1,43 @@
 @theme {
-
   --color-*: initial;
 
   --color-sun-primary-default: #66a8ea;
   --color-sun-secondary-default: #dc53de;
-  --color-sun-primary-muted: #4092E51F; /* 12% opacity */
-  --color-sun-secondary-muted: #D328D61F; /* 12% opacity */
+  --color-sun-primary-muted: #4092e51f; /* 12% opacity */
+  --color-sun-secondary-muted: #d328d61f; /* 12% opacity */
 
-  --color-sun-content-body-secondary: #B8B3C3; /* text-body-secondary */
+  --color-sun-content-body-secondary: #b8b3c3; /* text-body-secondary */
 
-  --color-sun-success-primary: #58C7BA;
-  --color-sun-success-muted: #58C7BA1F; /* 12% opacity */
+  --color-sun-success-primary: #58c7ba;
+  --color-sun-success-muted: #58c7ba1f; /* 12% opacity */
 
-
-  --color-sun-border-tertiary: #E6E4E8;
+  --color-sun-border-tertiary: #e6e4e8;
 
   /* ABOVE is in components section Figma ONLY*/
   /* BELOW is in main section Figma. Removed text names as that creates confusing syntax in components.*/
 
-  --color-sun-header:#374151; /* a.k.a. text-header */
-  --color-sun-muted: #9EA4B0; /* a.k.a. text-muted */
-  --color-sun-default: #6B7280; /* a.k.a. text-body */
+  --color-sun-header: #374151; /* a.k.a. text-header */
+  --color-sun-muted: #9ea4b0; /* a.k.a. text-muted */
+  --color-sun-default: #6b7280; /* a.k.a. text-body */
   --color-sun-other: #828282;
-  --color-sun-sidebar-foreground:#334155;
-  --color-sun-muted-foreground: #64748B;
-  --color-sun-sidebar-background: #F8FAFC;
+  --color-sun-sidebar-foreground: #334155;
+  --color-sun-muted-foreground: #64748b;
+  --color-sun-sidebar-background: #f8fafc;
 
-  --color-sun-action-primary: #0F172A;
+  --color-sun-action-primary: #0f172a;
   --color-sun-action-secondary: #e5e8ec;
-  --color-sun-action-tertiary: #1D4ED8;
+  --color-sun-action-tertiary: #1d4ed8;
 
-  --color-sun-border-primary: #E5E7EB;
-  --color-sun-border-secondary: #E2E8F0;
-  --color-sun-surface-muted: #F1F5F9;
-  --color-sun-surface-gray: #F9FAFB;
+  --color-sun-border-primary: #e5e7eb;
+  --color-sun-border-secondary: #e2e8f0;
+  --color-sun-surface-muted: #f1f5f9;
+  --color-sun-surface-gray: #f9fafb;
 
-  --color-sun-highlight-primary: #D328D6;
-  --color-sun-highlight-secondary: #4092E5;
-  --color-sun-error: #BE123C;
-  --color-sun-white-pure: #FFFFFF;
+  --color-sun-highlight-primary: #d328d6;
+  --color-sun-highlight-secondary: #4092e5;
+  --color-sun-error: #be123c;
+  --color-sun-white-pure: #ffffff;
   --color-sun-black-pure: #000000;
-  --color-sun-ada: #1D4ED8;
-  --color-sun-gada: #501DD3;
+  --color-sun-ada: #1d4ed8;
+  --color-sun-gada: #501dd3;
 }

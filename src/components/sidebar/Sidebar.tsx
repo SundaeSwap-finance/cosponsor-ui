@@ -26,7 +26,7 @@ export const Sidebar: FC = () => {
 
   return (
     <div
-      className={`bg-sun-surface-muted flex h-full min-h-screen flex-col justify-between transition-all duration-500 ${expanded ? 'w-62' : 'w-17'}`}
+      className={`bg-sun-surface-muted flex h-full min-h-screen shrink-0 flex-col justify-between transition-all duration-500 ${expanded ? 'w-62' : 'w-17'}`}
     >
       <div className={'flex h-full w-full flex-col'}>
         <div className="flex h-17 flex-row items-center justify-between px-4">

@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { App } from '@/App'
-import { Proposals } from '@/pages/Proposals'
+import { PageProposals } from '@/pages/PageProposals'
 
 export const router = createBrowserRouter([
   {
@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Home
-        element: <Proposals />,
+        element: <PageProposals />,
       },
       // {
       //   path: '/overview',

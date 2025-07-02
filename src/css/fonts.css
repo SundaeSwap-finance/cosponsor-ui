@@ -86,6 +86,7 @@
   --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
   --text-*: initial;
@@ -126,6 +127,12 @@
     line-height: var(--text-heading-1-line-height);
     font-weight: var(--font-weight-medium);
   }
+  .text-h1-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-heading-1);
+    line-height: var(--text-heading-1-line-height);
+    font-weight: var(--font-weight-semibold);
+  }
   .text-h1-bd {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-heading-1);
@@ -150,6 +157,12 @@
     font-size: var(--text-heading-2);
     line-height: var(--text-heading-2-line-height);
     font-weight: var(--font-weight-medium);
+  }
+  .text-h2-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-heading-2);
+    line-height: var(--text-heading-2-line-height);
+    font-weight: var(--font-weight-semibold);
   }
   .text-h2-bd {
     font-family: var(--font-sans), sans-serif;
@@ -176,6 +189,12 @@
     line-height: var(--text-heading-3-line-height);
     font-weight: var(--font-weight-medium);
   }
+  .text-h3-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-heading-3);
+    line-height: var(--text-heading-3-line-height);
+    font-weight: var(--font-weight-semibold);
+  }
   .text-h3-bd {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-heading-3);
@@ -200,6 +219,12 @@
     font-size: var(--text-20);
     line-height: var(--text-20-line-height);
     font-weight: var(--font-weight-medium);
+  }
+  .text-20-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-20);
+    line-height: var(--text-20-line-height);
+    font-weight: var(--font-weight-semibold);
   }
   .text-20-bd {
     font-family: var(--font-sans), sans-serif;
@@ -226,11 +251,17 @@
     line-height: var(--text-18-line-height);
     font-weight: var(--font-weight-medium);
   }
-  .text-18-bd {
+  .text-18-sb {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-18);
     line-height: var(--text-18-line-height);
     font-weight: var(--font-weight-bold);
+  }
+  .text-18-bd {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-18);
+    line-height: var(--text-18-line-height);
+    font-weight: var(--font-weight-semibold);
   }
 
   .text-14-li {
@@ -250,6 +281,12 @@
     font-size: var(--text-14);
     line-height: var(--text-14-line-height);
     font-weight: var(--font-weight-medium);
+  }
+  .text-14-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-14);
+    line-height: var(--text-14-line-height);
+    font-weight: var(--font-weight-semibold);
   }
   .text-14-bd {
     font-family: var(--font-sans), sans-serif;
@@ -276,6 +313,12 @@
     line-height: var(--text-12-line-height);
     font-weight: var(--font-weight-medium);
   }
+  .text-12-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-12);
+    line-height: var(--text-12-line-height);
+    font-weight: var(--font-weight-semibold);
+  }
   .text-12-bd {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-12);
@@ -300,6 +343,12 @@
     font-size: var(--text-10);
     line-height: var(--text-10-line-height);
     font-weight: var(--font-weight-medium);
+  }
+  .text-10-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-10);
+    line-height: var(--text-10-line-height);
+    font-weight: var(--font-weight-semibold);
   }
   .text-10-bd {
     font-family: var(--font-sans), sans-serif;

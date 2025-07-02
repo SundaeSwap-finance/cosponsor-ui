@@ -5,3 +5,4 @@ coverage
 .github
 **/*.md
 **/*.d.ts
+/src/components/shadcn/*
