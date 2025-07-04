@@ -2,8 +2,53 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalTag } from '@/components/proposals/BadgeProposalTag'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
+import { CardProposalProgress } from '@/components/proposals/CardProposalProgress'
+import { CardProposalUserPledged } from '@/components/proposals/CardProposalUserPledged'
+import { CardProposalExpired } from '@/components/proposals/CardProposalExpired'
+import { useEffect, useState } from 'react'
+import { useGetProposalCardData } from '@/composables/useGetProposalData'
+import { iProposalCardData } from '@/types/Proposal'
+import { getShortDate } from '@/composables/useDateTime'
 
-export const CardProposal = () => {
+// This contains large amounts of placeholders.
+
+export const CardProposal = ({ proposalId }: { proposalId: string }) => {
+  const [proposal, setProposal] = useState<iProposalCardData>()
+
+  useEffect(() => {
+    useGetProposalCardData(proposalId).then((response) => setProposal(response))
+  })
+
+  const completionPercentage = () => {
+    if (proposal?.pledgedAmount && proposal?.requestedBudget) {
+      return ((proposal?.pledgedAmount / proposal?.requestedBudget) * 100).toPrecision(4)
+    }
+    return 'n/a'
+  }
+
+  const ProposalStatusCard = () => {
+    if (proposal && proposal.expiryDate.getTime() < new Date().getTime()) {
+      return <CardProposalExpired userPledge={proposal?.userPledged} />
+    } else if (proposal && proposal?.userPledged) {
+      return (
+        <CardProposalUserPledged
+          fundProgress={proposal?.pledgedAmount}
+          reqBudget={proposal?.requestedBudget}
+          userPledge={proposal?.userPledged}
+        />
+      )
+    } else if (proposal) {
+      return (
+        <CardProposalProgress
+          fundProgress={proposal?.pledgedAmount}
+          reqBudget={proposal?.requestedBudget}
+        />
+      )
+    } else {
+      return <></>
+    }
+  }
+
   return (
     <div
       className={
@@ -14,48 +59,46 @@ export const CardProposal = () => {
         <div className={'text-sun-muted text-12-md flex flex-row gap-2'}>
           <div>Created by</div>
           <div className={'text-sun-default underline decoration-dotted underline-offset-3'}>
-            @placeholder
+            {proposal?.ownerId}
           </div>
         </div>
-        <BadgeProposalPercent percentage={33} />
+        <BadgeProposalPercent percentage={completionPercentage()} />
       </div>
 
       <div className={'flex min-h-25 w-full flex-col gap-4 px-6 py-4'}>
         <div className={'flex flex-col gap-2'}>
-          <h2 className={'text-sun-header text-18-sb'}> Title Placeholder</h2>
+          <h2 className={'text-sun-header text-18-sb'}> {proposal?.name}</h2>
           <div className={'flex flex-row gap-4'}>
             <div className={'flex flex-row gap-1'}>
               <div className={'text-12-md text-sun-default'}>Proposed on</div>
-              <div className={'text-12-md text-sun-muted'}>32/32/32</div>
+              <div className={'text-12-md text-sun-muted'}>{getShortDate(proposal?.initDate)}</div>
             </div>
             <div className={'flex flex-row gap-1'}>
               <div className={'text-12-md text-sun-default'}>Expires on</div>
-              <div className={'text-12-md text-sun-muted'}>32/32/32</div>
+              <div className={'text-12-md text-sun-muted'}>
+                {getShortDate(proposal?.expiryDate)}
+              </div>
             </div>
-            <BadgeProposalTag tagName="Hard Fork" />
+            {/*TODO create tag structure and get that data here.*/}
+            <BadgeProposalTag tagName={proposal?.tagName as string} />
           </div>
         </div>
-        <div>TODO: Variable content here, fund progress or your pledge or unfunded</div>
+        <>
+          <ProposalStatusCard />
+        </>
         <div className={'flex w-full flex-row gap-4'}>
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted text-12-md'}>Company</div>
-            <div className={'text-14-md text-sun-default'}>Sunday Labs Inc.</div>
+            <div className={'text-14-md text-sun-default'}>{proposal?.companyName}</div>
           </div>
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted text-12-md'}>Domain</div>
-            <div className={'text-14-md text-sun-default'}>sundae.fi</div>
+            <div className={'text-14-md text-sun-default'}>{proposal?.domain}</div>
           </div>
         </div>
         <div className={'flex w-full flex-col gap-1.5'}>
           <div className={'text-sun-muted text-12-md'}>Abstract</div>
-          <div className={'text-14-md text-sun-header line-clamp-4'}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-            mollit anim id est laborum.
-          </div>
+          <div className={'text-14-md text-sun-header line-clamp-4'}>{proposal?.abstract}</div>
         </div>
       </div>
       <div className={'flex w-full flex-row gap-2 px-6 py-4'}>

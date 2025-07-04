@@ -1,0 +1,12 @@
+export const getShortDate = (date: Date) => {
+  if (!date) {
+    return 'n/a'
+  }
+  const options: Intl.DateTimeFormatOptions = {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+  }
+  // Make sure to display forward slash in returning string by finding all non-numerical values.
+  return date.toLocaleString(undefined, options).replace(/\D/g, '/')
+}

@@ -1,4 +1,4 @@
-export const BadgeProposalPercent = ({ percentage }: { percentage: number }) => {
+export const BadgeProposalPercent = ({ percentage }: { percentage: string }) => {
   return (
     <div
       className={

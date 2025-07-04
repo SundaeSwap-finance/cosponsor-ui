@@ -1,7 +1,7 @@
 import { FC } from 'react'
 import { Button } from '@/components/shadcn/button'
 import { InputIcon } from '@/components/input/InputIcon'
-import { ListFilter, Search } from 'lucide-react'
+import { ArrowUpRight, ListFilter, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CardProposal } from '@/components/proposals/CardProposal'
 
@@ -16,10 +16,7 @@ export const PageProposals: FC = () => {
           }
         >
           <div className={'flex flex-col gap-4'}>
-            <h1 className={'text-sun-header text-h2-md leading-12'}>
-              Work in progress: <br />
-              All Proposals
-            </h1>
+            <h1 className={'text-sun-header text-h2-md leading-12'}>All Proposals</h1>
             <div className={'text-14-rg text-sun-default'}>Lorem ipsum</div>
           </div>
           <div className={'flex w-fit flex-row items-end gap-2'}>
@@ -37,13 +34,19 @@ export const PageProposals: FC = () => {
           </div>
         </div>
       </div>
-      <div>
-        <div className={'flex flex-row gap-6'}>
-          <h2>Hard Fork</h2>
-          <Button> See All</Button>
+      <div className={'flex flex-col gap-4.5'}>
+        <div className={'flex flex-row items-center gap-6'}>
+          <h2 className={'text-24-md'}>Hard Fork</h2>
+          <Button variant="secondary">
+            See All
+            <ArrowUpRight />
+          </Button>
         </div>
-        <div className={'flex flex-row gap-2'}>
-          <CardProposal />
+        <div className={'flex h-full flex-row flex-wrap gap-2'}>
+          <CardProposal proposalId={'0'} />
+          <CardProposal proposalId={'1'} />
+          <CardProposal proposalId={'2'} />
+          <CardProposal proposalId={'3'} />
         </div>
       </div>
     </div>

@@ -96,10 +96,14 @@
   --text-heading-2-line-height: 47px;
   --text-heading-3: 32px;
   --text-heading-3-line-height: 39px;
+  --text-24: 24px;
+  --text-24-line-height: 26px;
   --text-20: 20px;
   --text-20-line-height: 26px;
   --text-18: 18px;
   --text-18-line-height: 23px;
+  --text-16: 16px;
+  --text-16-line-height: 20px;
   --text-14: 14px;
   --text-14-line-height: 18px;
   --text-12: 12px;
@@ -202,6 +206,38 @@
     font-weight: var(--font-weight-bold);
   }
 
+  .text-24-li {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-24);
+    line-height: var(--text-24-line-height);
+    font-weight: var(--font-weight-light);
+  }
+  .text-24-rg {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-24);
+    line-height: var(--text-24-line-height);
+    font-weight: var(--font-weight-regular);
+  }
+  .text-24-md {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-24);
+    line-height: var(--text-24-line-height);
+    font-weight: var(--font-weight-medium);
+  }
+  .text-24-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-24);
+    line-height: var(--text-24-line-height);
+    font-weight: var(--font-weight-semibold);
+  }
+  .text-24-bd {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-24);
+    line-height: var(--text-24-line-height);
+    font-weight: var(--font-weight-bold);
+  }
+
+
   .text-20-li {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-20);
@@ -255,13 +291,44 @@
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-18);
     line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-semibold);
   }
   .text-18-bd {
     font-family: var(--font-sans), sans-serif;
     font-size: var(--text-18);
     line-height: var(--text-18-line-height);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-16-li {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--text-16-line-height);
+    font-weight: var(--font-weight-light);
+  }
+  .text-16-rg {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--text-16-line-height);
+    font-weight: var(--font-weight-regular);
+  }
+  .text-16-md {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--text-16-line-height);
+    font-weight: var(--font-weight-medium);
+  }
+  .text-16-sb {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--text-16-line-height);
     font-weight: var(--font-weight-semibold);
+  }
+  .text-16-bd {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--text-16-line-height);
+    font-weight: var(--font-weight-bold);
   }
 
   .text-14-li {
