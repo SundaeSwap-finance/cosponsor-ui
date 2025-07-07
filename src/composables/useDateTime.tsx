@@ -1,4 +1,4 @@
-export const getShortDate = (date: Date) => {
+export const getShortDate = (date: Date | undefined) => {
   if (!date) {
     return 'n/a'
   }

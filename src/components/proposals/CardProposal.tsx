@@ -2,52 +2,33 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalTag } from '@/components/proposals/BadgeProposalTag'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { CardProposalProgress } from '@/components/proposals/CardProposalProgress'
-import { CardProposalUserPledged } from '@/components/proposals/CardProposalUserPledged'
-import { CardProposalExpired } from '@/components/proposals/CardProposalExpired'
-import { useEffect, useState } from 'react'
-import { useGetProposalCardData } from '@/composables/useGetProposalData'
+import { useEffect, useMemo, useState } from 'react'
+import { getProposalCardData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
-
-// This contains large amounts of placeholders.
+import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 
 export const CardProposal = ({ proposalId }: { proposalId: string }) => {
   const [proposal, setProposal] = useState<iProposalCardData>()
+  const [expired, setExpired] = useState<boolean>()
+
+  const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
+  const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
 
   useEffect(() => {
-    useGetProposalCardData(proposalId).then((response) => setProposal(response))
-  })
+    getProposalCardData(proposalId).then((response) => {
+      if (response) {
+        setProposal(response)
+      }
+    })
+  }, [proposalId])
 
-  const completionPercentage = () => {
+  const completionPercentage = useMemo(() => {
     if (proposal?.pledgedAmount && proposal?.requestedBudget) {
       return ((proposal?.pledgedAmount / proposal?.requestedBudget) * 100).toPrecision(4)
     }
     return 'n/a'
-  }
-
-  const ProposalStatusCard = () => {
-    if (proposal && proposal.expiryDate.getTime() < new Date().getTime()) {
-      return <CardProposalExpired userPledge={proposal?.userPledged} />
-    } else if (proposal && proposal?.userPledged) {
-      return (
-        <CardProposalUserPledged
-          fundProgress={proposal?.pledgedAmount}
-          reqBudget={proposal?.requestedBudget}
-          userPledge={proposal?.userPledged}
-        />
-      )
-    } else if (proposal) {
-      return (
-        <CardProposalProgress
-          fundProgress={proposal?.pledgedAmount}
-          reqBudget={proposal?.requestedBudget}
-        />
-      )
-    } else {
-      return <></>
-    }
-  }
+  }, [proposal?.pledgedAmount, proposal?.requestedBudget])
 
   return (
     <div
@@ -59,10 +40,10 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
         <div className={'text-sun-muted text-12-md flex flex-row gap-2'}>
           <div>Created by</div>
           <div className={'text-sun-default underline decoration-dotted underline-offset-3'}>
-            {proposal?.ownerId}
+            @{proposal?.ownerId}
           </div>
         </div>
-        <BadgeProposalPercent percentage={completionPercentage()} />
+        <BadgeProposalPercent percentage={completionPercentage} />
       </div>
 
       <div className={'flex min-h-25 w-full flex-col gap-4 px-6 py-4'}>
@@ -71,21 +52,16 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
           <div className={'flex flex-row gap-4'}>
             <div className={'flex flex-row gap-1'}>
               <div className={'text-12-md text-sun-default'}>Proposed on</div>
-              <div className={'text-12-md text-sun-muted'}>{getShortDate(proposal?.initDate)}</div>
+              <div className={'text-12-md text-sun-muted'}>{initDate}</div>
             </div>
             <div className={'flex flex-row gap-1'}>
               <div className={'text-12-md text-sun-default'}>Expires on</div>
-              <div className={'text-12-md text-sun-muted'}>
-                {getShortDate(proposal?.expiryDate)}
-              </div>
+              <div className={'text-12-md text-sun-muted'}>{expiryDate}</div>
             </div>
-            {/*TODO create tag structure and get that data here.*/}
             <BadgeProposalTag tagName={proposal?.tagName as string} />
           </div>
         </div>
-        <>
-          <ProposalStatusCard />
-        </>
+        <ProposalStatusCardBase proposal={proposal} />
         <div className={'flex w-full flex-row gap-4'}>
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted text-12-md'}>Company</div>

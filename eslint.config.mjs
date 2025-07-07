@@ -6,6 +6,7 @@ import globals from 'globals'
 import vitest from '@vitest/eslint-plugin'
 import pluginJs from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import reactHooks from 'eslint-plugin-react-hooks'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -49,6 +50,8 @@ const eslintConfig = [
   {
     ignores: ['node_modules', '.output', 'dist'],
   },
+
+  reactHooks.configs['recommended-latest'],
 ]
 
 export default eslintConfig

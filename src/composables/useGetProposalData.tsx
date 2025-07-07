@@ -1,9 +1,11 @@
 import { iProposalCardData } from '@/types/Proposal'
 
-export const useGetProposalCardData = async (id: string): Promise<iProposalCardData> => {
-  // TODO: implement getting data from BE here.
+export const getProposalData = () => {}
 
+export const getProposalCardData = async (id: string): Promise<iProposalCardData> => {
+  // TODO: implement getting data from BE here.
   await setTimeout(() => {}, 1000)
+
   // Placeholder results below
   // \/       \/          \/
   if (id === '0') {
