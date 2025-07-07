@@ -6,7 +6,7 @@ export const ButtonGradient = ({ className, ...props }: React.ComponentProps<'bu
   return (
     <Button
       className={cn(
-        'from-sun-highlight-primary to-sun-highlight-secondary bg-gradient-to-r',
+        'from-sun-highlight-primary to-sun-highlight-secondary bg-gradient-to-r hover:opacity-90',
         className
       )}
       {...props}

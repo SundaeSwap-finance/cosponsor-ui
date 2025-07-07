@@ -7,10 +7,11 @@ import { getProposalCardData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
+import { cn } from '@/lib/utils'
 
 export const CardProposal = ({ proposalId }: { proposalId: string }) => {
   const [proposal, setProposal] = useState<iProposalCardData>()
-  const [expired, setExpired] = useState<boolean>()
+  const [isExpired, setIsExpired] = useState<boolean>()
 
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
@@ -30,14 +31,36 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
     return 'n/a'
   }, [proposal?.pledgedAmount, proposal?.requestedBudget])
 
+  useEffect(() => {
+    if (!proposal || isExpired) {
+      return
+    }
+    let timer: Timer | undefined
+
+    const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
+
+    if (timeRemaining <= 0) {
+      setIsExpired(true)
+    } else {
+      // Set a timer to re-run this check at the exact moment of expiration
+      timer = setTimeout(() => {
+        setIsExpired(true)
+      }, timeRemaining)
+    }
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [proposal, isExpired])
+
   return (
     <div
       className={
-        'border-sun-border-secondary divide-sun-border-primary flex h-full w-full max-w-100 flex-col divide-y rounded-xl border'
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-100 flex-col divide-y rounded-xl border'
       }
     >
       <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
-        <div className={'text-sun-muted text-12-md flex flex-row gap-2'}>
+        <div className={'text-sun-muted sun-text-12-md flex flex-row gap-2'}>
           <div>Created by</div>
           <div className={'text-sun-default underline decoration-dotted underline-offset-3'}>
             @{proposal?.ownerId}
@@ -46,40 +69,55 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
         <BadgeProposalPercent percentage={completionPercentage} />
       </div>
 
-      <div className={'flex min-h-25 w-full flex-col gap-4 px-6 py-4'}>
+      <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
         <div className={'flex flex-col gap-2'}>
-          <h2 className={'text-sun-header text-18-sb'}> {proposal?.name}</h2>
+          <h2 className={'text-sun-header sun-text-18-sb'}> {proposal?.name}</h2>
           <div className={'flex flex-row gap-4'}>
             <div className={'flex flex-row gap-1'}>
-              <div className={'text-12-md text-sun-default'}>Proposed on</div>
-              <div className={'text-12-md text-sun-muted'}>{initDate}</div>
+              <div className={'sun-text-12-md text-sun-default'}>Proposed on</div>
+              <div className={'sun-text-12-md text-sun-muted'}>{initDate}</div>
             </div>
             <div className={'flex flex-row gap-1'}>
-              <div className={'text-12-md text-sun-default'}>Expires on</div>
-              <div className={'text-12-md text-sun-muted'}>{expiryDate}</div>
+              <div className={'sun-text-12-md text-sun-default'}>Expires on</div>
+              <div className={'sun-text-12-md text-sun-muted'}>{expiryDate}</div>
             </div>
             <BadgeProposalTag tagName={proposal?.tagName as string} />
           </div>
         </div>
-        <ProposalStatusCardBase proposal={proposal} />
+        <ProposalStatusCardBase proposal={proposal} isExpired={isExpired} />
         <div className={'flex w-full flex-row gap-4'}>
           <div className={'flex w-full flex-col gap-1.5'}>
-            <div className={'text-sun-muted text-12-md'}>Company</div>
-            <div className={'text-14-md text-sun-default'}>{proposal?.companyName}</div>
+            <div className={'text-sun-muted sun-text-12-md'}>Company</div>
+            <div className={'sun-text-14-md text-sun-default'}>{proposal?.companyName}</div>
           </div>
           <div className={'flex w-full flex-col gap-1.5'}>
-            <div className={'text-sun-muted text-12-md'}>Domain</div>
-            <div className={'text-14-md text-sun-default'}>{proposal?.domain}</div>
+            <div className={'text-sun-muted sun-text-12-md'}>Domain</div>
+            <div className={'sun-text-14-md text-sun-default'}>{proposal?.domain}</div>
           </div>
         </div>
         <div className={'flex w-full flex-col gap-1.5'}>
-          <div className={'text-sun-muted text-12-md'}>Abstract</div>
-          <div className={'text-14-md text-sun-header line-clamp-4'}>{proposal?.abstract}</div>
+          <div className={'text-sun-muted sun-text-12-md'}>Abstract</div>
+          <div
+            className={cn(
+              proposal?.userPledged && !isExpired ? 'line-clamp-3' : 'line-clamp-4',
+              'sun-text-14-md text-sun-header'
+            )}
+          >
+            {proposal?.abstract}
+          </div>
         </div>
       </div>
       <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
-        <Button className={'flex-1'}>View Details</Button>
-        <ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>
+        {isExpired ? (
+          <Button className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}>
+            Withdraw Your Pledge
+          </Button>
+        ) : (
+          <>
+            <Button className={'flex-1'}>View Details</Button>
+            <ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>
+          </>
+        )}
       </div>
     </div>
   )

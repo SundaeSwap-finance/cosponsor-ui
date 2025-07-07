@@ -91,336 +91,96 @@
 
   --text-*: initial;
   --text-heading-1: 44px;
-  --text-heading-1-line-height: 55px;
+  --leading-sun-heading-1: 55px;
   --text-heading-2: 36px;
-  --text-heading-2-line-height: 47px;
+  --leading-sun-heading-2: 47px;
   --text-heading-3: 32px;
-  --text-heading-3-line-height: 39px;
+  --leading-sun-heading-3: 39px;
   --text-24: 24px;
-  --text-24-line-height: 26px;
+  --leading-sun-24: 26px;
   --text-20: 20px;
-  --text-20-line-height: 26px;
+  --leading-sun-20: 26px;
   --text-18: 18px;
-  --text-18-line-height: 23px;
+  --leading-sun-18: 23px;
   --text-16: 16px;
-  --text-16-line-height: 20px;
+  --leading-sun-16: 20px;
   --text-14: 14px;
-  --text-14-line-height: 18px;
+  --leading-sun-14: 18px;
   --text-12: 12px;
-  --text-12-line-height: 16px;
+  --leading-sun-12: 16px;
   --text-10: 10px;
-  --text-10-line-height: 13px;
+  --leading-sun-10: 13px;
 }
 
 @layer components {
-  .text-h1-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-1);
-    line-height: var(--text-heading-1-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-h1-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-1);
-    line-height: var(--text-heading-1-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-h1-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-1);
-    line-height: var(--text-heading-1-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-h1-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-1);
-    line-height: var(--text-heading-1-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-h1-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-1);
-    line-height: var(--text-heading-1-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* Heading 1 - 44px */
+  .sun-text-h1-li { @apply font-sans text-heading-1 leading-sun-heading-1 font-light; }
+  .sun-text-h1-rg { @apply font-sans text-heading-1 leading-sun-heading-1 font-regular; }
+  .sun-text-h1-md { @apply font-sans text-heading-1 leading-sun-heading-1 font-medium; }
+  .sun-text-h1-sb { @apply font-sans text-heading-1 leading-sun-heading-1 font-semibold; }
+  .sun-text-h1-bd { @apply font-sans text-heading-1 leading-sun-heading-1 font-bold; }
 
-  .text-h2-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-2);
-    line-height: var(--text-heading-2-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-h2-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-2);
-    line-height: var(--text-heading-2-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-h2-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-2);
-    line-height: var(--text-heading-2-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-h2-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-2);
-    line-height: var(--text-heading-2-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-h2-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-2);
-    line-height: var(--text-heading-2-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* Heading 2 - 36px */
+  .sun-text-h2-li { @apply font-sans text-heading-2 leading-sun-heading-2 font-light; }
+  .sun-text-h2-rg { @apply font-sans text-heading-2 leading-sun-heading-2 font-regular; }
+  .sun-text-h2-md { @apply font-sans text-heading-2 leading-sun-heading-2 font-medium; }
+  .sun-text-h2-sb { @apply font-sans text-heading-2 leading-sun-heading-2 font-semibold; }
+  .sun-text-h2-bd { @apply font-sans text-heading-2 leading-sun-heading-2 font-bold; }
 
-  .text-h3-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-3);
-    line-height: var(--text-heading-3-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-h3-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-3);
-    line-height: var(--text-heading-3-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-h3-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-3);
-    line-height: var(--text-heading-3-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-h3-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-3);
-    line-height: var(--text-heading-3-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-h3-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-heading-3);
-    line-height: var(--text-heading-3-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* Heading 3 - 32px */
+  .sun-text-h3-li { @apply font-sans text-heading-3 leading-sun-heading-3 font-light; }
+  .sun-text-h3-rg { @apply font-sans text-heading-3 leading-sun-heading-3 font-regular; }
+  .sun-text-h3-md { @apply font-sans text-heading-3 leading-sun-heading-3 font-medium; }
+  .sun-text-h3-sb { @apply font-sans text-heading-3 leading-sun-heading-3 font-semibold; }
+  .sun-text-h3-bd { @apply font-sans text-heading-3 leading-sun-heading-3 font-bold; }
 
-  .text-24-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-24);
-    line-height: var(--text-24-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-24-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-24);
-    line-height: var(--text-24-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-24-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-24);
-    line-height: var(--text-24-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-24-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-24);
-    line-height: var(--text-24-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-24-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-24);
-    line-height: var(--text-24-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 24px Text */
+  .sun-text-24-li { @apply font-sans text-24 leading-sun-24 font-light; }
+  .sun-text-24-rg { @apply font-sans text-24 leading-sun-24 font-regular; }
+  .sun-text-24-md { @apply font-sans text-24 leading-sun-24 font-medium; }
+  .sun-text-24-sb { @apply font-sans text-24 leading-sun-24 font-semibold; }
+  .sun-text-24-bd { @apply font-sans text-24 leading-sun-24 font-bold; }
 
+  /* 20px Text */
+  .sun-text-20-li { @apply font-sans text-20 leading-sun-20 font-light; }
+  .sun-text-20-rg { @apply font-sans text-20 leading-sun-20 font-regular; }
+  .sun-text-20-md { @apply font-sans text-20 leading-sun-20 font-medium; }
+  .sun-text-20-sb { @apply font-sans text-20 leading-sun-20 font-semibold; }
+  .sun-text-20-bd { @apply font-sans text-20 leading-sun-20 font-bold; }
 
-  .text-20-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-20);
-    line-height: var(--text-20-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-20-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-20);
-    line-height: var(--text-20-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-20-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-20);
-    line-height: var(--text-20-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-20-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-20);
-    line-height: var(--text-20-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-20-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-20);
-    line-height: var(--text-20-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 18px Text */
+  .sun-text-18-li { @apply font-sans text-18 leading-sun-18 font-light; }
+  .sun-text-18-rg { @apply font-sans text-18 leading-sun-18 font-regular; }
+  .sun-text-18-md { @apply font-sans text-18 leading-sun-18 font-medium; }
+  .sun-text-18-sb { @apply font-sans text-18 leading-sun-18 font-semibold; }
+  .sun-text-18-bd { @apply font-sans text-18 leading-sun-18 font-bold; }
 
-  .text-18-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-18);
-    line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-18-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-18);
-    line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-18-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-18);
-    line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-18-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-18);
-    line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-18-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-18);
-    line-height: var(--text-18-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 16px Text */
+  .sun-text-16-li { @apply font-sans text-16 leading-sun-16 font-light; }
+  .sun-text-16-rg { @apply font-sans text-16 leading-sun-16 font-regular; }
+  .sun-text-16-md { @apply font-sans text-16 leading-sun-16 font-medium; }
+  .sun-text-16-sb { @apply font-sans text-16 leading-sun-16 font-semibold; }
+  .sun-text-16-bd { @apply font-sans text-16 leading-sun-16 font-bold; }
 
-  .text-16-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-16);
-    line-height: var(--text-16-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-16-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-16);
-    line-height: var(--text-16-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-16-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-16);
-    line-height: var(--text-16-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-16-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-16);
-    line-height: var(--text-16-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-16-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-16);
-    line-height: var(--text-16-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 14px Text */
+  .sun-text-14-li { @apply font-sans text-14 leading-sun-14 font-light; }
+  .sun-text-14-rg { @apply font-sans text-14 leading-sun-14 font-regular; }
+  .sun-text-14-md { @apply font-sans text-14 leading-sun-14 font-medium; }
+  .sun-text-14-sb { @apply font-sans text-14 leading-sun-14 font-semibold; }
+  .sun-text-14-bd { @apply font-sans text-14 leading-sun-14 font-bold; }
 
-  .text-14-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-14);
-    line-height: var(--text-14-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-14-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-14);
-    line-height: var(--text-14-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-14-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-14);
-    line-height: var(--text-14-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-14-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-14);
-    line-height: var(--text-14-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-14-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-14);
-    line-height: var(--text-14-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 12px Text */
+  .sun-text-12-li { @apply font-sans text-12 leading-sun-12 font-light; }
+  .sun-text-12-rg { @apply font-sans text-12 leading-sun-12 font-regular; }
+  .sun-text-12-md { @apply font-sans text-12 leading-sun-12 font-medium; }
+  .sun-text-12-sb { @apply font-sans text-12 leading-sun-12 font-semibold; }
+  .sun-text-12-bd { @apply font-sans text-12 leading-sun-12 font-bold; }
 
-  .text-12-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-12);
-    line-height: var(--text-12-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-12-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-12);
-    line-height: var(--text-12-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-12-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-12);
-    line-height: var(--text-12-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-12-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-12);
-    line-height: var(--text-12-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-12-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-12);
-    line-height: var(--text-12-line-height);
-    font-weight: var(--font-weight-bold);
-  }
+  /* 10px Text */
+  .sun-text-10-li { @apply font-sans text-10 leading-sun-10 font-light; }
+  .sun-text-10-rg { @apply font-sans text-10 leading-sun-10 font-regular; }
+  .sun-text-10-md { @apply font-sans text-10 leading-sun-10 font-medium; }
+  .sun-text-10-sb { @apply font-sans text-10 leading-sun-10 font-semibold; }
+  .sun-text-10-bd { @apply font-sans text-10 leading-sun-10 font-bold; }
 
-  .text-10-li {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-10);
-    line-height: var(--text-10-line-height);
-    font-weight: var(--font-weight-light);
-  }
-  .text-10-rg {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-10);
-    line-height: var(--text-10-line-height);
-    font-weight: var(--font-weight-regular);
-  }
-  .text-10-md {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-10);
-    line-height: var(--text-10-line-height);
-    font-weight: var(--font-weight-medium);
-  }
-  .text-10-sb {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-10);
-    line-height: var(--text-10-line-height);
-    font-weight: var(--font-weight-semibold);
-  }
-  .text-10-bd {
-    font-family: var(--font-sans), sans-serif;
-    font-size: var(--text-10);
-    line-height: var(--text-10-line-height);
-    font-weight: var(--font-weight-bold);
-  }
 }

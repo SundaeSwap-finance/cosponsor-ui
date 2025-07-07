@@ -16,7 +16,7 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       ownerId: 'Placeholder00',
       requestedBudget: 12345,
       pledgedAmount: 8000.02345,
-      userPledged: 2000,
+      userPledged: 6000,
       initDate: new Date('2025-06-13T00:00:00.000Z'),
       expiryDate: new Date('2025-12-13T00:00:00.000Z'),
       companyName: 'Sundae Labs Inc.',

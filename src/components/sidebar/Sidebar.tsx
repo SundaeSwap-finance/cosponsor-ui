@@ -62,10 +62,12 @@ export const Sidebar: FC = () => {
             {/*TODO: get the icon of the connected wallet here instead of the ADA logo.*/}
             <IconCardano classSvg={`size-6 shrink-0 fill-action-primary  `} />
             <div className={'flex h-full w-full min-w-0 flex-col gap-0.5'}>
-              <div className={'text-14-md text-sun-header w-full leading-3.5 capitalize'}>
+              <div className={'sun-text-14-md text-sun-header w-full leading-3.5 capitalize'}>
                 {activeWallet ?? 'Connect a wallet'}
               </div>
-              <div className={'text-12-rg text-sun-header w-full truncate'}>{usedAddresses}</div>
+              <div className={'sun-text-12-rg text-sun-header w-full truncate'}>
+                {usedAddresses}
+              </div>
             </div>
             <Button
               title="Log out"

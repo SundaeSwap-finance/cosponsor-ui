@@ -9,15 +9,15 @@ export const PageProposals: FC = () => {
   return (
     <div className={'flex w-full flex-col gap-8 overflow-x-hidden overflow-y-auto'}>
       <div className={'flex h-full w-full flex-col gap-6 pr-32'}>
-        <div className={'text-muted-foreground text-14-rg'}>Breadcrumbs placeholder</div>
+        <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
         <div
           className={
             'border-b-sun-border-secondary flex h-full w-full flex-row justify-between border-b pb-6'
           }
         >
           <div className={'flex flex-col gap-4'}>
-            <h1 className={'text-sun-header text-h2-md leading-12'}>All Proposals</h1>
-            <div className={'text-14-rg text-sun-default'}>Lorem ipsum</div>
+            <h1 className={'text-sun-header sun-text-h2-md leading-12'}>All Proposals</h1>
+            <div className={'sun-text-14-rg text-sun-default'}>Lorem ipsum</div>
           </div>
           <div className={'flex w-fit flex-row items-end gap-2'}>
             <Button variant="outline" className={cn('!bg-sun-white-pure text-sun-header')}>
@@ -36,7 +36,7 @@ export const PageProposals: FC = () => {
       </div>
       <div className={'flex flex-col gap-4.5'}>
         <div className={'flex flex-row items-center gap-6'}>
-          <h2 className={'text-24-md'}>Hard Fork</h2>
+          <h2 className={'sun-text-24-md'}>Hard Fork</h2>
           <Button variant="secondary">
             See All
             <ArrowUpRight />

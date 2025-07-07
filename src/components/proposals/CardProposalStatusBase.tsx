@@ -7,33 +7,11 @@ import { useEffect, useState } from 'react'
 
 export const ProposalStatusCardBase = ({
   proposal,
+  isExpired,
 }: {
   proposal: iProposalCardData | undefined
+  isExpired?: boolean
 }) => {
-  const [isExpired, setIsExpired] = useState(false)
-
-  useEffect(() => {
-    if (!proposal || isExpired) {
-      return
-    }
-    let timer: Timer | undefined
-
-    const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
-
-    if (timeRemaining <= 0) {
-      setIsExpired(true)
-    } else {
-      // Set a timer to re-run this check at the exact moment of expiration
-      timer = setTimeout(() => {
-        setIsExpired(true)
-      }, timeRemaining)
-    }
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [proposal, isExpired])
-
   if (proposal && isExpired) {
     return <CardProposalExpired userPledge={proposal?.userPledged} />
   } else if (proposal && proposal?.userPledged) {
