@@ -2,7 +2,7 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalTag } from '@/components/proposals/BadgeProposalTag'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { useEffect, useMemo, useState } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { getProposalCardData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 export const CardProposal = ({ proposalId }: { proposalId: string }) => {
   const [proposal, setProposal] = useState<iProposalCardData>()
-  const [isExpired, setIsExpired] = useState<boolean>()
+  const [isExpired, setIsExpired] = useState<boolean>(false)
 
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
@@ -54,9 +54,10 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
   }, [proposal, isExpired])
 
   return (
+    // TODO: skeleton loading or something to prevent flicker.
     <div
       className={
-        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-100 flex-col divide-y rounded-xl border'
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-100 flex-col divide-y rounded-xl border transition-all duration-500'
       }
     >
       <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
@@ -66,7 +67,7 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
             @{proposal?.ownerId}
           </div>
         </div>
-        <BadgeProposalPercent percentage={completionPercentage} />
+        <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
       </div>
 
       <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
@@ -99,7 +100,9 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
           <div className={'text-sun-muted sun-text-12-md'}>Abstract</div>
           <div
             className={cn(
-              proposal?.userPledged && !isExpired ? 'line-clamp-3' : 'line-clamp-4',
+              proposal?.userPledged && !isExpired
+                ? 'line-clamp-2 xl:line-clamp-3'
+                : 'line-clamp-3 xl:line-clamp-4',
               'sun-text-14-md text-sun-header'
             )}
           >

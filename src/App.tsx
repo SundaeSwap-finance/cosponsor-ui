@@ -7,9 +7,9 @@ export const App: FC = () => {
   return (
     <StrictMode>
       <Providers>
-        <div className={`flex min-h-screen w-full flex-row`}>
+        <div className={`flex h-full min-h-screen w-screen flex-row`}>
           <Sidebar />
-          <div className="h-full w-full pt-32 pl-32">
+          <div className="flex h-full w-full min-w-0 pt-4 pl-4 md:pt-8 md:pl-8 lg:pt-16 lg:pl-16 xl:pt-32 xl:pl-32">
             <Outlet />
           </div>
         </div>

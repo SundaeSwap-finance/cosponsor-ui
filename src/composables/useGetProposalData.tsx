@@ -59,11 +59,43 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
       tagName: 'Treasury',
     }
+  } else if (id === '3') {
+    return {
+      id: '0',
+      name: 'A Treasury proposal 3',
+      ownerId: 'placeholder',
+      requestedBudget: 12345,
+      pledgedAmount: 2000,
+      userPledged: 0,
+      initDate: new Date('2025-06-13T00:00:00.000Z'),
+      expiryDate: new Date('2025-05-13T00:00:00.000Z'),
+      companyName: 'Sundae Labs Inc.',
+      domain: 'sundae.fi',
+      abstract:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      tagName: 'Treasury',
+    }
+  } else if (id === '4') {
+    return {
+      id: '0',
+      name: 'A Treasury proposal 4',
+      ownerId: 'placeholder',
+      requestedBudget: 12345,
+      pledgedAmount: 2000,
+      userPledged: 0,
+      initDate: new Date('2025-06-13T00:00:00.000Z'),
+      expiryDate: new Date('2025-12-13T00:00:00.000Z'),
+      companyName: 'Sundae Labs Inc.',
+      domain: 'sundae.fi',
+      abstract:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      tagName: 'Treasury',
+    }
   } else {
     // Expired
     return {
       id: '0',
-      name: 'A Hardfork proposal',
+      name: 'A Hardfork proposal else',
       ownerId: 'Sundae',
       requestedBudget: 12345,
       pledgedAmount: 8000.02345,
