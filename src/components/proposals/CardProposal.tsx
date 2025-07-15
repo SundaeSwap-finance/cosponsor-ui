@@ -1,28 +1,20 @@
 import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
-import { BadgeProposalTag } from '@/components/proposals/BadgeProposalTag'
+import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
 import { FC, useEffect, useMemo, useState } from 'react'
-import { getProposalCardData } from '@/composables/useGetProposalData'
+import { useGetProposalData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 
-export const CardProposal = ({ proposalId }: { proposalId: string }) => {
-  const [proposal, setProposal] = useState<iProposalCardData>()
+export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
+  const { getProposalCardById } = useGetProposalData()
   const [isExpired, setIsExpired] = useState<boolean>(false)
 
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
-
-  useEffect(() => {
-    getProposalCardData(proposalId).then((response) => {
-      if (response) {
-        setProposal(response)
-      }
-    })
-  }, [proposalId])
 
   const completionPercentage = useMemo(() => {
     if (proposal?.pledgedAmount && proposal?.requestedBudget) {
@@ -82,7 +74,7 @@ export const CardProposal = ({ proposalId }: { proposalId: string }) => {
               <div className={'sun-text-12-md text-sun-default'}>Expires on</div>
               <div className={'sun-text-12-md text-sun-muted'}>{expiryDate}</div>
             </div>
-            <BadgeProposalTag tagName={proposal?.tagName as string} />
+            <BadgeProposalCategory category={proposal?.categoryName as string} />
           </div>
         </div>
         <ProposalStatusCardBase proposal={proposal} isExpired={isExpired} />

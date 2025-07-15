@@ -10,5 +10,5 @@ export interface iProposalCardData {
   companyName: string
   domain: string
   abstract: string
-  tagName: string
+  categoryName: string
 }

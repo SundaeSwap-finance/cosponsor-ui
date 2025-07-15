@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { CardProposal } from '@/components/proposals/CardProposal'
 import { Button } from '@/components/shadcn/button'
 import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useScreenSize } from '@/composables/useScreenSize'
 import {
   Carousel,
   CarouselApi,
@@ -11,12 +10,19 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/shadcn/carousel'
-import useEmblaCarousel from 'embla-carousel-react'
+import { useGetProposalData } from '@/composables/useGetProposalData'
+import { iProposalCardData } from '@/types/Proposal'
+import { Link } from 'react-router-dom'
 
-export const CarouselProposals = () => {
+export const CarouselProposals = ({ categoryName }: { categoryName: string }) => {
   // TODO replace this with filtered items
-  const galleryItemIdentifiers = ['0', '1', '2', '3', '4', '5']
+  const { getProposalCardsInCategory } = useGetProposalData()
+  const [proposals, setProposals] = useState<iProposalCardData[]>()
   const [api, setApi] = useState<CarouselApi>()
+
+  useEffect(() => {
+    setProposals(getProposalCardsInCategory(categoryName))
+  }, [categoryName])
 
   const clickNext = useCallback(() => {
     if (!api) {
@@ -32,14 +38,21 @@ export const CarouselProposals = () => {
     api.scrollPrev()
   }, [api])
 
+  const getCategoryLink = () => {
+    return `/category/${encodeURIComponent(categoryName.toLowerCase())}`
+  }
+
   return (
     <div className={'flex w-full flex-col gap-4.5'}>
       <div className={'sun-page-padding-r flex flex-row items-center justify-between'}>
-        <div className={'flex flex-row items-center gap-6'}>
-          <h2 className={'sun-text-24-md'}>Category/Tag title</h2>
-          <Button variant="secondary">
-            See All
-            <ArrowUpRight />
+        <div className={categoryName ? 'hidden' : 'flex'} />
+        <div className={categoryName ? 'flex flex-row items-center gap-6' : 'hidden'}>
+          <h2 className={'sun-text-24-md'}>{categoryName}</h2>
+          <Button variant="secondary" asChild>
+            <Link to={getCategoryLink()}>
+              See All
+              <ArrowUpRight />
+            </Link>
           </Button>
         </div>
         <div className={'flex flex-row gap-2'}>
@@ -62,9 +75,9 @@ export const CarouselProposals = () => {
         >
           {/* Slide spacing is done with negative ml on content and positive pl on item, according to docs.*/}
           <CarouselContent className={'-ml-2'}>
-            {galleryItemIdentifiers.map((item, index) => (
-              <CarouselItem key={item} className={'basis-110 pl-2'}>
-                <CardProposal proposalId={item} />
+            {proposals?.map((item, index) => (
+              <CarouselItem key={item.id} className={'basis-110 pl-2'}>
+                <CardProposal proposal={item} />
               </CarouselItem>
             ))}
           </CarouselContent>

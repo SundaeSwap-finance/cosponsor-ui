@@ -89,6 +89,9 @@
   }
 
   .sun-page-padding-r {
-    @apply pr-4 md:pr-8 lg:pr-16 xl:pr-32
+    @apply pr-4 lg:pr-8 xl:pr-16
+  }
+  .sun-page-padding-rb {
+    @apply pr-4 lg:pr-8 xl:pr-16 pb-4 lg:pb-8 xl:pb-16
   }
 }

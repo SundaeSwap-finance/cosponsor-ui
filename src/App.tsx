@@ -7,10 +7,14 @@ export const App: FC = () => {
   return (
     <StrictMode>
       <Providers>
-        <div className={`flex h-full min-h-screen w-screen flex-row`}>
+        <div className={`flex min-h-screen w-full flex-row`}>
           <Sidebar />
-          <div className="flex h-full w-full min-w-0 pt-4 pl-4 md:pt-8 md:pl-8 lg:pt-16 lg:pl-16 xl:pt-32 xl:pl-32">
-            <Outlet />
+          <div className="flex h-screen w-full overflow-y-auto">
+            <div className="w-full">
+              <div className="flex w-full pt-4 pl-4 lg:pt-8 lg:pl-8 xl:pt-16 xl:pl-16">
+                <Outlet />
+              </div>
+            </div>
           </div>
         </div>
       </Providers>

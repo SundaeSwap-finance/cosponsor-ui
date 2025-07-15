@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { CardProposal } from '@/components/proposals/CardProposal'
 import { CarouselProposals } from '@/components/proposals/CarouselProposals'
 
-export const PageProposals: FC = () => {
+export const PageProposalsAll: FC = () => {
   return (
     <div className={'flex w-full flex-col gap-8 overflow-y-auto'}>
       <div className={'sun-page-padding-r flex h-full w-full flex-col gap-6'}>
@@ -35,7 +35,8 @@ export const PageProposals: FC = () => {
           </div>
         </div>
       </div>
-      <CarouselProposals />
+      <CarouselProposals categoryName={'Hardfork'} />
+      <CarouselProposals categoryName={'Treasury'} />
     </div>
   )
 }

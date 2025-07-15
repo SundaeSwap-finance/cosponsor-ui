@@ -1,16 +1,16 @@
 import { iProposalCardData } from '@/types/Proposal'
+import { useState } from 'react'
+import { CarouselApi } from '@/components/shadcn/carousel'
 
-export const getProposalData = () => {}
+export const useGetProposalData = () => {
+  const [proposalCardCache, setProposalCardCache] = useState()
 
-export const getProposalCardData = async (id: string): Promise<iProposalCardData> => {
-  // TODO: implement getting data from BE here.
-  await setTimeout(() => {}, 1000)
+  // TODO replace with BE data input
+  // TODO: implement getting/refreshing data from BE in this file.
 
-  // Placeholder results below
-  // \/       \/          \/
-  if (id === '0') {
+  const data = [
     // Partially funded, also by user
-    return {
+    {
       id: '0',
       name: 'A Hardfork proposal',
       ownerId: 'Placeholder00',
@@ -23,11 +23,11 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Hardfork',
-    }
-  } else if (id === '1') {
-    // Partially funded, not by user
-    return {
+      categoryName: 'Hardfork',
+    },
+    {
+      // Partially funded, not by user
+
       id: '1',
       name: 'A different Hardfork proposal',
       ownerId: 'TestOwner',
@@ -40,12 +40,12 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Hardfork',
-    }
-  } else if (id === '2') {
+      categoryName: 'Hardfork',
+    },
+
     // Completed funding, user has part
-    return {
-      id: '0',
+    {
+      id: '2',
       name: 'A Treasury proposal',
       ownerId: 'placeholder',
       requestedBudget: 12345,
@@ -57,11 +57,10 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Treasury',
-    }
-  } else if (id === '3') {
-    return {
-      id: '0',
+      categoryName: 'Treasury',
+    },
+    {
+      id: '3',
       name: 'A Treasury proposal 3',
       ownerId: 'placeholder',
       requestedBudget: 12345,
@@ -73,11 +72,10 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Treasury',
-    }
-  } else if (id === '4') {
-    return {
-      id: '0',
+      categoryName: 'Treasury',
+    },
+    {
+      id: '4',
       name: 'A Treasury proposal 4',
       ownerId: 'placeholder',
       requestedBudget: 12345,
@@ -89,13 +87,11 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Treasury',
-    }
-  } else {
-    // Expired
-    return {
-      id: '0',
-      name: 'A Hardfork proposal else',
+      categoryName: 'Treasury',
+    },
+    {
+      id: '5',
+      name: 'A Hardfork proposal 88',
       ownerId: 'Sundae',
       requestedBudget: 12345,
       pledgedAmount: 8000.02345,
@@ -106,9 +102,46 @@ export const getProposalCardData = async (id: string): Promise<iProposalCardData
       domain: 'sundae.fi',
       abstract:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      tagName: 'Hardfork',
+      categoryName: 'Hardfork',
+    },
+    {
+      id: '5',
+      name: 'A Hardfork proposal 999',
+      ownerId: 'Sundae',
+      requestedBudget: 12345,
+      pledgedAmount: 8000.02345,
+      userPledged: 2000,
+      initDate: new Date('2025-01-13T00:00:00.000Z'),
+      expiryDate: new Date('2025-05-13T00:00:00.000Z'),
+      companyName: 'Sundae Labs Inc.',
+      domain: 'sundae.fi',
+      abstract:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      categoryName: 'Hardfork',
+    },
+  ]
+
+  const getProposalCardById = async (id: string): Promise<iProposalCardData> => {
+    return data.filter((proposal) => proposal.id === id)[0]
+  }
+
+  const getProposalCategories = () => {
+    const setCategories = new Set()
+    for (let i = 0; i < data.length; i++) {
+      setCategories.add(data[i].categoryName)
     }
+    return Array.from(setCategories)
+  }
+
+  const getProposalCardsInCategory = (categoryName: string) => {
+    return data.filter(
+      (proposal) => proposal.categoryName.toLowerCase() === categoryName.toLowerCase()
+    )
+  }
+
+  return {
+    getProposalCardById,
+    getProposalCardsInCategory,
+    getProposalCategories,
   }
 }
-
-export const useGetProposalFullData = () => {}

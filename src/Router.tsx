@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { App } from '@/App'
-import { PageProposals } from '@/pages/PageProposals'
+import { PageProposalsAll } from '@/pages/PageProposalsAll'
+import { PageProposalsCategory } from '@/pages/PageProposalsCategory'
 
 export const router = createBrowserRouter([
   {
@@ -9,12 +10,18 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Home
-        element: <PageProposals />,
+        element: <PageProposalsAll />,
       },
-      // {
-      //   path: '/overview',
-      //   element:<Proposals />,
-      // },
+      {
+        index: false,
+        path: '/overview',
+        element: <PageProposalsAll />,
+      },
+      {
+        index: false,
+        path: '/category/:name',
+        element: <PageProposalsCategory />,
+      },
     ],
   },
 ])
