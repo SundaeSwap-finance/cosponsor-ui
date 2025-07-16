@@ -114,73 +114,172 @@
 
 @layer components {
   /* Heading 1 - 44px */
-  .sun-text-h1-li { @apply font-sans text-heading-1 leading-sun-heading-1 font-light; }
-  .sun-text-h1-rg { @apply font-sans text-heading-1 leading-sun-heading-1 font-regular; }
-  .sun-text-h1-md { @apply font-sans text-heading-1 leading-sun-heading-1 font-medium; }
-  .sun-text-h1-sb { @apply font-sans text-heading-1 leading-sun-heading-1 font-semibold; }
-  .sun-text-h1-bd { @apply font-sans text-heading-1 leading-sun-heading-1 font-bold; }
+  .sun-text-h1-li {
+    @apply text-heading-1 leading-sun-heading-1 font-sans font-light;
+  }
+  .sun-text-h1-rg {
+    @apply text-heading-1 leading-sun-heading-1 font-regular font-sans;
+  }
+  .sun-text-h1-md {
+    @apply text-heading-1 leading-sun-heading-1 font-sans font-medium;
+  }
+  .sun-text-h1-sb {
+    @apply text-heading-1 leading-sun-heading-1 font-sans font-semibold;
+  }
+  .sun-text-h1-bd {
+    @apply text-heading-1 leading-sun-heading-1 font-sans font-bold;
+  }
 
   /* Heading 2 - 36px */
-  .sun-text-h2-li { @apply font-sans text-heading-2 leading-sun-heading-2 font-light; }
-  .sun-text-h2-rg { @apply font-sans text-heading-2 leading-sun-heading-2 font-regular; }
-  .sun-text-h2-md { @apply font-sans text-heading-2 leading-sun-heading-2 font-medium; }
-  .sun-text-h2-sb { @apply font-sans text-heading-2 leading-sun-heading-2 font-semibold; }
-  .sun-text-h2-bd { @apply font-sans text-heading-2 leading-sun-heading-2 font-bold; }
+  .sun-text-h2-li {
+    @apply text-heading-2 leading-sun-heading-2 font-sans font-light;
+  }
+  .sun-text-h2-rg {
+    @apply text-heading-2 leading-sun-heading-2 font-regular font-sans;
+  }
+  .sun-text-h2-md {
+    @apply text-heading-2 leading-sun-heading-2 font-sans font-medium;
+  }
+  .sun-text-h2-sb {
+    @apply text-heading-2 leading-sun-heading-2 font-sans font-semibold;
+  }
+  .sun-text-h2-bd {
+    @apply text-heading-2 leading-sun-heading-2 font-sans font-bold;
+  }
 
   /* Heading 3 - 32px */
-  .sun-text-h3-li { @apply font-sans text-heading-3 leading-sun-heading-3 font-light; }
-  .sun-text-h3-rg { @apply font-sans text-heading-3 leading-sun-heading-3 font-regular; }
-  .sun-text-h3-md { @apply font-sans text-heading-3 leading-sun-heading-3 font-medium; }
-  .sun-text-h3-sb { @apply font-sans text-heading-3 leading-sun-heading-3 font-semibold; }
-  .sun-text-h3-bd { @apply font-sans text-heading-3 leading-sun-heading-3 font-bold; }
+  .sun-text-h3-li {
+    @apply text-heading-3 leading-sun-heading-3 font-sans font-light;
+  }
+  .sun-text-h3-rg {
+    @apply text-heading-3 leading-sun-heading-3 font-regular font-sans;
+  }
+  .sun-text-h3-md {
+    @apply text-heading-3 leading-sun-heading-3 font-sans font-medium;
+  }
+  .sun-text-h3-sb {
+    @apply text-heading-3 leading-sun-heading-3 font-sans font-semibold;
+  }
+  .sun-text-h3-bd {
+    @apply text-heading-3 leading-sun-heading-3 font-sans font-bold;
+  }
 
   /* 24px Text */
-  .sun-text-24-li { @apply font-sans text-24 leading-sun-24 font-light; }
-  .sun-text-24-rg { @apply font-sans text-24 leading-sun-24 font-regular; }
-  .sun-text-24-md { @apply font-sans text-24 leading-sun-24 font-medium; }
-  .sun-text-24-sb { @apply font-sans text-24 leading-sun-24 font-semibold; }
-  .sun-text-24-bd { @apply font-sans text-24 leading-sun-24 font-bold; }
+  .sun-text-24-li {
+    @apply text-24 leading-sun-24 font-sans font-light;
+  }
+  .sun-text-24-rg {
+    @apply text-24 leading-sun-24 font-regular font-sans;
+  }
+  .sun-text-24-md {
+    @apply text-24 leading-sun-24 font-sans font-medium;
+  }
+  .sun-text-24-sb {
+    @apply text-24 leading-sun-24 font-sans font-semibold;
+  }
+  .sun-text-24-bd {
+    @apply text-24 leading-sun-24 font-sans font-bold;
+  }
 
   /* 20px Text */
-  .sun-text-20-li { @apply font-sans text-20 leading-sun-20 font-light; }
-  .sun-text-20-rg { @apply font-sans text-20 leading-sun-20 font-regular; }
-  .sun-text-20-md { @apply font-sans text-20 leading-sun-20 font-medium; }
-  .sun-text-20-sb { @apply font-sans text-20 leading-sun-20 font-semibold; }
-  .sun-text-20-bd { @apply font-sans text-20 leading-sun-20 font-bold; }
+  .sun-text-20-li {
+    @apply text-20 leading-sun-20 font-sans font-light;
+  }
+  .sun-text-20-rg {
+    @apply text-20 leading-sun-20 font-regular font-sans;
+  }
+  .sun-text-20-md {
+    @apply text-20 leading-sun-20 font-sans font-medium;
+  }
+  .sun-text-20-sb {
+    @apply text-20 leading-sun-20 font-sans font-semibold;
+  }
+  .sun-text-20-bd {
+    @apply text-20 leading-sun-20 font-sans font-bold;
+  }
 
   /* 18px Text */
-  .sun-text-18-li { @apply font-sans text-18 leading-sun-18 font-light; }
-  .sun-text-18-rg { @apply font-sans text-18 leading-sun-18 font-regular; }
-  .sun-text-18-md { @apply font-sans text-18 leading-sun-18 font-medium; }
-  .sun-text-18-sb { @apply font-sans text-18 leading-sun-18 font-semibold; }
-  .sun-text-18-bd { @apply font-sans text-18 leading-sun-18 font-bold; }
+  .sun-text-18-li {
+    @apply text-18 leading-sun-18 font-sans font-light;
+  }
+  .sun-text-18-rg {
+    @apply text-18 leading-sun-18 font-regular font-sans;
+  }
+  .sun-text-18-md {
+    @apply text-18 leading-sun-18 font-sans font-medium;
+  }
+  .sun-text-18-sb {
+    @apply text-18 leading-sun-18 font-sans font-semibold;
+  }
+  .sun-text-18-bd {
+    @apply text-18 leading-sun-18 font-sans font-bold;
+  }
 
   /* 16px Text */
-  .sun-text-16-li { @apply font-sans text-16 leading-sun-16 font-light; }
-  .sun-text-16-rg { @apply font-sans text-16 leading-sun-16 font-regular; }
-  .sun-text-16-md { @apply font-sans text-16 leading-sun-16 font-medium; }
-  .sun-text-16-sb { @apply font-sans text-16 leading-sun-16 font-semibold; }
-  .sun-text-16-bd { @apply font-sans text-16 leading-sun-16 font-bold; }
+  .sun-text-16-li {
+    @apply text-16 leading-sun-16 font-sans font-light;
+  }
+  .sun-text-16-rg {
+    @apply text-16 leading-sun-16 font-regular font-sans;
+  }
+  .sun-text-16-md {
+    @apply text-16 leading-sun-16 font-sans font-medium;
+  }
+  .sun-text-16-sb {
+    @apply text-16 leading-sun-16 font-sans font-semibold;
+  }
+  .sun-text-16-bd {
+    @apply text-16 leading-sun-16 font-sans font-bold;
+  }
 
   /* 14px Text */
-  .sun-text-14-li { @apply font-sans text-14 leading-sun-14 font-light; }
-  .sun-text-14-rg { @apply font-sans text-14 leading-sun-14 font-regular; }
-  .sun-text-14-md { @apply font-sans text-14 leading-sun-14 font-medium; }
-  .sun-text-14-sb { @apply font-sans text-14 leading-sun-14 font-semibold; }
-  .sun-text-14-bd { @apply font-sans text-14 leading-sun-14 font-bold; }
+  .sun-text-14-li {
+    @apply text-14 leading-sun-14 font-sans font-light;
+  }
+  .sun-text-14-rg {
+    @apply text-14 leading-sun-14 font-regular font-sans;
+  }
+  .sun-text-14-md {
+    @apply text-14 leading-sun-14 font-sans font-medium;
+  }
+  .sun-text-14-sb {
+    @apply text-14 leading-sun-14 font-sans font-semibold;
+  }
+  .sun-text-14-bd {
+    @apply text-14 leading-sun-14 font-sans font-bold;
+  }
 
   /* 12px Text */
-  .sun-text-12-li { @apply font-sans text-12 leading-sun-12 font-light; }
-  .sun-text-12-rg { @apply font-sans text-12 leading-sun-12 font-regular; }
-  .sun-text-12-md { @apply font-sans text-12 leading-sun-12 font-medium; }
-  .sun-text-12-sb { @apply font-sans text-12 leading-sun-12 font-semibold; }
-  .sun-text-12-bd { @apply font-sans text-12 leading-sun-12 font-bold; }
+  .sun-text-12-li {
+    @apply text-12 leading-sun-12 font-sans font-light;
+  }
+  .sun-text-12-rg {
+    @apply text-12 leading-sun-12 font-regular font-sans;
+  }
+  .sun-text-12-md {
+    @apply text-12 leading-sun-12 font-sans font-medium;
+  }
+  .sun-text-12-sb {
+    @apply text-12 leading-sun-12 font-sans font-semibold;
+  }
+  .sun-text-12-bd {
+    @apply text-12 leading-sun-12 font-sans font-bold;
+  }
 
   /* 10px Text */
-  .sun-text-10-li { @apply font-sans text-10 leading-sun-10 font-light; }
-  .sun-text-10-rg { @apply font-sans text-10 leading-sun-10 font-regular; }
-  .sun-text-10-md { @apply font-sans text-10 leading-sun-10 font-medium; }
-  .sun-text-10-sb { @apply font-sans text-10 leading-sun-10 font-semibold; }
-  .sun-text-10-bd { @apply font-sans text-10 leading-sun-10 font-bold; }
-
+  .sun-text-10-li {
+    @apply text-10 leading-sun-10 font-sans font-light;
+  }
+  .sun-text-10-rg {
+    @apply text-10 leading-sun-10 font-regular font-sans;
+  }
+  .sun-text-10-md {
+    @apply text-10 leading-sun-10 font-sans font-medium;
+  }
+  .sun-text-10-sb {
+    @apply text-10 leading-sun-10 font-sans font-semibold;
+  }
+  .sun-text-10-bd {
+    @apply text-10 leading-sun-10 font-sans font-bold;
+  }
 }

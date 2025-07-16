@@ -44,10 +44,7 @@ export const useScreenSize = () => {
   const isTablet = useMemo<boolean>(() => isMd && !isLg, [isLg, isMd])
   const isDesktop = useMemo<boolean>(() => isLg, [isLg])
 
-  const isLandscape = useMemo<boolean>(
-    () => window.matchMedia('(orientation: landscape)').matches,
-    [width]
-  )
+  const isLandscape = () => window.matchMedia('(orientation: landscape)').matches
 
   return {
     isSm,

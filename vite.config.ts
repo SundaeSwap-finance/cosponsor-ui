@@ -5,6 +5,8 @@ import { defineConfig, PluginOption } from 'vite'
 import checker from 'vite-plugin-checker'
 import { nodePolyfills, PolyfillOptions } from 'vite-plugin-node-polyfills'
 import tailwindcss from '@tailwindcss/vite'
+// @ts-expect-error typing in plugin is incorrect
+import eslint from 'vite-plugin-eslint'
 
 const polyfills: PolyfillOptions['include'] = ['stream', 'util', 'crypto', 'path', 'vm']
 
@@ -24,6 +26,10 @@ const plugins: PluginOption[] = [
     include: polyfills,
   }),
   react(),
+  eslint({
+    lintOnStart: true,
+    failOnError: true,
+  }),
 ]
 
 if (process.env.NODE_ENV === 'development') {
