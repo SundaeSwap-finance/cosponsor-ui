@@ -35,7 +35,7 @@ const eslintConfig = [
     rules: {
       'no-unused-vars': 'off',
       'no-undef': 'off',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['warn'],
       curly: ['error', 'all'],
     },
   },
@@ -48,7 +48,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['node_modules', '.output', 'dist'],
+    ignores: ['node_modules', '.output', 'dist', 'src/components/shadcn'],
   },
 
   reactHooks.configs['recommended-latest'],

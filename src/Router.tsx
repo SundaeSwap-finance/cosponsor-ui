@@ -1,7 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, redirect } from 'react-router-dom'
 import { App } from '@/App'
 import { PageProposalsAll } from '@/pages/PageProposalsAll'
 import { PageProposalsCategory } from '@/pages/PageProposalsCategory'
+import { PageProposalsUserPledge } from '@/pages/PageProposalsUserPledge'
 
 export const router = createBrowserRouter([
   {
@@ -10,17 +11,19 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Home
+        loader: () => redirect('/all'),
+      },
+      {
+        path: '/all',
         element: <PageProposalsAll />,
       },
       {
-        index: false,
-        path: '/overview',
-        element: <PageProposalsAll />,
-      },
-      {
-        index: false,
         path: '/category/:name',
         element: <PageProposalsCategory />,
+      },
+      {
+        path: '/your',
+        element: <PageProposalsUserPledge />,
       },
     ],
   },

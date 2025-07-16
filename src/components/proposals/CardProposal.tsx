@@ -2,15 +2,13 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { FC, useEffect, useMemo, useState } from 'react'
-import { useGetProposalData } from '@/composables/useGetProposalData'
+import { useEffect, useMemo, useState } from 'react'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 
 export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
-  const { getProposalCardById } = useGetProposalData()
   const [isExpired, setIsExpired] = useState<boolean>(false)
 
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
@@ -46,7 +44,7 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   }, [proposal, isExpired])
 
   return (
-    // TODO: skeleton loading or something to prevent flicker.
+    // TODO: skeleton loading to prevent flicker.
     <div
       className={
         'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-100 flex-col divide-y rounded-xl border transition-all duration-500'

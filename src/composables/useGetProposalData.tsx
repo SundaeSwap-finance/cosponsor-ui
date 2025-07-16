@@ -5,8 +5,8 @@ import { CarouselApi } from '@/components/shadcn/carousel'
 export const useGetProposalData = () => {
   const [proposalCardCache, setProposalCardCache] = useState()
 
-  // TODO replace with BE data input
-  // TODO: implement getting/refreshing data from BE in this file.
+  // Placeholder data and methods, refine when data is available.
+  // TODO: replace with getting/refreshing data from BE in this file.
 
   const data = [
     // Partially funded, also by user
@@ -105,7 +105,7 @@ export const useGetProposalData = () => {
       categoryName: 'Hardfork',
     },
     {
-      id: '5',
+      id: '6',
       name: 'A Hardfork proposal 999',
       ownerId: 'Sundae',
       requestedBudget: 12345,
@@ -122,10 +122,12 @@ export const useGetProposalData = () => {
   ]
 
   const getProposalCardById = async (id: string): Promise<iProposalCardData> => {
+    //console.log('getProposalCardById', id)
     return data.filter((proposal) => proposal.id === id)[0]
   }
 
   const getProposalCategories = () => {
+    //console.log('getProposalCategories')
     const setCategories = new Set()
     for (let i = 0; i < data.length; i++) {
       setCategories.add(data[i].categoryName)
@@ -134,14 +136,21 @@ export const useGetProposalData = () => {
   }
 
   const getProposalCardsInCategory = (categoryName: string) => {
+    //console.log('getProposalCardsInCategory', categoryName)
     return data.filter(
       (proposal) => proposal.categoryName.toLowerCase() === categoryName.toLowerCase()
     )
   }
 
+  const getProposalCardsUserPledge = () => {
+    //console.log('getProposalCardsUserPledge')
+    return data.filter((proposal) => proposal.userPledged && proposal.userPledged > 0)
+  }
+
   return {
     getProposalCardById,
     getProposalCardsInCategory,
+    getProposalCardsUserPledge,
     getProposalCategories,
   }
 }
