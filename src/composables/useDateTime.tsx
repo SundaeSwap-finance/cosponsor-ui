@@ -10,3 +10,8 @@ export const getShortDate = (date: Date | undefined) => {
   // Make sure to display forward slash in returning string by finding all non-numerical values.
   return date.toLocaleString(undefined, options).replace(/\D/g, '/')
 }
+
+export const getShortDateAndTime = (date: Date | undefined) => {
+  const result = date?.toLocaleTimeString()
+  return getShortDate(date) + ' ' + result
+}
