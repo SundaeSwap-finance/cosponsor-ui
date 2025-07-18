@@ -3,6 +3,7 @@ import { App } from '@/App'
 import { PageProposalsAll } from '@/pages/PageProposalsAll'
 import { PageProposalsCategory } from '@/pages/PageProposalsCategory'
 import { PageProposalsUserPledge } from '@/pages/PageProposalsUserPledge'
+import { PageProposalDetails } from '@/pages/PageProposalDetails'
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: '/your',
         element: <PageProposalsUserPledge />,
+      },
+      {
+        path: '/proposal/:proposalId',
+        element: <PageProposalDetails />,
       },
     ],
   },

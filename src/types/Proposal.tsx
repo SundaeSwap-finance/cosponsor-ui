@@ -8,7 +8,16 @@ export interface iProposalCardData {
   initDate: Date
   expiryDate: Date
   companyName: string
-  domain: string
+  companyDomain: string
   abstract: string
   categoryName: string
+}
+
+export interface iProposalDetailsData extends iProposalCardData {
+  companyCountry: string
+  motivation: string
+  rationale: string
+  govActionId: string
+  cip129ActionId: string
+  pledgesIds: string[]
 }

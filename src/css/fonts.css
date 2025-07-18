@@ -96,8 +96,12 @@
   --leading-sun-heading-2: 47px;
   --text-heading-3: 32px;
   --leading-sun-heading-3: 39px;
+  --text-28: 28px;
+  --leading-sun-28: 32px;
   --text-24: 24px;
   --leading-sun-24: 26px;
+  --text-22: 22px;
+  --leading-sun-22: 29px;
   --text-20: 20px;
   --leading-sun-20: 26px;
   --text-18: 18px;
@@ -164,6 +168,23 @@
     @apply text-heading-3 leading-sun-heading-3 font-sans font-bold;
   }
 
+  /* 28px Text */
+  .sun-text-28-li {
+    @apply text-28 leading-sun-28 font-sans font-light;
+  }
+  .sun-text-28-rg {
+    @apply text-28 leading-sun-28 font-regular font-sans;
+  }
+  .sun-text-28-md {
+    @apply text-28 leading-sun-28 font-sans font-medium;
+  }
+  .sun-text-28-sb {
+    @apply text-28 leading-sun-28 font-sans font-semibold;
+  }
+  .sun-text-28-bd {
+    @apply text-28 leading-sun-28 font-sans font-bold;
+  }
+
   /* 24px Text */
   .sun-text-24-li {
     @apply text-24 leading-sun-24 font-sans font-light;
@@ -179,6 +200,23 @@
   }
   .sun-text-24-bd {
     @apply text-24 leading-sun-24 font-sans font-bold;
+  }
+
+  /* 22px Text */
+  .sun-text-22-li {
+    @apply text-22 leading-sun-22 font-sans font-light;
+  }
+  .sun-text-22-rg {
+    @apply text-22 leading-sun-22 font-sans font-regular;
+  }
+  .sun-text-22-md {
+    @apply text-22 leading-sun-22 font-sans font-medium;
+  }
+  .sun-text-22-sb {
+    @apply text-22 leading-sun-22 font-sans font-semibold;
+  }
+  .sun-text-22-bd {
+    @apply text-22 leading-sun-22 font-sans font-bold;
   }
 
   /* 20px Text */

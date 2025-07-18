@@ -7,6 +7,7 @@ import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
 
 export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
@@ -28,12 +29,12 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
     let timer: Timer | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
+    const oneDayTimerLimit = 60000 * 60 * 24
 
     if (timeRemaining <= 0) {
       setIsExpired(true)
-    } else {
-      // Set a timer to re-run this check at the exact moment of expiration
-      timer = setTimeout(() => {
+    } else if (timeRemaining < oneDayTimerLimit) {
+      timer = setTimeout((remains) => {
         setIsExpired(true)
       }, timeRemaining)
     }
@@ -54,7 +55,7 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
         <div className={'text-sun-muted sun-text-12-md flex flex-row gap-2'}>
           <div>Created by</div>
           <div className={'text-sun-default underline decoration-dotted underline-offset-3'}>
-            @{proposal?.ownerId}
+            {/*TODO: use ownername here, not ownerId*/}@{proposal?.ownerId.slice(0, 16)}
           </div>
         </div>
         <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
@@ -83,7 +84,7 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
           </div>
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted sun-text-12-md'}>Domain</div>
-            <div className={'sun-text-14-md text-sun-default'}>{proposal?.domain}</div>
+            <div className={'sun-text-14-md text-sun-default'}>{proposal?.companyDomain}</div>
           </div>
         </div>
         <div className={'flex w-full flex-col gap-1.5'}>
@@ -107,7 +108,9 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
           </Button>
         ) : (
           <>
-            <Button className={'flex-1'}>View Details</Button>
+            <Button className={'flex-1'} asChild>
+              <Link to={'/proposal/' + proposal.id}>View Details</Link>
+            </Button>
             <ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>
           </>
         )}

@@ -1,5 +1,5 @@
 import React from 'react'
-import * as ProgressPrimitive from '@radix-ui/react-progress'
+import * as Progress from '@radix-ui/react-progress'
 import { cn } from '@/lib/utils'
 
 type ProgressSegment = {
@@ -22,7 +22,7 @@ export const ProgressMulti = ({
   }
 
   return (
-    <ProgressPrimitive.Root
+    <Progress.Root
       className={cn(
         'bg-sun-surface-muted relative h-2 w-full overflow-hidden rounded-full',
         className
@@ -36,7 +36,7 @@ export const ProgressMulti = ({
         }
         accumulatedValue += segment.value
         return (
-          <ProgressPrimitive.Indicator
+          <Progress.Indicator
             key={index}
             className={cn(
               'absolute h-full transition-all',
@@ -47,6 +47,6 @@ export const ProgressMulti = ({
           />
         )
       })}
-    </ProgressPrimitive.Root>
+    </Progress.Root>
   )
 }
