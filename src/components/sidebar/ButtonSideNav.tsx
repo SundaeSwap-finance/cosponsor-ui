@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, MouseEvent } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
 export const ButtonSideNav = ({
@@ -6,11 +6,13 @@ export const ButtonSideNav = ({
   path,
   icon,
   expanded,
+  onClick,
 }: {
   label: string
   path: string
   expanded: boolean
   icon?: ReactNode
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void
 }) => {
   const location = useLocation()
 
@@ -24,6 +26,7 @@ export const ButtonSideNav = ({
 
   return (
     <NavLink
+      onClick={onClick}
       title={label}
       to={path}
       className={({ isActive }) =>

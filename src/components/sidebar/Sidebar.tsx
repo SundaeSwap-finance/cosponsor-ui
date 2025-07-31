@@ -1,11 +1,18 @@
-import { FC, useState } from 'react'
+import { useState } from 'react'
 import { IconCardano } from '@/icons/IconCardano'
 import { LayoutDashboard, LayoutGrid, LogIn, LogOut, PanelLeftClose } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { RenderWalletState } from '@sundaeswap/wallet-lite'
+import { SheetClose } from '@/components/shadcn/sheet'
 
-export const Sidebar: FC = () => {
+export const Sidebar = ({
+  onNavigate,
+  fromHeader = false,
+}: {
+  onNavigate?: () => void
+  fromHeader?: boolean
+}) => {
   const [expanded, setExpanded] = useState(true)
 
   const toggleButton = () => {
@@ -24,6 +31,11 @@ export const Sidebar: FC = () => {
     }
   }
 
+  const handleClick = () => {
+    console.log('Navigating...')
+    onNavigate?.()
+  }
+
   return (
     <div
       className={`bg-sun-surface-muted flex h-full min-h-screen shrink-0 flex-col justify-between transition-all duration-300 ${expanded ? 'w-62' : 'w-17'}`}
@@ -34,27 +46,32 @@ export const Sidebar: FC = () => {
             classSvg={`size-8 fill-action-primary transition-discrete ${expanded ? 'flex' : 'hidden'} `}
           />
 
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => toggleButton()}
-            title={expanded ? 'Collapse' : 'Expand'}
-          >
-            <PanelLeftClose
-              className={`text-sun-muted size-4 transition-transform ${expanded ? '' : 'rotate-180'}`}
-            />
-          </Button>
+          {!fromHeader && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => toggleButton()}
+              title={expanded ? 'Collapse' : 'Expand'}
+            >
+              <PanelLeftClose
+                className={`text-sun-muted size-4 transition-transform ${expanded ? '' : 'rotate-180'}`}
+              />
+            </Button>
+          )}
         </div>
         <div className={`flex w-full min-w-0 flex-col gap-2 p-2`}>
           <div className={`${expanded ? 'flex opacity-100' : 'hidden opacity-0'}`}>Overview</div>
           <div className={`flex w-full flex-col items-center gap-2`}>
             <ButtonSideNav
+              onClick={handleClick}
               label="Your Pledges"
               icon={<LayoutDashboard className="size-4" />}
               path="/your"
               expanded={expanded}
             />
+
             <ButtonSideNav
+              onClick={handleClick}
               label="All Proposals"
               icon={<LayoutGrid className="size-4 rotate-45" />}
               path="/all"

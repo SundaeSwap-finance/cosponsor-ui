@@ -54,8 +54,11 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
       <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
         <div className={'text-sun-muted sun-text-12-md flex flex-row gap-2'}>
           <div>Created by</div>
-          <div className={'text-sun-default underline decoration-dotted underline-offset-3'}>
-            {/*TODO: use ownername here, not ownerId*/}@{proposal?.ownerId.slice(0, 16)}
+          <div
+            className={'text-sun-default underline decoration-dotted underline-offset-3'}
+            title={'UserId: ' + proposal?.ownerId}
+          >
+            @{proposal?.ownerName.slice(0, 16)}
           </div>
         </div>
         <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
@@ -76,7 +79,9 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
             <BadgeProposalCategory category={proposal?.categoryName as string} />
           </div>
         </div>
+
         <ProposalStatusCardBase proposal={proposal} isExpired={isExpired} />
+
         <div className={'flex w-full flex-row gap-4'}>
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted sun-text-12-md'}>Company</div>

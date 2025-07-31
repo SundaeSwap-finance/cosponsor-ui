@@ -97,7 +97,7 @@ export const PageProposalDetails = () => {
       <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
       <div
         className={
-          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b pb-6 md:flex-row'
+          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b pb-6 lg:flex-row'
         }
       >
         <div className={'flex flex-col gap-4'}>
@@ -145,16 +145,16 @@ export const PageProposalDetails = () => {
               Back
             </Link>
           </Button>
-          {isExpired ? null : (
-            <ButtonGradient className={'flex-1'} size="lg">
+          {!isExpired && (
+            <ButtonGradient className={'lg:flex-1'} size="lg">
               <Vote />
               Sponsor this proposal
             </ButtonGradient>
           )}
         </div>
       </div>
-      <div className={'flex flex-col gap-12 lg:flex-row'}>
-        <div className={'flex w-full flex-col gap-6'}>
+      <div className={'flex w-full flex-col gap-12 lg:flex-row'}>
+        <div className={'flex w-full min-w-100 flex-col gap-6'}>
           <>
             {isExpired ? (
               <BannerProposalExpired userPledge={proposal.userPledged} />
@@ -204,11 +204,13 @@ export const PageProposalDetails = () => {
           >
             Proposal Sponsors
           </div>
-          <CardUserPledgeSimple
-            fundProgress={completionPercentage}
-            reqBudget={proposal.requestedBudget}
-            userPledge={proposal.userPledged}
-          />
+          {proposal.userPledged ? (
+            <CardUserPledgeSimple
+              fundProgress={completionPercentage}
+              reqBudget={proposal.requestedBudget}
+              userPledge={proposal.userPledged}
+            />
+          ) : null}
           <div className={'flex flex-col gap-2'}>
             {proposal.pledges.map((pledge) => (
               <CardProposalPledgeSingle

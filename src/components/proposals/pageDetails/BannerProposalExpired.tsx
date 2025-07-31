@@ -14,23 +14,31 @@ export const BannerProposalExpired = ({ userPledge }: { userPledge: number }) =>
     >
       <div className={'flex flex-col gap-2'}>
         <div className={'text-sun-action-tertiary sun-text-20-sb leading-5'}>
-          Proposal Unfunded – Please Withdraw Your Pledge
+          Proposal Unfunded
+          {userPledge > 0 && <> – Please Withdraw Your Pledge</>}
         </div>
         <div className={'sun-text-16-md text-sun-action-tertiary'}>
           This proposal’s governance action has expired without reaching its funding target. <br />
-          Redeem your <b>{formatNumber(userPledge, maxDecimalsAda)} ADA</b> by depositing your{' '}
-          <b>gADA.</b>
+          {userPledge > 0 && (
+            <>
+              Redeem your <b>{formatNumber(userPledge, maxDecimalsAda)} ADA</b> by depositing your{' '}
+              <b>gADA.</b>
+            </>
+          )}
         </div>
       </div>
-      <Button
-        size="lg"
-        className={
-          'bg-sun-action-tertiary text-sun-white-pure sun-text-16-rg hover:bg-sun-action-tertiary/80 w-fit'
-        }
-      >
-        <ArrowUpFromLine />
-        Withdraw Pledge
-      </Button>
+
+      {userPledge > 0 && (
+        <Button
+          size="lg"
+          className={
+            'bg-sun-action-tertiary text-sun-white-pure sun-text-16-rg hover:bg-sun-action-tertiary/80 w-fit'
+          }
+        >
+          <ArrowUpFromLine />
+          Withdraw Pledge
+        </Button>
+      )}
     </div>
   )
 }
