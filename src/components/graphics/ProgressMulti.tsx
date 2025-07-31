@@ -7,6 +7,7 @@ type ProgressSegment = {
   colorClass: string
 }
 
+// Support color gradients better and supports multiple different (colored) segments.
 export const ProgressMulti = ({
   className,
   segments,

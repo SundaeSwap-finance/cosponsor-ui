@@ -1,3 +1,5 @@
+import { defaultLocale } from '@/config/config'
+
 export const getShortDate = (date: Date | undefined) => {
   if (!date) {
     return 'n/a'
@@ -8,10 +10,10 @@ export const getShortDate = (date: Date | undefined) => {
     day: '2-digit',
   }
   // Make sure to display forward slash in returning string by finding all non-numerical values.
-  return date.toLocaleString(undefined, options).replace(/\D/g, '/')
+  return date.toLocaleString(defaultLocale, options).replace(/\D/g, '/')
 }
 
 export const getShortDateAndTime = (date: Date | undefined) => {
-  const result = date?.toLocaleTimeString()
+  const result = date?.toLocaleTimeString(defaultLocale)
   return getShortDate(date) + ' ' + result
 }

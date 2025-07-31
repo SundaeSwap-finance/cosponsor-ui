@@ -8,6 +8,7 @@ export const cardData: iProposalCardData[] = [
     id: '0',
     name: 'A Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 6000,
@@ -25,6 +26,7 @@ export const cardData: iProposalCardData[] = [
     id: '1',
     name: 'A different Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'ATypicalUser',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 0,
@@ -42,6 +44,7 @@ export const cardData: iProposalCardData[] = [
     id: '2',
     name: 'A Treasury proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'AnotherUser',
     requestedBudget: 12345,
     pledgedAmount: 12345,
     userPledged: 2000,
@@ -57,6 +60,7 @@ export const cardData: iProposalCardData[] = [
     id: '3',
     name: 'A Treasury proposal 3',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'User123456789',
     requestedBudget: 12345,
     pledgedAmount: 2000,
     userPledged: 0,
@@ -72,6 +76,7 @@ export const cardData: iProposalCardData[] = [
     id: '4',
     name: 'A Treasury proposal 4',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TryoutUser',
     requestedBudget: 12345,
     pledgedAmount: 2000,
     userPledged: 0,
@@ -87,6 +92,7 @@ export const cardData: iProposalCardData[] = [
     id: '5',
     name: 'A Hardfork proposal 88',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser1',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 2000,
@@ -102,6 +108,7 @@ export const cardData: iProposalCardData[] = [
     id: '6',
     name: 'A Hardfork proposal 999',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser2',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 2000,
@@ -114,11 +121,13 @@ export const cardData: iProposalCardData[] = [
     categoryName: 'Hardfork',
   },
 ]
+
 export const detailsData: iProposalDetailsData[] = [
   {
     id: '0',
     name: 'A Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 6000,
@@ -139,10 +148,14 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
   {
@@ -151,6 +164,7 @@ export const detailsData: iProposalDetailsData[] = [
     id: '1',
     name: 'A different Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s23',
+    ownerName: 'ATypicalUser',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 0,
@@ -171,10 +185,14 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
 
@@ -183,6 +201,7 @@ export const detailsData: iProposalDetailsData[] = [
     id: '2',
     name: 'A Treasury proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'AnotherUser',
     requestedBudget: 12345,
     pledgedAmount: 12345,
     userPledged: 2000,
@@ -203,16 +222,21 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
   {
     id: '3',
     name: 'A Treasury proposal 3',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'User123456789',
     requestedBudget: 12345,
     pledgedAmount: 2000,
     userPledged: 0,
@@ -233,16 +257,21 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
   {
     id: '4',
     name: 'A Treasury proposal 4',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TryoutUser',
     requestedBudget: 12345,
     pledgedAmount: 2000,
     userPledged: 0,
@@ -263,16 +292,21 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
   {
     id: '5',
     name: 'A Hardfork proposal 88',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser1',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 2000,
@@ -293,16 +327,21 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
   {
     id: '6',
     name: 'A Hardfork proposal 999',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
+    ownerName: 'TypicalUser2',
     requestedBudget: 12345,
     pledgedAmount: 8000.02345,
     userPledged: 2000,
@@ -323,10 +362,14 @@ export const detailsData: iProposalDetailsData[] = [
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     govActionId: '0b19476e40bbbb5e1e8ce153523762e2b6859e7ecacbaf06eae0ee6a447e79b9#0',
     cip129ActionId: 'gov_action1pvv5wmjqhwa4u85vu9f4ydmzu2mgt8n7et967ph2urhx53r70xusqnmm525',
-    pledgesIds: [
-      'addr1qx4qasldoiansdpiunasiuh2398745x',
-      'addr1qx4qasldoiansdpiunasiuh23987789',
-      'addr1qx4qasldoiansdpiunasiuh23987213',
+    pledges: [
+      {
+        id: 'addr1qx4qasldoiansdpiunasiuh2398745x',
+        ownerName: '$HarrysHandle',
+        amount: 1233.92836746234,
+      },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987789', ownerName: '$HarrysHandle', amount: 456 },
+      { id: 'addr1qx4qasldoiansdpiunasiuh23987213', ownerName: '$HarrysHandle', amount: 2454 },
     ],
   },
 ]

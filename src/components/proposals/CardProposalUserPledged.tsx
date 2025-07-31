@@ -1,5 +1,7 @@
 import { Progress } from '@/components/shadcn/progress'
 import { ProgressMulti } from '@/components/graphics/ProgressMulti'
+import { maxDecimalsAda } from '@/config/config'
+import { useNumberFormatter } from '@/composables/useNumberFormatter'
 
 export const CardProposalUserPledged = ({
   fundProgress,
@@ -10,6 +12,8 @@ export const CardProposalUserPledged = ({
   reqBudget: number | undefined
   userPledge: number | undefined
 }) => {
+  const { formatNumber } = useNumberFormatter()
+
   const calculateNonUserPercent = () => {
     if (fundProgress && reqBudget && userPledge) {
       return Math.round(((fundProgress - userPledge) / reqBudget) * 100)
@@ -21,6 +25,7 @@ export const CardProposalUserPledged = ({
     if (userPledge && reqBudget) {
       return Math.round((userPledge / reqBudget) * 100)
     }
+
     return -1
   }
   const calcTotalPercent = () => {
@@ -35,11 +40,15 @@ export const CardProposalUserPledged = ({
       <div className={'flex w-full flex-row items-start justify-between'}>
         <div className={'flex w-fit flex-col gap-0.5'}>
           <div className={'sun-text-12-md text-nowrap'}>Funding Progress</div>
-          <div className={'sun-text-20-sb text-sun-header text-nowrap'}>₳ {fundProgress}</div>
+          <div className={'sun-text-20-sb text-sun-header text-nowrap'}>
+            ₳ {formatNumber(fundProgress, maxDecimalsAda)}
+          </div>
         </div>
         <div className={'flex w-full flex-col justify-end gap-0.5 text-right'}>
           <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Requested Budget</div>
-          <div className={'sun-text-14-sb text-sun-header text-nowrap'}>₳ {reqBudget}</div>
+          <div className={'sun-text-14-sb text-sun-header text-nowrap'}>
+            ₳ {formatNumber(reqBudget, maxDecimalsAda)}
+          </div>
         </div>
       </div>
       <div className={'flex w-full flex-row items-center gap-2'}>
@@ -94,7 +103,7 @@ export const CardProposalUserPledged = ({
               'to-sun-highlight-secondary from-sun-highlight-primary sun-text-14-sb bg-gradient-to-r bg-clip-text text-transparent'
             }
           >
-            ₳ {userPledge}
+            ₳ {formatNumber(userPledge, maxDecimalsAda)}
           </div>
         </div>
       </div>
