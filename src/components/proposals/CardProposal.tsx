@@ -49,7 +49,7 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
     // TODO: skeleton loading to prevent flicker.
     <div
       className={
-        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-100 flex-col divide-y rounded-xl border transition-all duration-500'
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border transition-all duration-500 md:max-w-100'
       }
     >
       <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>

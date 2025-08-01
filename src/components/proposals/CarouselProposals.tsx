@@ -13,6 +13,7 @@ import {
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 
 export const CarouselProposals = ({ categoryName }: { categoryName: string }) => {
   // TODO replace this with filtered items
@@ -82,7 +83,12 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
             ))}
           </CarouselContent>
         </Carousel>
-        <div className="from-sun-white-pure pointer-events-none absolute top-0 right-0 bottom-0 w-32 bg-gradient-to-l to-transparent" />
+        <div
+          className={cn(
+            'from-sun-white-pure pointer-events-none absolute top-0 right-0 bottom-0 hidden',
+            'w-32 bg-gradient-to-l to-transparent md:flex'
+          )}
+        />
       </div>
     </div>
   )

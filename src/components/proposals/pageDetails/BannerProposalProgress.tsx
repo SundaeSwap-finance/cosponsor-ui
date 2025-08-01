@@ -15,7 +15,7 @@ export const BannerProposalProgress = ({
 
   return (
     <div className={'flex flex-col gap-4'}>
-      <div className={'flex flex-row items-center justify-between'}>
+      <div className={'flex flex-col justify-between md:flex-row md:items-center'}>
         <div className={'sun-text-22-md text-sun-header'}>
           {completionPercentage.toPrecision(4)}% sponsored
         </div>

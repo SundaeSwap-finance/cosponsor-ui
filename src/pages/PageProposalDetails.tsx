@@ -154,7 +154,7 @@ export const PageProposalDetails = () => {
         </div>
       </div>
       <div className={'flex w-full flex-col gap-12 lg:flex-row'}>
-        <div className={'flex w-full min-w-100 flex-col gap-6'}>
+        <div className={'flex w-full flex-col gap-6 md:min-w-100'}>
           <>
             {isExpired ? (
               <BannerProposalExpired userPledge={proposal.userPledged} />
@@ -186,15 +186,19 @@ export const PageProposalDetails = () => {
               </div>
               <LabeledTextProposal label={'Abstract'} value={proposal.abstract} />
               <LabeledTextProposal label={'Motivation'} value={proposal.motivation} />
-              <LabeledCopyId label="Government Action ID" id={proposal.govActionId} />
-              <LabeledCopyId label="(CIP-129) Governance Action ID" id={proposal.cip129ActionId} />
+              <LabeledCopyId label="Government Action ID" id={proposal.govActionId} midEllips />
+              <LabeledCopyId
+                label="(CIP-129) Governance Action ID"
+                id={proposal.cip129ActionId}
+                midEllips
+              />
               <LabeledTextProposal label={'Rationale'} value={proposal.rationale} />
             </div>
           </div>
         </div>
         <div
           className={
-            'border-sun-border-primary flex w-full min-w-100 flex-col gap-4 rounded-2xl border p-6 md:w-fit'
+            'border-sun-border-primary flex w-full flex-col gap-4 rounded-2xl border p-6 md:min-w-100 lg:w-fit'
           }
         >
           <div
