@@ -12,7 +12,7 @@ export const ButtonSideNav = ({
   path: string
   expanded: boolean
   icon?: ReactNode
-  onClick?: (event: MouseEvent<HTMLButtonElement>) => void
+  onClick?: (event: MouseEvent<HTMLElement>) => void
 }) => {
   const location = useLocation()
 

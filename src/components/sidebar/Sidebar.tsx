@@ -4,14 +4,14 @@ import { LayoutDashboard, LayoutGrid, LogIn, LogOut, PanelLeftClose } from 'luci
 import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { RenderWalletState } from '@sundaeswap/wallet-lite'
-import { SheetClose } from '@/components/shadcn/sheet'
+import { cn } from '@/lib/utils'
 
 export const Sidebar = ({
   onNavigate,
-  fromHeader = false,
+  mobileSheet = false,
 }: {
   onNavigate?: () => void
-  fromHeader?: boolean
+  mobileSheet?: boolean
 }) => {
   const [expanded, setExpanded] = useState(true)
 
@@ -31,14 +31,12 @@ export const Sidebar = ({
     }
   }
 
-  const handleClick = () => {
-    console.log('Navigating...')
-    onNavigate?.()
-  }
-
   return (
     <div
-      className={`bg-sun-surface-muted flex h-full min-h-screen shrink-0 flex-col justify-between transition-all duration-300 ${expanded ? 'w-62' : 'w-17'}`}
+      className={cn(
+        `bg-sun-surface-muted flex h-full min-h-screen shrink-0 flex-col justify-between transition-all duration-300`,
+        mobileSheet ? 'w-full' : expanded ? 'w-62' : 'w-17'
+      )}
     >
       <div className={'flex h-full w-full flex-col'}>
         <div className="flex h-17 flex-row items-center justify-between px-4">
@@ -46,7 +44,7 @@ export const Sidebar = ({
             classSvg={`size-8 fill-action-primary transition-discrete ${expanded ? 'flex' : 'hidden'} `}
           />
 
-          {!fromHeader && (
+          {!mobileSheet && (
             <Button
               size="icon"
               variant="ghost"
@@ -63,7 +61,7 @@ export const Sidebar = ({
           <div className={`${expanded ? 'flex opacity-100' : 'hidden opacity-0'}`}>Overview</div>
           <div className={`flex w-full flex-col items-center gap-2`}>
             <ButtonSideNav
-              onClick={handleClick}
+              onClick={() => onNavigate?.()}
               label="Your Pledges"
               icon={<LayoutDashboard className="size-4" />}
               path="/your"
@@ -71,7 +69,7 @@ export const Sidebar = ({
             />
 
             <ButtonSideNav
-              onClick={handleClick}
+              onClick={() => onNavigate?.()}
               label="All Proposals"
               icon={<LayoutGrid className="size-4 rotate-45" />}
               path="/all"

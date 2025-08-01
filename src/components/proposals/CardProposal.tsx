@@ -8,6 +8,7 @@ import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
+import { ModalSponsor } from '@/components/modals/modalSponsor/ModalSponsor'
 
 export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
@@ -116,7 +117,9 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
             <Button className={'flex-1'} asChild>
               <Link to={'/proposal/' + proposal.id}>View Details</Link>
             </Button>
-            <ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>
+            <ModalSponsor
+              modalTrigger={<ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>}
+            />
           </>
         )}
       </div>

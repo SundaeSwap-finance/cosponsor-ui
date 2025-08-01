@@ -24,13 +24,13 @@ export const CardProposalProgress = ({
         <div className={'flex w-full flex-col gap-0.5'}>
           <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Funding Progress</div>
           <div className={'sun-text-20-sb text-sun-header text-nowrap'}>
-            ₳ {formatNumber(fundProgress, maxDecimalsAda)}
+            ₳ {formatNumber(fundProgress ?? -1, maxDecimalsAda)}
           </div>
         </div>
         <div className={'flex w-full flex-col justify-end gap-0.5 text-right'}>
           <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Requested Budget</div>
           <div className={'sun-text-14-sb text-sun-header text-nowrap'}>
-            ₳ {formatNumber(reqBudget, maxDecimalsAda)}
+            ₳ {formatNumber(reqBudget ?? -1, maxDecimalsAda)}
           </div>
         </div>
       </div>

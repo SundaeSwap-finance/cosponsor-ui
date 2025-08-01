@@ -4,7 +4,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/components/shadcn/sheet'
@@ -18,7 +17,7 @@ export const Header = () => {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <div
         className={
-          'border-sun-border-primary relative flex w-full flex-row justify-end border-b px-4 py-4'
+          'border-sun-border-primary relative flex w-full flex-row justify-end border-b px-4 py-2'
         }
       >
         <div
@@ -29,15 +28,16 @@ export const Header = () => {
           Cosponsor
         </div>
         <SheetTrigger asChild>
-          <Button size="icon" variant="outline" onClick={() => setIsOpen(true)}>
+          <Button size="icon" variant="ghost" onClick={() => setIsOpen(true)}>
             <Menu />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className={'bg-sun-surface-muted'}>
-          {/*<SheetHeader>*/}
-          {/*  <SheetTitle>Cosponsor</SheetTitle>*/}
-          {/*</SheetHeader>*/}
-          <Sidebar fromHeader onNavigate={() => setIsOpen(false)} />
+          <SheetTitle className="hidden">Navigation menu</SheetTitle>
+          <SheetDescription className="hidden">
+            Navigate to other main sections of the Cosponsor app.
+          </SheetDescription>
+          <Sidebar mobileSheet onNavigate={() => setIsOpen(false)} />
         </SheetContent>
       </div>
     </Sheet>
