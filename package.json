@@ -9,6 +9,7 @@
     "build": "bun vite build",
     "dev": "bun vite dev",
     "dev:preview": "APP_ENV=preview bun dev",
+    "preview": "bun vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --write ."

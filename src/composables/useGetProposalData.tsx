@@ -37,6 +37,9 @@ export const useGetProposalData = () => {
       (proposal) => proposal.categoryName.toLowerCase() === categoryName.toLowerCase()
     )
   }
+  const getAllProposalCards = () => {
+    return cardData
+  }
 
   const getProposalCardsUserPledge = () => {
     //console.log('getProposalCardsUserPledge')
@@ -44,9 +47,10 @@ export const useGetProposalData = () => {
   }
 
   return {
-    getProposalCardById,
     getProposalDetailsById,
+    getProposalCardById,
     getProposalCardsInCategory,
+    getAllProposalCards,
     getProposalCardsUserPledge,
     getProposalCategories,
   }

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { ChevronLeft, ListFilter, Search } from 'lucide-react'
 import { InputIcon } from '@/components/input/InputIcon'
 import { Link } from 'react-router-dom'
+import { ModalSearchProposals } from '@/components/modals/searchProposals/ModalSearchProposals'
 
 export const SectionTitleProposalsView = ({
   title,
@@ -32,12 +33,16 @@ export const SectionTitleProposalsView = ({
             <ListFilter />
             Filter
           </Button>
-          <InputIcon
-            icon={<Search className={'text-sun-header size-4'} />}
-            iconPosition="left"
-            type="text"
-            placeholder="Search proposal by title or dRep ID"
-            className={'!bg-sun-white-pure !placeholder-sun-muted w-full md:w-100'}
+          <ModalSearchProposals
+            modalTrigger={
+              <InputIcon
+                icon={<Search className={'text-sun-header size-4'} />}
+                iconPosition="left"
+                type="text"
+                placeholder="Search proposal by title or dRep ID"
+                className={'!bg-sun-white-pure !placeholder-sun-muted w-full md:w-100'}
+              />
+            }
           />
         </div>
         <>

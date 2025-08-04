@@ -8,7 +8,7 @@ If not installed yet, install Bun.
 npm install -g bun 
 ```
 
-Use Bun to install necessary dependenies: 
+Use Bun to install necessary dependencies: 
 ```bash
 bun install
 ```

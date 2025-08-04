@@ -14,6 +14,7 @@ import { CardProposalPledgeSingle } from '@/components/proposals/pageDetails/Car
 import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledTextProposal'
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
+import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 
 export const PageProposalDetails = () => {
   const twoDayMilliseconds = 60000 * 60 * 48
@@ -146,10 +147,14 @@ export const PageProposalDetails = () => {
             </Link>
           </Button>
           {!isExpired && (
-            <ButtonGradient className={'lg:flex-1'} size="lg">
-              <Vote />
-              Sponsor this proposal
-            </ButtonGradient>
+            <ModalSponsor
+              modalTrigger={
+                <ButtonGradient className={'lg:flex-1'} size="lg">
+                  <Vote />
+                  Sponsor this proposal
+                </ButtonGradient>
+              }
+            />
           )}
         </div>
       </div>
