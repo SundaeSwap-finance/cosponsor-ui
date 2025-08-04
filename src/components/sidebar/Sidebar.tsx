@@ -41,7 +41,7 @@ export const Sidebar = ({
       <div className={'flex h-full w-full flex-col'}>
         <div className="flex h-17 flex-row items-center justify-between px-4">
           <IconCardano
-            classSvg={`size-8 fill-action-primary transition-discrete ${expanded ? 'flex' : 'hidden'} `}
+            className={`fill-action-primary size-8 transition-discrete ${expanded ? 'flex' : 'hidden'} `}
           />
 
           {!mobileSheet && (
@@ -85,7 +85,7 @@ export const Sidebar = ({
             className={`flex w-full flex-row items-center gap-3 p-4 ${activeWallet ? '' : 'cursor-pointer'} ${expanded ? '' : 'justify-center'}`}
           >
             {/*TODO: get the icon of the connected wallet here instead of the ADA logo.*/}
-            <IconCardano classSvg={`size-6 shrink-0 fill-action-primary  `} />
+            <IconCardano className={`fill-action-primary size-6 shrink-0`} />
             <div
               className={`flex h-full w-full min-w-0 flex-col gap-0.5 ${expanded ? 'flex opacity-100' : 'hidden opacity-0'}`}
             >

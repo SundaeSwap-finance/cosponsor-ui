@@ -17,16 +17,17 @@ export const SectionTitleProposalsView = ({
     <div className={'flex h-full w-full flex-col gap-6'}>
       <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
       <div
-        className={
-          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b pb-6 md:flex-row'
-        }
+        className={cn(
+          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b md:pb-6 lg:flex-row',
+          'sun-page-padding-rb'
+        )}
       >
         <div className={'flex flex-col gap-4'}>
           <h1 className={'text-sun-header sun-text-h2-md leading-12 capitalize'}>{title}</h1>
           <div className={'sun-text-14-rg text-sun-default'}>{subtitle}</div>
         </div>
 
-        <div className={'flex w-full flex-row items-end gap-2 md:w-fit'}>
+        <div className={'flex w-full flex-col items-end gap-2 md:w-fit md:flex-row'}>
           <Button variant="outline" className={cn('!bg-sun-white-pure text-sun-header')}>
             <ListFilter />
             Filter

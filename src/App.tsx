@@ -15,7 +15,7 @@ export const App = () => {
           {isMd ? <Sidebar /> : <Header />}
           <div className="flex h-screen w-full overflow-y-auto">
             <div className="w-full">
-              <div className="flex w-full pt-4 pl-4 lg:pt-8 lg:pl-8 xl:pt-16 xl:pl-16">
+              <div className="sun-page-padding-t sun-page-padding-b sun-page-padding-l flex w-full">
                 <Outlet />
               </div>
             </div>

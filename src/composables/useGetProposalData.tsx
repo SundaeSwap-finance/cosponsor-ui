@@ -6,16 +6,19 @@ import { cardData, detailsData } from '@/devData/proposalPlaceholders'
 export const useGetProposalData = () => {
   const [proposalCardCache, setProposalCardCache] = useState()
 
-  // Placeholder data and methods, refine when data is available.
+  // -- README --
   // TODO: replace with getting/refreshing data from BE in this file.
   // Current idea is to only deliver relevant data to the client. So for cards only the data on the cards.
+  // Placeholder dev data is not consistent between details and cards!
 
+  // Overview cards data
   const getProposalCardById = async (id: string): Promise<iProposalCardData> => {
     //console.log('getProposalCardById', id)
     return cardData.filter((proposal) => proposal.id === id)[0]
   }
+  // Details page data
   const getProposalDetailsById = (id: string) => {
-    console.log('getProposalDetailsById', id)
+    // console.log('getProposalDetailsById', id)
     return detailsData.filter((proposal) => proposal.id === id)[0]
   }
 

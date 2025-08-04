@@ -9,6 +9,7 @@ import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatu
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
+import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
 
 export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
@@ -107,22 +108,29 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
           </div>
         </div>
       </div>
-      <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
-        {isExpired ? (
-          <Button className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}>
-            Withdraw Your Pledge
-          </Button>
-        ) : (
-          <>
-            <Button className={'flex-1'} asChild>
-              <Link to={'/proposal/' + proposal.id}>View Details</Link>
-            </Button>
-            <ModalSponsor
-              modalTrigger={<ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>}
+      {!isExpired || proposal.userPledged > 0 ? (
+        <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
+          {isExpired && proposal.userPledged > 0 ? (
+            <ModalWithdraw
+              proposal={proposal}
+              modalTrigger={
+                <Button className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}>
+                  Withdraw Your Pledge
+                </Button>
+              }
             />
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <Button className={'flex-1'} asChild>
+                <Link to={'/proposal/' + proposal.id}>View Details</Link>
+              </Button>
+              <ModalSponsor
+                modalTrigger={<ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>}
+              />
+            </>
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }

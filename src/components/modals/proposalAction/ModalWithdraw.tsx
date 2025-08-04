@@ -1,3 +1,4 @@
+import React, { ReactNode, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -7,88 +8,90 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/shadcn/dialog'
-import React, { ReactNode, useMemo, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
-import { Button } from '@/components/shadcn/button'
-import { ArrowDownToLine, Fuel, Signature, Vote } from 'lucide-react'
-import { LineOrderDetails } from '@/components/modals/proposalAction/LineOrderDetails'
-import { IconCardano } from '@/icons/IconCardano'
 import { InputCurrencyLarge } from '@/components/input/InputCurrencyLarge'
-import { useWalletObserver } from '@sundaeswap/wallet-lite'
+import { IconCardano } from '@/icons/IconCardano'
+import { LineOrderDetails } from '@/components/modals/proposalAction/LineOrderDetails'
+import { ArrowDownToLine, Fuel, Signature, Vote } from 'lucide-react'
+import { Button } from '@/components/shadcn/button'
+import { iProposalCardData } from '@/types/Proposal'
+import { useNumberFormatter } from '@/composables/useNumberFormatter'
 
-export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
-  const walletObserver = useWalletObserver()
-  // TODO: get this from BE
+export const ModalWithdraw = ({
+  modalTrigger,
+  proposal,
+}: {
+  modalTrigger: ReactNode
+  proposal: iProposalCardData
+}) => {
+  const { formatLovelaceToAdaString } = useNumberFormatter()
+  const lovelaceToRetrieve: bigint = BigInt(proposal.userPledged * 10 ** 6)
+  // TODO: get this from BE, and calculate
   const tempFees = 12.34
 
-  const [userPledging, setUserPledging] = useState<number>(0.0)
-  const [userReceive, setUserReceive] = useState<number>(0.0)
+  const [userDepositGAda, setUserDepositGAda] = useState<number>(proposal.userPledged)
+  const [userReceive, setUserReceive] = useState<number>(proposal.userPledged)
 
   const onInputChanged = (value: number) => {
     //TODO if needed change calculation here
-    setUserPledging(value)
+    setUserDepositGAda(value)
     setUserReceive(value)
   }
 
   const largestStringInList = useMemo(() => {
     return Math.max(
-      userPledging?.toString().length ?? 0,
+      userDepositGAda?.toString().length ?? 0,
       userReceive?.toString().length ?? 0,
       tempFees.toString().length
     )
-  }, [userPledging, userReceive, tempFees])
+  }, [userDepositGAda, userReceive, tempFees])
 
   return (
     <Dialog>
       <DialogTrigger asChild>{modalTrigger}</DialogTrigger>
-      <DialogContentSundae
-        className={'w-120 gap-6 overflow-x-hidden rounded-3xl'}
-        showCloseButton={false}
-      >
+      <DialogContentSundae className={'w-120 gap-6 rounded-3xl'} showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className={'sun-text-20-md text-sun-header text-left'}>
-            Pledge your support
+            Withdraw Your Pledge
           </DialogTitle>
           <DialogDescription className={'sun-text-14-rg text-sun-default text-left'}>
-            Sponsor this proposal by choosing how much you'll get back.
+            Deposit your <b>gADA</b> to redeem your{' '}
+            <b>{formatLovelaceToAdaString(lovelaceToRetrieve)} ADA.</b>
           </DialogDescription>
         </DialogHeader>
         <div className={'flex flex-col gap-6'}>
           <InputCurrencyLarge
             onChangeSanitized={onInputChanged}
-            label="Amount to Pledge"
+            label="gADA to Deposit"
             placeholder={'0.0'}
-            currencyLabel={'ADA'}
-            currencyAvailable={walletObserver.adaBalance.amount}
+            currencyLabel={'gADA'}
+            currencyAvailable={lovelaceToRetrieve}
+            defaultValue={proposal.userPledged}
             currencyIcon={
-              <IconCardano className={'bg-sun-ada fill-sun-white-pure size-6.5 rounded-full'} />
+              <IconCardano className={'bg-sun-gada fill-sun-white-pure size-6.5 rounded-full'} />
             }
           />
           <div className={'flex flex-col gap-4 px-4'}>
             <div className={'sun-text-16-md text-sun-header'}>Order Details</div>
             <div className={'flex flex-col gap-4 md:gap-3'}>
               <LineOrderDetails
-                label={`You're Pledging`}
+                label={`You're Depositing`}
                 labelIcon={<Vote />}
-                currencyName={'ADA'}
+                currencyName={'gADA'}
                 currencyIcon={
-                  <IconCardano className={'bg-sun-ada fill-sun-white-pure size-4 rounded-full'} />
+                  <IconCardano className={'bg-sun-gada fill-sun-white-pure size-4 rounded-full'} />
                 }
-                currencyValue={userPledging}
+                currencyValue={Number(userDepositGAda)}
                 largestTextInList={largestStringInList}
               />
               <LineOrderDetails
                 label={`You'll receive`}
                 labelIcon={<ArrowDownToLine />}
-                currencyName={'gADA'}
+                currencyName={'ADA'}
                 currencyIcon={
-                  <IconCardano
-                    className={
-                      'bg-sun-action-secondary fill-sun-action-primary size-4 rounded-full'
-                    }
-                  />
+                  <IconCardano className={'bg-sun-ada fill-sun-white-pure size-4 rounded-full'} />
                 }
-                currencyValue={userReceive}
+                currencyValue={Number(userReceive)}
                 largestTextInList={largestStringInList}
               />
               <LineOrderDetails
@@ -96,7 +99,9 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
                 labelIcon={<Fuel />}
                 currencyName={'ADA'}
                 currencyIcon={
-                  <IconCardano className={'bg-sun-ada fill-sun-white-pure size-4 rounded-full'} />
+                  <IconCardano
+                    className={'bg-sun-action-tertiary fill-sun-white-pure size-4 rounded-full'}
+                  />
                 }
                 currencyValue={tempFees}
                 classNameCurrency={'text-sun-default'}
@@ -113,7 +118,7 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
           </DialogClose>
           <Button size="lg" variant="default" className={'sun-text-14-rg h-12 grow'}>
             <Signature />
-            Confirm Pledge Amount & Sign
+            Confirm Redemption Amount & Sign
           </Button>
         </DialogFooter>
       </DialogContentSundae>

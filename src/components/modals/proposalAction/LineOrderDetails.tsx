@@ -1,4 +1,3 @@
-import { Vote } from 'lucide-react'
 import { ReactNode } from 'react'
 import { maxDecimalsAda } from '@/config/config'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
@@ -11,6 +10,7 @@ export const LineOrderDetails = ({
   currencyIcon,
   currencyValue,
   classNameCurrency,
+  largestTextInList,
 }: {
   label: string
   labelIcon: ReactNode
@@ -18,18 +18,24 @@ export const LineOrderDetails = ({
   currencyIcon: ReactNode
   currencyValue: number
   classNameCurrency?: string
+  largestTextInList?: number
 }) => {
   const { formatNumber } = useNumberFormatter()
 
   return (
-    <div className={'flex flex-col gap-0.5 md:flex-row md:items-center md:justify-between'}>
+    <div
+      className={cn(
+        'flex flex-col gap-0.5 md:flex-row md:items-center md:justify-between',
+        (largestTextInList ?? 0) > 15 ? 'md:flex-col md:items-start' : ''
+      )}
+    >
       <div className={'sun-text-16-rg text-sun-default flex flex-row gap-4'}>
         <div className={'flex w-4 items-center object-contain'}>{labelIcon}</div>
         <div className={'underline decoration-dotted decoration-1 underline-offset-4'}>{label}</div>
       </div>
       <div className={cn('text-sun-header flex flex-row items-center gap-2', classNameCurrency)}>
         <div className={'flex size-4 items-center justify-center'}>{currencyIcon}</div>
-        <div className={'sun-text-16-md'}>
+        <div className={'sun-text-16-md flex overflow-x-auto'}>
           {formatNumber(currencyValue, maxDecimalsAda)} {currencyName}
         </div>
       </div>

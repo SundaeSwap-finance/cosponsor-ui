@@ -8,8 +8,8 @@ export const CardProposalUserPledged = ({
   reqBudget,
   userPledge,
 }: {
-  fundProgress: number | undefined
-  reqBudget: number | undefined
+  fundProgress: number
+  reqBudget: number
   userPledge: number | undefined
 }) => {
   const { formatNumber } = useNumberFormatter()
@@ -103,7 +103,7 @@ export const CardProposalUserPledged = ({
               'to-sun-highlight-secondary from-sun-highlight-primary sun-text-14-sb bg-gradient-to-r bg-clip-text text-transparent'
             }
           >
-            ₳ {formatNumber(userPledge, maxDecimalsAda)}
+            ₳ {formatNumber(userPledge ?? 0, maxDecimalsAda)}
           </div>
         </div>
       </div>
