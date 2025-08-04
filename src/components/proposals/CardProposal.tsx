@@ -8,7 +8,7 @@ import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import { ModalSponsor } from '@/components/modals/modalSponsor/ModalSponsor'
+import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 
 export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)

@@ -13,7 +13,7 @@ import React, { ReactNode, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
 import { Button } from '@/components/shadcn/button'
 import { ArrowDownToLine, Download, Fuel, Signature, Vote } from 'lucide-react'
-import { LineOrderDetails } from '@/components/modals/modalSponsor/LineOrderDetails'
+import { LineOrderDetails } from '@/components/modals/proposalAction/LineOrderDetails'
 import { IconCardano } from '@/icons/IconCardano'
 import { InputCurrencyLarge } from '@/components/input/InputCurrencyLarge'
 
