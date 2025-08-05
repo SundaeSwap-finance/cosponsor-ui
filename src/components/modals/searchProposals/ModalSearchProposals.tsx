@@ -13,11 +13,29 @@ import { InputIcon } from '@/components/input/InputIcon'
 import { SearchResultProposal } from '@/components/modals/searchProposals/SearchResultProposal.'
 import { SearchActionHint } from '@/components/modals/searchProposals/SearchActionHint'
 import { useGetProposalData } from '@/composables/useGetProposalData'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from '@/components/shadcn/command'
+import { useNavigate } from 'react-router-dom'
 
 export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
   const { getAllProposalCards } = useGetProposalData()
   const allProposals = getAllProposalCards()
   const [inputValue, setInputValue] = useState('')
+  const navigate = useNavigate()
+
+  const getRandomProposals = (amount: number, exceptThisId?: string) => {
+    const candidates = exceptThisId
+      ? allProposals.filter((p) => p.id !== exceptThisId)
+      : [...allProposals]
+    const shuffled = candidates.sort(() => 0.5 - Math.random())
+
+    return shuffled.slice(0, amount)
+  }
 
   const filteredProposals = useMemo(() => {
     if (inputValue.length > 0) {
@@ -31,18 +49,19 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
         )
       })
     } else {
-      return allProposals.slice(0, 3)
+      return getRandomProposals(4)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue, allProposals])
 
-  const handleInput = (e) => {
-    setInputValue(e.target.value)
+  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value)
   }
 
   return (
     <Dialog>
       <DialogTrigger asChild>{modalTrigger}</DialogTrigger>
-      <DialogContentSundae className={'w-1/3 gap-6 rounded-3xl'} showCloseButton={false}>
+      <DialogContentSundae className={'w-full gap-6 rounded-3xl'} showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className={'sun-text-20-md text-sun-header text-left'}>
             Search Proposals
@@ -51,23 +70,34 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
             Discover proposals to sponsor!
           </DialogDescription>
         </DialogHeader>
-        <InputIcon
-          value={inputValue}
-          onChange={handleInput}
-          icon={<Search className={'text-sun-header size-4'} />}
-          iconPosition="left"
-          type="text"
-          placeholder="Search proposal by title or dRep ID"
-          className={'!bg-sun-white-pure !placeholder-sun-muted w-full'}
-        />
-        <div className={'flex flex-col'}>
-          {filteredProposals.map((proposal) => (
-            <SearchResultProposal proposal={proposal} />
-          ))}
-        </div>
+        <Command className={'w-full gap-6'}>
+          <InputIcon
+            value={inputValue}
+            onChange={handleInput}
+            icon={<Search className={'text-sun-header size-4'} />}
+            iconPosition="left"
+            type="text"
+            placeholder="Search proposal by title or dRep ID"
+            className={'!bg-sun-white-pure !placeholder-sun-muted w-full'}
+          />
+          <CommandList className={'flex w-full flex-col'}>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {filteredProposals.map((proposal) => (
+                <CommandItem
+                  key={proposal.id}
+                  className={'group/searchItem w-full p-0 pr-3'}
+                  onSelect={() => navigate('/proposal/' + proposal.id)}
+                >
+                  <SearchResultProposal proposal={proposal} />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
         <DialogFooter
           className={
-            'sun-text-12-rg text-sun-default border-sun-border-primary flex flex-row gap-6 border-t pt-6'
+            'sun-text-12-rg text-sun-default border-sun-border-primary flex w-full flex-row !justify-start gap-6 border-t pt-6'
           }
         >
           <SearchActionHint

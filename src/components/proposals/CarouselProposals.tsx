@@ -23,6 +23,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
 
   useEffect(() => {
     setProposals(getProposalCardsInCategory(categoryName))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryName])
 
   const clickNext = useCallback(() => {

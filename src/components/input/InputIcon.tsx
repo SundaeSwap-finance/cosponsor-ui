@@ -24,6 +24,7 @@ export const InputIcon = ({ icon, iconPosition = 'left', className, ...props }: 
             'pl-10': iconPosition === 'left',
             'pr-10': iconPosition === 'right',
           },
+          '!ring-0',
           className
         )}
         {...props}

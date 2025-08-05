@@ -28,6 +28,7 @@ export const PageProposalDetails = () => {
       return
     }
     return foundProposal
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposalId])
 
   const [isExpired, setIsExpired] = useState(
@@ -81,6 +82,7 @@ export const PageProposalDetails = () => {
     return () => {
       clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposal, isExpired])
 
   const expiryTitleTooltip = useMemo(() => {
@@ -162,7 +164,7 @@ export const PageProposalDetails = () => {
         <div className={'flex w-full flex-col gap-6 md:min-w-100'}>
           <>
             {isExpired ? (
-              <BannerProposalExpired userPledge={proposal.userPledged} />
+              <BannerProposalExpired userPledge={proposal.userPledged} proposal={proposal} />
             ) : (
               <BannerProposalProgress
                 completionPercentage={completionPercentage}

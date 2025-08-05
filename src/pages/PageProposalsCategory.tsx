@@ -16,7 +16,8 @@ export const PageProposalsCategory: FC = () => {
       return
     }
     return foundProposals
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name])
 
   return (
     <div className={'sun-page-padding-rb flex w-full flex-col gap-8 overflow-y-auto'}>

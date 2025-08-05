@@ -207,7 +207,7 @@
     @apply text-22 leading-sun-22 font-sans font-light;
   }
   .sun-text-22-rg {
-    @apply text-22 leading-sun-22 font-sans font-regular;
+    @apply text-22 leading-sun-22 font-regular font-sans;
   }
   .sun-text-22-md {
     @apply text-22 leading-sun-22 font-sans font-medium;
