@@ -19,6 +19,7 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/shadcn/command'
 import { useNavigate } from 'react-router-dom'
 
@@ -82,7 +83,7 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
           />
           <CommandList className={'flex w-full flex-col'}>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className={'p-0'}>
               {filteredProposals.map((proposal) => (
                 <CommandItem
                   key={proposal.id}
@@ -97,7 +98,7 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
         </Command>
         <DialogFooter
           className={
-            'sun-text-12-rg text-sun-default border-sun-border-primary flex w-full flex-row !justify-start gap-6 border-t pt-6'
+            'sun-text-12-rg text-sun-default border-sun-border-primary hidden w-full flex-row !justify-start gap-6 border-t pt-6 lg:flex'
           }
         >
           <SearchActionHint

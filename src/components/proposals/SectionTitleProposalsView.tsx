@@ -29,19 +29,28 @@ export const SectionTitleProposalsView = ({
         </div>
 
         <div className={'flex w-full flex-col items-end gap-2 md:w-fit md:flex-row'}>
-          <Button variant="outline" className={cn('!bg-sun-white-pure text-sun-header')}>
+          <Button
+            size="sm"
+            variant="outline"
+            className={cn('!bg-sun-white-pure text-sun-header sun-text-12-md')}
+          >
             <ListFilter />
             Filter
           </Button>
           <ModalSearchProposals
             modalTrigger={
-              <InputIcon
-                icon={<Search className={'text-sun-header size-4'} />}
-                iconPosition="left"
-                type="text"
-                placeholder="Search proposal by title or dRep ID"
-                className={'!bg-sun-white-pure !placeholder-sun-muted w-full md:w-100'}
-              />
+              <Button variant="ghost" size="sm" className={'p-0 md:min-w-100'}>
+                <div
+                  className={
+                    'border-sun-border-secondary flex w-full flex-row items-center gap-3 rounded-md border px-4 py-2'
+                  }
+                >
+                  <Search className={'text-sun-header'} />
+                  <div className={'text-sun-muted sun-text-12-rg'}>
+                    Search proposal by title or dRep ID
+                  </div>
+                </div>
+              </Button>
             }
           />
         </div>

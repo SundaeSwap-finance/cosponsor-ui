@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/shadcn/dialog'
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
 import { Button } from '@/components/shadcn/button'
 import { ArrowDownToLine, Fuel, Signature, Vote } from 'lucide-react'
@@ -20,6 +20,7 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
   const walletObserver = useWalletObserver()
   // TODO: get this from BE
   const tempFees = 12.34
+  const amountInputRef = useRef<HTMLInputElement>(null)
 
   const [userPledging, setUserPledging] = useState<number>(0.0)
   const [userReceive, setUserReceive] = useState<number>(0.0)
@@ -44,6 +45,11 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
       <DialogContentSundae
         className={'w-120 gap-6 overflow-x-hidden rounded-3xl'}
         showCloseButton={false}
+        onOpenAutoFocus={(event) => {
+          // Prevent default radix behaviour (to prevent .select)
+          event.preventDefault()
+          amountInputRef.current?.focus()
+        }}
       >
         <DialogHeader>
           <DialogTitle className={'sun-text-20-md text-sun-header text-left'}>
@@ -55,6 +61,7 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
         </DialogHeader>
         <div className={'flex flex-col gap-6'}>
           <InputCurrencyLarge
+            ref={amountInputRef}
             onChangeSanitized={onInputChanged}
             label="Amount to Pledge"
             placeholder={'0.0'}

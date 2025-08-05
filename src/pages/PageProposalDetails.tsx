@@ -142,7 +142,7 @@ export const PageProposalDetails = () => {
           </div>
         </div>
         <div className={'flex flex-row items-end gap-2'}>
-          <Button variant="secondary" size="lg" asChild>
+          <Button variant="secondary" size="lg" asChild className={'sun-text-16-rg h-12 !px-6'}>
             <Link to={'/all'}>
               <ChevronLeft />
               Back
@@ -151,7 +151,7 @@ export const PageProposalDetails = () => {
           {!isExpired && (
             <ModalSponsor
               modalTrigger={
-                <ButtonGradient className={'lg:flex-1'} size="lg">
+                <ButtonGradient className={'sun-text-16-rg h-12 !px-5 lg:flex-1'} size="lg">
                   <Vote />
                   Sponsor this proposal
                 </ButtonGradient>

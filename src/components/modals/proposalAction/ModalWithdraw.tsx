@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -25,10 +25,11 @@ export const ModalWithdraw = ({
   proposal: iProposalCardData
 }) => {
   const { formatLovelaceToAdaString } = useNumberFormatter()
-  const lovelaceToRetrieve: bigint = BigInt(proposal.userPledged * 10 ** 6)
   // TODO: get this from BE, and calculate
   const tempFees = 12.34
+  const amountInputRef = useRef<HTMLInputElement>(null)
 
+  const lovelaceToRetrieve: bigint = BigInt(proposal.userPledged * 10 ** 6)
   const [userDepositGAda, setUserDepositGAda] = useState<number>(proposal.userPledged)
   const [userReceive, setUserReceive] = useState<number>(proposal.userPledged)
 
@@ -49,7 +50,15 @@ export const ModalWithdraw = ({
   return (
     <Dialog>
       <DialogTrigger asChild>{modalTrigger}</DialogTrigger>
-      <DialogContentSundae className={'w-120 gap-6 rounded-3xl'} showCloseButton={false}>
+      <DialogContentSundae
+        className={'w-120 gap-6 rounded-3xl'}
+        showCloseButton={false}
+        onOpenAutoFocus={(event) => {
+          // Prevent default radix behaviour (to prevent .select)
+          event.preventDefault()
+          amountInputRef.current?.focus()
+        }}
+      >
         <DialogHeader>
           <DialogTitle className={'sun-text-20-md text-sun-header text-left'}>
             Withdraw Your Pledge
@@ -61,6 +70,7 @@ export const ModalWithdraw = ({
         </DialogHeader>
         <div className={'flex flex-col gap-6'}>
           <InputCurrencyLarge
+            ref={amountInputRef}
             onChangeSanitized={onInputChanged}
             label="gADA to Deposit"
             placeholder={'0.0'}

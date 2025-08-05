@@ -1,6 +1,7 @@
 import { CardProposal } from '@/components/proposals/CardProposal'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { SectionTitleProposalsView } from '@/components/proposals/SectionTitleProposalsView'
+import { ListSimpleProposals } from '@/components/proposals/ListSimpleProposals'
 
 export const PageProposalsUserPledge = () => {
   const { getProposalCardsUserPledge } = useGetProposalData()
@@ -12,11 +13,7 @@ export const PageProposalsUserPledge = () => {
         subtitle={'Track the status of your committed funds and potential returns.'}
         backButton={false}
       />
-      <div className={'flex flex-row flex-wrap justify-center gap-2.5'}>
-        {getProposalCardsUserPledge()?.map((item, index) => (
-          <CardProposal key={item.id} proposal={item} />
-        ))}
-      </div>
+      <ListSimpleProposals proposals={getProposalCardsUserPledge()} />
     </div>
   )
 }

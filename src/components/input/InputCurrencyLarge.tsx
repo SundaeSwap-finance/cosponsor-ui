@@ -31,7 +31,6 @@ export const InputCurrencyLarge = ({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     // Using this combined with Input type of text so we do not have additional UI or limits we would otherwise have with number input.
     const newValue: string = event.target.value
-
     setWarning('')
     if (/^[0-9]*\.?[0-9]*$/.test(newValue)) {
       if (Number(newValue) <= currencyToNumber()) {

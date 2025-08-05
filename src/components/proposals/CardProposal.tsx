@@ -11,7 +11,13 @@ import { Link } from 'react-router-dom'
 import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
 
-export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
+export const CardProposal = ({
+  proposal,
+  className,
+}: {
+  proposal: iProposalCardData
+  className?: string
+}) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
 
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
@@ -49,9 +55,10 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
   return (
     // TODO: skeleton loading to prevent flicker.
     <div
-      className={
-        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border transition-all duration-500 md:max-w-100'
-      }
+      className={cn(
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border transition-all duration-500 md:max-w-100',
+        className
+      )}
     >
       <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
         <div className={'text-sun-muted sun-text-12-md flex flex-row gap-2'}>
@@ -114,18 +121,25 @@ export const CardProposal = ({ proposal }: { proposal: iProposalCardData }) => {
             <ModalWithdraw
               proposal={proposal}
               modalTrigger={
-                <Button className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}>
+                <Button
+                  size="lg"
+                  className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}
+                >
                   Withdraw Your Pledge
                 </Button>
               }
             />
           ) : (
             <>
-              <Button className={'flex-1'} asChild>
+              <Button size="lg" className={'flex-1'} asChild>
                 <Link to={'/proposal/' + proposal.id}>View Details</Link>
               </Button>
               <ModalSponsor
-                modalTrigger={<ButtonGradient className={'flex-1'}>Sponsor!</ButtonGradient>}
+                modalTrigger={
+                  <ButtonGradient size="lg" className={'flex-1'}>
+                    Sponsor!
+                  </ButtonGradient>
+                }
               />
             </>
           )}

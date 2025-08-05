@@ -30,7 +30,7 @@ export const CardUserPledgeSimple = ({
               'sun-text-24-sb to-sun-highlight-secondary from-sun-highlight-primary bg-gradient-to-r bg-clip-text text-nowrap text-transparent'
             }
           >
-            ₳ {formatNumber(userPledge ?? -1, maxDecimalsAda)}
+            ₳{formatNumber(userPledge ?? -1, maxDecimalsAda)}
           </div>
         </div>
       </div>
