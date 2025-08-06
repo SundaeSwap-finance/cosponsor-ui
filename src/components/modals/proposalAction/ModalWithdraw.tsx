@@ -16,6 +16,7 @@ import { ArrowDownToLine, Fuel, Signature, Vote } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { iProposalCardData } from '@/types/Proposal'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
+import { maxDecimalsAda } from '@/config/config'
 
 export const ModalWithdraw = ({
   modalTrigger,
@@ -24,11 +25,9 @@ export const ModalWithdraw = ({
   modalTrigger: ReactNode
   proposal: iProposalCardData
 }) => {
-  const { formatLovelaceToAdaString } = useNumberFormatter()
-  // TODO: get this from BE, and calculate
-  const tempFees = 12.34
-  const amountInputRef = useRef<HTMLInputElement>(null)
+  const { formatLovelaceToAdaString, formatNumber } = useNumberFormatter()
 
+  const amountInputRef = useRef<HTMLInputElement>(null)
   const lovelaceToRetrieve: bigint = BigInt(proposal.userPledged * 10 ** 6)
   const [userDepositGAda, setUserDepositGAda] = useState<number>(proposal.userPledged)
   const [userReceive, setUserReceive] = useState<number>(proposal.userPledged)
@@ -39,13 +38,19 @@ export const ModalWithdraw = ({
     setUserReceive(value)
   }
 
+  const fees = useMemo((): number => {
+    // TODO: get fees from BE, and calculate
+    return userDepositGAda + 12.34 - userDepositGAda
+  }, [userDepositGAda])
+
   const largestStringInList = useMemo(() => {
-    return Math.max(
-      userDepositGAda?.toString().length ?? 0,
-      userReceive?.toString().length ?? 0,
-      tempFees.toString().length
+    const result = Math.max(
+      formatNumber(userDepositGAda, maxDecimalsAda).length ?? 0,
+      formatNumber(userReceive, maxDecimalsAda).length ?? 0,
+      formatNumber(fees, maxDecimalsAda).length
     )
-  }, [userDepositGAda, userReceive, tempFees])
+    return result
+  }, [userDepositGAda, userReceive, fees])
 
   return (
     <Dialog>
@@ -54,7 +59,7 @@ export const ModalWithdraw = ({
         className={'w-120 gap-6 rounded-3xl'}
         showCloseButton={false}
         onOpenAutoFocus={(event) => {
-          // Prevent default radix behaviour (to prevent .select)
+          // Prevent default Radix behaviour (to prevent auto .select on input)
           event.preventDefault()
           amountInputRef.current?.focus()
         }}
@@ -113,7 +118,7 @@ export const ModalWithdraw = ({
                     className={'bg-sun-action-tertiary fill-sun-white-pure size-4 rounded-full'}
                   />
                 }
-                currencyValue={tempFees}
+                currencyValue={fees}
                 classNameCurrency={'text-sun-default'}
                 largestTextInList={largestStringInList}
               />

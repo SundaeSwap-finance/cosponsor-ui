@@ -18,26 +18,27 @@ import { useWalletObserver } from '@sundaeswap/wallet-lite'
 
 export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
   const walletObserver = useWalletObserver()
-  // TODO: get this from BE
-  const tempFees = 12.34
   const amountInputRef = useRef<HTMLInputElement>(null)
 
   const [userPledging, setUserPledging] = useState<number>(0.0)
   const [userReceive, setUserReceive] = useState<number>(0.0)
+  const [fees, setFees] = useState<number>(0.0)
 
   const onInputChanged = (value: number) => {
     //TODO if needed change calculation here
     setUserPledging(value)
     setUserReceive(value)
+    // TODO: calc/get this from BE
+    setFees(12.34)
   }
 
   const largestStringInList = useMemo(() => {
     return Math.max(
       userPledging?.toString().length ?? 0,
       userReceive?.toString().length ?? 0,
-      tempFees.toString().length
+      fees.toString().length
     )
-  }, [userPledging, userReceive, tempFees])
+  }, [userPledging, userReceive, fees])
 
   return (
     <Dialog>
@@ -46,7 +47,7 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
         className={'w-120 gap-6 overflow-x-hidden rounded-3xl'}
         showCloseButton={false}
         onOpenAutoFocus={(event) => {
-          // Prevent default radix behaviour (to prevent .select)
+          // Prevent default Radix behaviour (to prevent auto .select on input)
           event.preventDefault()
           amountInputRef.current?.focus()
         }}
@@ -105,7 +106,7 @@ export const ModalSponsor = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
                 currencyIcon={
                   <IconCardano className={'bg-sun-ada fill-sun-white-pure size-4 rounded-full'} />
                 }
-                currencyValue={tempFees}
+                currencyValue={fees}
                 classNameCurrency={'text-sun-default'}
                 largestTextInList={largestStringInList}
               />

@@ -3,6 +3,8 @@
 
 @import './colors.css';
 @import './fonts.css';
+@source "../../node_modules/@sundaeswap/ui-toolkit/src/**/*";
+
 
 @theme inline {
   /* ShadCN defaults */

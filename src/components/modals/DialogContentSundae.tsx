@@ -8,13 +8,20 @@ export const DialogContentSundae = ({
   className,
   children,
   showCloseButton = true,
+  onClickOverlay,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  onClickOverlay?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void
 }) => {
   return (
     <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay className={'bg-sun-black-pure/7 backdrop-blur-xl'} />
+      <DialogOverlay
+        className={'bg-sun-black-pure/7 backdrop-blur-xl'}
+        onClick={(event) => {
+          onClickOverlay?.(event)
+        }}
+      />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(

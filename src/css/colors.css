@@ -1,20 +1,6 @@
 @theme {
-  --color-*: initial;
-
-  --color-sun-primary-default: #66a8ea;
-  --color-sun-secondary-default: #dc53de;
-  --color-sun-primary-muted: #4092e51f; /* 12% opacity */
-  --color-sun-secondary-muted: #d328d61f; /* 12% opacity */
-
-  --color-sun-content-body-secondary: #b8b3c3; /* text-body-secondary */
-
-  --color-sun-success-primary: #58c7ba;
-  --color-sun-success-muted: #58c7ba1f; /* 12% opacity */
-
-  --color-sun-border-tertiary: #e6e4e8;
-
-  /* ABOVE is in components section Figma ONLY*/
-  /* BELOW is in main section Figma. Removed text names as that creates confusing syntax in components.*/
+  /* Colors as in the main section Figma.
+  Removed text names as that creates confusing syntax in components.*/
 
   --color-sun-header: #374151; /* a.k.a. text-header */
   --color-sun-muted: #9ea4b0; /* a.k.a. text-muted */
@@ -40,4 +26,33 @@
   --color-sun-black-pure: #000000;
   --color-sun-ada: #1d4ed8;
   --color-sun-gada: #501dd3;
+
+  /* BEGIN / Wallet-ui: Added to get the wallet UI modal from ui-toolkit to work. */
+  --color-warning: rgba(241, 148, 54,1.0);
+  --color-warning-300: rgba(246, 183, 120, 1.0);
+  --color-warning-400: rgba(244, 169, 94, 1.0);
+  --color-warning-500: rgba(241, 148, 54,1.0);
+  --color-warning-600: rgba(241, 148, 54,1.0);
+  --color-success: rgba(88, 199, 186,1.0);
+  --color-success-400: rgba(121, 210, 200,1.0);
+  --color-success-600: rgba(80, 181, 169,1.0);
 }
+#walletConnectModal {
+  button:not([aria-label*="Wallet"]):not([role="checkbox"]) {
+    cursor: pointer;
+    background-image: linear-gradient(to right, var(--color-sun-highlight-primary), var(--color-sun-highlight-secondary));
+
+  }
+  button:not([aria-label*="Wallet"]):not([role="checkbox"]):hover{
+    opacity: 0.9;
+  }
+  button[role="checkbox"] {
+    /*Local override primary color*/
+    --primary: var(--color-success);
+    svg {
+      color: var(--color-success);
+    }
+  }
+}
+/* END / Wallet-ui */
+

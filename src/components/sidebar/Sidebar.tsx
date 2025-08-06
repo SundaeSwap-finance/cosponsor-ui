@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { IconCardano } from '@/icons/IconCardano'
-import { LayoutDashboard, LayoutGrid, LogIn, LogOut, PanelLeftClose } from 'lucide-react'
+import {
+  LayoutDashboard,
+  LayoutGrid,
+  LoaderCircle,
+  LogIn,
+  LogOut,
+  PanelLeftClose,
+} from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
-import { RenderWalletState } from '@sundaeswap/wallet-lite'
 import { cn } from '@/lib/utils'
+import { SidebarWallet } from '@/components/sidebar/SidebarWallet'
 
 export const Sidebar = ({
   onNavigate,
@@ -17,18 +24,6 @@ export const Sidebar = ({
 
   const toggleButton = () => {
     setExpanded(!expanded)
-  }
-
-  const onClickConnectWallet = (
-    connectWallet: {
-      (wallet: string): Promise<import('@cardano-sdk/dapp-connector').Cip30WalletApi | undefined>
-      (arg0: string): void
-    },
-    activeWallet: string | undefined
-  ) => {
-    if (!activeWallet) {
-      connectWallet('eternl')
-    }
   }
 
   return (
@@ -78,41 +73,7 @@ export const Sidebar = ({
           </div>
         </div>
       </div>
-      <RenderWalletState
-        render={({ connectWallet, usedAddresses, disconnect, activeWallet }) => (
-          <div
-            onClick={() => onClickConnectWallet(connectWallet, activeWallet)}
-            className={`flex w-full flex-row items-center gap-3 p-4 ${activeWallet ? '' : 'cursor-pointer'} ${expanded ? '' : 'justify-center'}`}
-          >
-            {/*TODO: get the icon of the connected wallet here instead of the ADA logo.*/}
-            <IconCardano className={`fill-action-primary size-6 shrink-0`} />
-            <div
-              className={`flex h-full w-full min-w-0 flex-col gap-0.5 ${expanded ? 'flex opacity-100' : 'hidden opacity-0'}`}
-            >
-              <div className={'sun-text-14-md text-sun-header w-full leading-3.5 capitalize'}>
-                {activeWallet ?? 'Connect a wallet'}
-              </div>
-              <div className={'sun-text-12-rg text-sun-header w-full truncate'}>
-                {usedAddresses}
-              </div>
-            </div>
-            <Button
-              title="Log out"
-              size="icon"
-              variant="ghost"
-              onClick={() => disconnect()}
-              className={`size-4 ${expanded ? 'flex opacity-100' : 'hidden opacity-0'}`}
-            >
-              <LogIn
-                className={`text-sun-muted size-4 shrink-0 ${activeWallet ? 'hidden' : 'block'}`}
-              />
-              <LogOut
-                className={`text-sun-muted size-4 shrink-0 ${activeWallet ? 'block' : 'hidden'}`}
-              />
-            </Button>
-          </div>
-        )}
-      />
+      <SidebarWallet sidebarExpanded={expanded} />
     </div>
   )
 }

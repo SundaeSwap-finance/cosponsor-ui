@@ -6,16 +6,12 @@ export default {
     './src/hooks/**/*.tsx',
     './src/pages/**/*.tsx',
     './src/layouts/**/*.tsx',
-    './node_modules/@sundaeswap/ui-toolkit/src/**/*',
+    // External libraries are now scanned by using @source in index.css https://tailwindcss.com/docs/detecting-classes-in-source-files#explicitly-registering-sources
   ],
 
   darkMode: 'class',
   theme: {
     ...theme,
-    backgroundImage: {
-      ...theme.backgroundImage,
-      'news-bg': "url('./backgrounds/news-bg.png')",
-    },
     extend: {
       fontFamily: {
         sans: ['var(--font-geist-sans)'],
@@ -80,5 +76,5 @@ export default {
       },
     },
   },
-  plugins,
+  plugins: [...plugins],
 }
