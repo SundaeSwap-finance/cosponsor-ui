@@ -1,30 +1,33 @@
 import { LoaderCircle, LogIn, LogOut } from 'lucide-react'
 import {
+  RenderWallet,
   RenderWalletState,
   TRenderWalletFunctionState,
   useAvailableExtensions,
+  useWalletObserver,
 } from '@sundaeswap/wallet-lite'
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
 import { IconCardano } from '@/icons/IconCardano'
 import { Button } from '@/components/shadcn/button'
-import React, { useMemo, useState } from 'react'
+import React, { createContext, useMemo, useState } from 'react'
 import { useTextFormatter } from '@/composables/useTextFormatter'
 
 export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean }) => {
+  const walletObserver = useWalletObserver().observer
   const walletList = useAvailableExtensions()
   const { formatMidEllipsis } = useTextFormatter()
-  const [currentWallet, setCurrentWallet] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
 
   const iconActiveWallet = useMemo(() => {
     if (walletList && walletList.length > 0) {
       const filtered = walletList.filter(
-        (wallet) => wallet && wallet.name?.toLowerCase() === currentWallet?.toLowerCase()
+        (wallet) =>
+          wallet && wallet.name?.toLowerCase() === walletObserver.activeWallet?.toLowerCase()
       )
       return filtered && filtered.length > 0 ? filtered[0].reference.icon : ''
     }
     return ''
-  }, [walletList, currentWallet])
+  }, [walletList, walletObserver.activeWallet])
 
   const onClickConnectWallet = (
     connectWallet: {
@@ -34,15 +37,18 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
     activeWallet: string | undefined
   ) => {
     if (activeWallet) {
-      connectWallet(activeWallet).then((r) => r && setCurrentWallet(activeWallet))
+      connectWallet(activeWallet).then((r) => {
+        setModalOpen(false)
+      })
     } else {
-      connectWallet('eternl').then((r) => r && setCurrentWallet('eternl'))
+      connectWallet('eternl').then((r) => {
+        setModalOpen(false)
+      })
     }
-    setModalOpen(false)
   }
 
   return (
-    <RenderWalletState
+    <RenderWallet
       loader={<LoaderCircle className={'animate-spin'} />}
       render={({
         connectWallet,
@@ -63,7 +69,7 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
               {iconActiveWallet ? (
                 <img
                   src={iconActiveWallet}
-                  alt={'Wallet icon of ' + currentWallet}
+                  alt={'Wallet icon of ' + walletObserver.activeWallet}
                   className="h-8 w-8"
                 />
               ) : (
@@ -87,7 +93,6 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
                     event.preventDefault()
                     event.stopPropagation()
                     disconnect()
-                    setCurrentWallet('')
                   } else {
                     setModalOpen(true)
                   }

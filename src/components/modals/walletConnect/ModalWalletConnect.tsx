@@ -8,7 +8,7 @@ import {
 import { WalletConnectFlow } from '@sundaeswap/ui-toolkit'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
-import { IWindowCip30Extension } from '@sundaeswap/wallet-lite'
+import { IWindowCip30Extension, useWalletObserver } from '@sundaeswap/wallet-lite'
 
 export const ModalWalletConnect = ({
   modalTrigger,
@@ -19,10 +19,11 @@ export const ModalWalletConnect = ({
 }: {
   modalTrigger: ReactNode
   onWalletConnect?: (key: string, wallet: IWindowCip30Extension) => void
-  disableTrigger: boolean
+  disableTrigger?: boolean
   modalOpen: boolean
   onModalClose?: () => void
 }) => {
+  const walletObserver = useWalletObserver().observer
   const i18nData = {
     description: 'Select the wallet you want to connect below.',
     noWallets:
@@ -39,7 +40,14 @@ export const ModalWalletConnect = ({
   }
 
   const onConnect = (key: string, wallet: IWindowCip30Extension) => {
-    onWalletConnect?.(key, wallet)
+    if (walletObserver) {
+      walletObserver.connectWallet(key).then((response) => {
+        onLocalCloseModal()
+        onWalletConnect?.(key, wallet)
+      })
+    } else {
+      onLocalCloseModal()
+    }
   }
 
   const onLocalCloseModal = () => {

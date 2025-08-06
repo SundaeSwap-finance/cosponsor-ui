@@ -2,7 +2,7 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
+import { useWalletObserver } from '@sundaeswap/wallet-lite'
+import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
 
 export const CardProposal = ({
   proposal,
@@ -18,11 +20,12 @@ export const CardProposal = ({
   proposal: iProposalCardData
   className?: string
 }) => {
-  const [isExpired, setIsExpired] = useState<boolean>(false)
+  const walletObserver = useWalletObserver().observer
 
+  const [isExpired, setIsExpired] = useState<boolean>(false)
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
-
+  const [walletConnectModal, setWalletConnectModal] = useState<boolean>(false)
   const completionPercentage = useMemo(() => {
     if (proposal?.pledgedAmount && proposal?.requestedBudget) {
       return ((proposal?.pledgedAmount / proposal?.requestedBudget) * 100).toPrecision(4)
@@ -51,6 +54,16 @@ export const CardProposal = ({
       clearTimeout(timer)
     }
   }, [proposal, isExpired])
+
+  const verifyWalletConnection = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (walletObserver && walletObserver.activeWallet) {
+      // continue as usual with user action
+    } else {
+      event.stopPropagation()
+      event.preventDefault()
+      setWalletConnectModal(true)
+    }
+  }
 
   return (
     // TODO: skeleton loading to prevent flicker.
@@ -136,7 +149,11 @@ export const CardProposal = ({
               </Button>
               <ModalSponsor
                 modalTrigger={
-                  <ButtonGradient size="lg" className={'flex-1'}>
+                  <ButtonGradient
+                    size="lg"
+                    className={'flex-1'}
+                    onClick={(event) => verifyWalletConnection(event)}
+                  >
                     Sponsor!
                   </ButtonGradient>
                 }
@@ -145,6 +162,11 @@ export const CardProposal = ({
           )}
         </div>
       ) : null}
+      <ModalWalletConnect
+        modalTrigger={''}
+        modalOpen={walletConnectModal}
+        onModalClose={() => setWalletConnectModal(false)}
+      />
     </div>
   )
 }
