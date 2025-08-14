@@ -12,6 +12,8 @@ import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
+import { ButtonSponsor } from '@/components/button/ButtonSponsor'
+import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
 
 export const CardProposal = ({
   proposal,
@@ -20,12 +22,9 @@ export const CardProposal = ({
   proposal: iProposalCardData
   className?: string
 }) => {
-  const walletObserver = useWalletObserver().observer
-
   const [isExpired, setIsExpired] = useState<boolean>(false)
   const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
-  const [walletConnectModal, setWalletConnectModal] = useState<boolean>(false)
   const completionPercentage = useMemo(() => {
     if (proposal?.pledgedAmount && proposal?.requestedBudget) {
       return ((proposal?.pledgedAmount / proposal?.requestedBudget) * 100).toPrecision(4)
@@ -54,16 +53,6 @@ export const CardProposal = ({
       clearTimeout(timer)
     }
   }, [proposal, isExpired])
-
-  const verifyWalletConnection = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    if (walletObserver && walletObserver.activeWallet) {
-      // continue as usual with user action
-    } else {
-      event.stopPropagation()
-      event.preventDefault()
-      setWalletConnectModal(true)
-    }
-  }
 
   return (
     // TODO: skeleton loading to prevent flicker.
@@ -131,42 +120,17 @@ export const CardProposal = ({
       {!isExpired || proposal.userPledged > 0 ? (
         <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
           {isExpired && proposal.userPledged > 0 ? (
-            <ModalWithdraw
-              proposal={proposal}
-              modalTrigger={
-                <Button
-                  size="lg"
-                  className={'bg-sun-action-tertiary hover:bg-sun-action-tertiary/90 w-full'}
-                >
-                  Withdraw Your Pledge
-                </Button>
-              }
-            />
+            <ButtonWithdraw proposal={proposal} content={'Withdraw Your Pledge'} />
           ) : (
             <>
               <Button size="lg" className={'flex-1'} asChild>
                 <Link to={'/proposal/' + proposal.id}>View Details</Link>
               </Button>
-              <ModalSponsor
-                modalTrigger={
-                  <ButtonGradient
-                    size="lg"
-                    className={'flex-1'}
-                    onClick={(event) => verifyWalletConnection(event)}
-                  >
-                    Sponsor!
-                  </ButtonGradient>
-                }
-              />
+              <ButtonSponsor proposalId={proposal.id} content={'Sponsor!'} />
             </>
           )}
         </div>
       ) : null}
-      <ModalWalletConnect
-        modalTrigger={''}
-        modalOpen={walletConnectModal}
-        onModalClose={() => setWalletConnectModal(false)}
-      />
     </div>
   )
 }

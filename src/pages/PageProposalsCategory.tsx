@@ -13,7 +13,7 @@ export const PageProposalsCategory: FC = () => {
   const proposals = useMemo(() => {
     const foundProposals = getProposalCardsInCategory(name as string)
     if (!foundProposals || foundProposals.length < 1) {
-      console.warn('No proposals found for this category')
+      //console.warn('No proposals found for this category')
       return
     }
     return foundProposals

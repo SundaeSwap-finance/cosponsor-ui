@@ -28,25 +28,30 @@
   --color-sun-gada: #501dd3;
 
   /* BEGIN / Wallet-ui: Added to get the wallet UI modal from ui-toolkit to work. */
-  --color-warning: rgba(241, 148, 54,1.0);
-  --color-warning-300: rgba(246, 183, 120, 1.0);
-  --color-warning-400: rgba(244, 169, 94, 1.0);
-  --color-warning-500: rgba(241, 148, 54,1.0);
-  --color-warning-600: rgba(241, 148, 54,1.0);
-  --color-success: rgba(88, 199, 186,1.0);
-  --color-success-400: rgba(121, 210, 200,1.0);
-  --color-success-600: rgba(80, 181, 169,1.0);
+  --color-warning: rgba(241, 148, 54, 1);
+  --color-warning-300: rgba(246, 183, 120, 1);
+  --color-warning-400: rgba(244, 169, 94, 1);
+  --color-warning-500: rgba(241, 148, 54, 1);
+  --color-warning-600: rgba(241, 148, 54, 1);
+  --color-success: rgba(88, 199, 186, 1);
+  --color-success-400: rgba(121, 210, 200, 1);
+  --color-success-600: rgba(80, 181, 169, 1);
+  --color-silent-400: rgba(132, 122, 150, 1);
+  --color-silent: rgb(101, 89, 124);
 }
 #walletConnectModal {
-  button:not([aria-label*="Wallet"]):not([role="checkbox"]) {
+  button:not([aria-label*='Wallet']):not([role='checkbox']) {
     cursor: pointer;
-    background-image: linear-gradient(to right, var(--color-sun-highlight-primary), var(--color-sun-highlight-secondary));
-
+    background-image: linear-gradient(
+      to right,
+      var(--color-sun-highlight-primary),
+      var(--color-sun-highlight-secondary)
+    );
   }
-  button:not([aria-label*="Wallet"]):not([role="checkbox"]):hover{
+  button:not([aria-label*='Wallet']):not([role='checkbox']):hover {
     opacity: 0.9;
   }
-  button[role="checkbox"] {
+  button[role='checkbox'] {
     /*Local override primary color*/
     --primary: var(--color-success);
     svg {
@@ -55,4 +60,3 @@
   }
 }
 /* END / Wallet-ui */
-

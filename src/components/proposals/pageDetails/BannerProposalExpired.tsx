@@ -4,6 +4,7 @@ import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
 import { iProposalCardData } from '@/types/Proposal'
+import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
 
 export const BannerProposalExpired = ({
   userPledge,
@@ -37,19 +38,15 @@ export const BannerProposalExpired = ({
       </div>
 
       {userPledge > 0 && (
-        <ModalWithdraw
-          modalTrigger={
-            <Button
-              size="lg"
-              className={
-                'bg-sun-action-tertiary text-sun-white-pure sun-text-16-rg hover:bg-sun-action-tertiary/80 w-fit'
-              }
-            >
+        <ButtonWithdraw
+          classButton={'sun-text-16-rg w-fit'}
+          proposal={proposal}
+          content={
+            <>
               <ArrowUpFromLine />
               Withdraw Pledge
-            </Button>
+            </>
           }
-          proposal={proposal}
         />
       )}
     </div>

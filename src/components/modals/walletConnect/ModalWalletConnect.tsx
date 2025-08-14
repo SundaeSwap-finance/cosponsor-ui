@@ -23,7 +23,7 @@ export const ModalWalletConnect = ({
   modalOpen: boolean
   onModalClose?: () => void
 }) => {
-  const walletObserver = useWalletObserver().observer
+  const walletObserver = useWalletObserver()
   const i18nData = {
     description: 'Select the wallet you want to connect below.',
     noWallets:
@@ -75,7 +75,7 @@ export const ModalWalletConnect = ({
         </DialogHeader>
         <WalletConnectFlow
           i18n={i18nData}
-          isLoading={false}
+          isLoading={walletObserver.observer.isSyncing()}
           legalDisclaimer={
             <>
               TODO: This is a sample legal disclaimer. You can provide links, descriptions or

@@ -5,7 +5,6 @@
 @import './fonts.css';
 @source "../../node_modules/@sundaeswap/ui-toolkit/src/**/*";
 
-
 @theme inline {
   /* ShadCN defaults */
   --radius-sm: calc(var(--radius) - 4px);

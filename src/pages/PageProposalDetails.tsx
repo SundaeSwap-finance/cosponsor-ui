@@ -3,10 +3,8 @@ import { useGetProposalData } from '@/composables/useGetProposalData'
 import { useEffect, useMemo, useState } from 'react'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { getShortDate, getShortDateAndTime } from '@/composables/useDateTime'
-import { ArrowUpFromLine, ChevronLeft, Vote } from 'lucide-react'
+import { ChevronLeft, Vote } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
-import { ButtonGradient } from '@/components/button/ButtonGradient'
-import { ProgressMilestones } from '@/components/graphics/ProgressMilestones'
 import { LabeledCopyId } from '@/components/proposals/LabeledCopyId'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
 import { CardUserPledgeSimple } from '@/components/proposals/pageDetails/CardUserPledgeSimple'
@@ -14,7 +12,7 @@ import { CardProposalPledgeSingle } from '@/components/proposals/pageDetails/Car
 import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledTextProposal'
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
-import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
+import { ButtonSponsor } from '@/components/button/ButtonSponsor'
 
 export const PageProposalDetails = () => {
   const twoDayMilliseconds = 60000 * 60 * 48
@@ -51,7 +49,7 @@ export const PageProposalDetails = () => {
       }
       return countAmount + proposal.userPledged
     } else {
-      console.warn('Could not find pledges')
+      //console.warn('Could not find pledges')
       return proposal?.pledgedAmount ?? 0
     }
   }, [proposal])
@@ -149,12 +147,14 @@ export const PageProposalDetails = () => {
             </Link>
           </Button>
           {!isExpired && (
-            <ModalSponsor
-              modalTrigger={
-                <ButtonGradient className={'sun-text-16-rg h-12 !px-5 lg:flex-1'} size="lg">
+            <ButtonSponsor
+              classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
+              proposalId={proposal.id}
+              content={
+                <>
                   <Vote />
                   Sponsor this proposal
-                </ButtonGradient>
+                </>
               }
             />
           )}
