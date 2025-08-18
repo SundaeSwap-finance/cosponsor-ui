@@ -35,7 +35,7 @@ const eslintConfig = [
     rules: {
       'no-unused-vars': 'off',
       'no-undef': 'off',
-      'no-console': ['warn'],
+      'no-console': ['warn', { allow: ['error', 'warn'] }],
       curly: ['error', 'all'],
     },
   },

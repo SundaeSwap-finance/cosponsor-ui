@@ -1,8 +1,8 @@
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
 import { iProposalCardData } from '@/types/Proposal'
-import { CardProposalExpired } from '@/components/proposals/CardProposalExpired'
-import { CardProposalUserPledged } from '@/components/proposals/CardProposalUserPledged'
-import { CardProposalProgress } from '@/components/proposals/CardProposalProgress'
+import { CardProposalExpired } from '@/components/proposals/state/CardProposalExpired'
+import { CardProposalUserPledged } from '@/components/proposals/state/CardProposalUserPledged'
+import { CardProposalProgress } from '@/components/proposals/state/CardProposalProgress'
 import { useEffect, useState } from 'react'
 
 export const ProposalStatusCardBase = ({

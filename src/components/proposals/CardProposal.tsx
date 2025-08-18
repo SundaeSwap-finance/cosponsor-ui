@@ -5,7 +5,7 @@ import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercen
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { iProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
-import { ProposalStatusCardBase } from '@/components/proposals/CardProposalStatusBase'
+import { ProposalStatusCardBase } from '@/components/proposals/state/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
@@ -23,14 +23,14 @@ export const CardProposal = ({
   className?: string
 }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
-  const initDate = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
-  const expiryDate = useMemo(() => getShortDate(proposal?.expiryDate), [proposal?.expiryDate])
+  const initDate = useMemo(() => getShortDate(proposal.initDate), [proposal.initDate])
+  const expiryDate = useMemo(() => getShortDate(proposal.expiryDate), [proposal.expiryDate])
   const completionPercentage = useMemo(() => {
-    if (proposal?.pledgedAmount && proposal?.requestedBudget) {
-      return ((proposal?.pledgedAmount / proposal?.requestedBudget) * 100).toPrecision(4)
+    if (proposal.pledgedAmount && proposal.requestedBudget) {
+      return ((proposal.pledgedAmount / proposal.requestedBudget) * 100).toPrecision(4)
     }
     return 'n/a'
-  }, [proposal?.pledgedAmount, proposal?.requestedBudget])
+  }, [proposal.pledgedAmount, proposal.requestedBudget])
 
   useEffect(() => {
     if (!proposal || isExpired) {
@@ -69,7 +69,7 @@ export const CardProposal = ({
             className={'text-sun-default underline decoration-dotted underline-offset-3'}
             title={'UserId: ' + proposal?.ownerId}
           >
-            @{proposal?.ownerName.slice(0, 16)}
+            @{proposal?.ownerName?.slice(0, 16)}
           </div>
         </div>
         <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />

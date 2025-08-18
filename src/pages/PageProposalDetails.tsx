@@ -3,7 +3,7 @@ import { useGetProposalData } from '@/composables/useGetProposalData'
 import { useEffect, useMemo, useState } from 'react'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { getShortDate, getShortDateAndTime } from '@/composables/useDateTime'
-import { ChevronLeft, Vote } from 'lucide-react'
+import { ChevronLeft, LoaderCircle, Vote } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { LabeledCopyId } from '@/components/proposals/LabeledCopyId'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
@@ -13,25 +13,18 @@ import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledT
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
+import { iProposalDetailsData } from '@/types/Proposal'
 
 export const PageProposalDetails = () => {
   const twoDayMilliseconds = 60000 * 60 * 48
   const { proposalId } = useParams()
   const { getProposalDetailsById } = useGetProposalData()
-
-  const proposal = useMemo(() => {
-    const foundProposal = getProposalDetailsById(proposalId as string)
-    if (!foundProposal) {
-      console.warn('No proposal found for this id')
-      return
-    }
-    return foundProposal
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [proposalId])
-
+  const [proposal, setProposal] = useState<iProposalDetailsData>()
+  const [isLoading, setIsLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(
     proposal?.expiryDate ? new Date() > proposal.expiryDate : false
   )
+
   const initDate: string = useMemo(() => getShortDate(proposal?.initDate), [proposal?.initDate])
   const expiryDate: string = useMemo(
     () => getShortDate(proposal?.expiryDate),
@@ -61,6 +54,24 @@ export const PageProposalDetails = () => {
     return -1
   }, [totalPledged, proposal?.requestedBudget])
 
+  const expiryTitleTooltip = useMemo(() => {
+    return (
+      (isExpired ? 'Expired on ' : 'Expires on ') +
+      expiryDateTime +
+      ' ' +
+      Intl.DateTimeFormat().resolvedOptions().timeZone +
+      ' time'
+    )
+  }, [expiryDateTime, isExpired])
+
+  useEffect(() => {
+    setIsLoading(true)
+    getProposalDetailsById(proposalId as string).then((resultProp) => {
+      setProposal(resultProp as iProposalDetailsData)
+      setIsLoading(false)
+    })
+  }, [proposalId])
+
   useEffect(() => {
     if (!proposal || isExpired) {
       return
@@ -83,17 +94,11 @@ export const PageProposalDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposal, isExpired])
 
-  const expiryTitleTooltip = useMemo(() => {
-    return (
-      (isExpired ? 'Expired on ' : 'Expires on ') +
-      expiryDateTime +
-      ' ' +
-      Intl.DateTimeFormat().resolvedOptions().timeZone +
-      ' time'
-    )
-  }, [expiryDateTime, isExpired])
-
-  return proposal ? (
+  return isLoading || !proposal ? (
+    <div className={'flex h-[492px] w-full items-center justify-center'}>
+      <LoaderCircle className={'size-8 animate-spin'} />
+    </div>
+  ) : (
     <div className={'sun-page-padding-rb flex h-full w-full flex-col gap-8'}>
       <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
       <div
@@ -109,8 +114,11 @@ export const PageProposalDetails = () => {
             }
           >
             <div>Created by</div>
-            <div className={'text-sun-muted underline decoration-dotted underline-offset-4'}>
-              {proposal.ownerId}
+            <div
+              className={'text-sun-muted underline decoration-dotted underline-offset-4'}
+              title={'UserId: ' + proposal.ownerId}
+            >
+              {proposal.ownerName}
             </div>
           </div>
           <div className={'sun-text-14-md text-sun-default flex flex-col gap-6 md:flex-row'}>
@@ -236,8 +244,5 @@ export const PageProposalDetails = () => {
         </div>
       </div>
     </div>
-  ) : (
-    // TODO: handle loading state
-    <div>No proposal found with id: {proposalId}</div>
   )
 }

@@ -13,7 +13,7 @@ export const ProgressMilestones = ({
 
   useEffect(() => {
     setTimeout(() => {
-      setVisProgress(value)
+      setVisProgress(value <= 100 && value > 0 ? value : 0)
     }, 100)
   }, [value])
 
