@@ -24,14 +24,14 @@ export const Breadcrumbs = ({
   maxNameLength?: number
 }) => {
   return (
-    <Breadcrumb className={'text-muted-foreground sun-text-14-rg'}>
+    <Breadcrumb className={'text-muted-foreground sun-text-14-rg min-h-4'}>
       <BreadcrumbList className={'!gap-2'}>
         <PanelLeft className={'text-sun-sidebar-foreground size-4'} />
         <div className={'bg-sun-border-secondary h-4 w-[1px]'} />
         {items.map(
           (item, index) =>
             !item.hide && (
-              <>
+              <div className={'flex flex-row gap-2'} key={'anon' + item.name}>
                 {index != 0 && (
                   <BreadcrumbSeparator>
                     <ChevronRight />
@@ -54,7 +54,7 @@ export const Breadcrumbs = ({
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
-              </>
+              </div>
             )
         )}
       </BreadcrumbList>

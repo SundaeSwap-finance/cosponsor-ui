@@ -20,9 +20,8 @@ export const SectionTitleProposalsView = ({
 }) => {
   return (
     <div className={'flex h-full w-full flex-col gap-6'}>
-      <div className={'text-muted-foreground sun-text-14-rg min-h-4'}>
-        {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
-      </div>
+      {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
+
       <div
         className={cn(
           'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b md:pb-6 lg:flex-row',
