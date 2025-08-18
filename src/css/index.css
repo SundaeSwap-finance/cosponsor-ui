@@ -1,9 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-
 @import './colors.css';
 @import './fonts.css';
-@source "../../node_modules/@sundaeswap/ui-toolkit/src/**/*";
+@config '../../tailwind.config.js';
 
 @theme inline {
   /* ShadCN defaults */

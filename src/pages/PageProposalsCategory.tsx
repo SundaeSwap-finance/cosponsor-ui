@@ -7,12 +7,17 @@ import { SectionTitleProposalsView } from '@/components/proposals/SectionTitlePr
 import { ListSimpleProposals } from '@/components/proposals/ListSimpleProposals'
 import { iProposalCardData } from '@/types/Proposal'
 import { LoaderCircle } from 'lucide-react'
+import { breadcrumbType } from '@/components/Breadcrumbs'
 
 export const PageProposalsCategory: FC = () => {
   const { getProposalCardsInCategory } = useGetProposalData()
   const { name } = useParams()
   const [proposals, setProposals] = useState<iProposalCardData[]>()
   const [isLoading, setIsLoading] = useState(true)
+  const breadcrumbs: breadcrumbType[] = [
+    { name: 'Overview', link: '/' },
+    { name: 'All ' + name + ' Proposals', link: window.location.href, active: true },
+  ]
 
   useEffect(() => {
     setIsLoading(true)
@@ -30,6 +35,7 @@ export const PageProposalsCategory: FC = () => {
       <SectionTitleProposalsView
         title={proposals || isLoading ? `All ${name} Proposals` : 'No Proposals found'}
         backButton={true}
+        breadcrumbs={breadcrumbs}
       />
       {isLoading ? (
         <div className={'flex w-full justify-center'}>

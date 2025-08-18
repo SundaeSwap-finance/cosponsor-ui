@@ -73,8 +73,8 @@ export const useGetProposalData = () => {
     return Promise.all(result)
   }
 
-  const getAllProposalCards = () => {
-    return cardData
+  const getAllProposalCards = async () => {
+    return mapGovToolDataToCosponsorFE(cardData) as Promise<iProposalDetailsData[]>
   }
 
   const getProposalCardsUserPledge = () => {
@@ -83,8 +83,21 @@ export const useGetProposalData = () => {
       (proposal) => proposal.userPledged && proposal.userPledged > 0
     )
     const result = mapGovToolDataToCosponsorFE(userPledged)
-    console.log(result)
+    // console.log(result)
     return result
+  }
+
+  const getRandomProposals = async (
+    amount: number,
+    exceptThisId?: string
+  ): Promise<iProposalCardData[]> => {
+    const allProposals = await getAllProposalCards()
+    const candidates = exceptThisId
+      ? allProposals.filter((p) => p.id !== exceptThisId)
+      : [...allProposals]
+    const shuffled = candidates.sort(() => 0.5 - Math.random())
+
+    return shuffled.slice(0, amount)
   }
 
   return {
@@ -93,5 +106,6 @@ export const useGetProposalData = () => {
     getProposalCardsInCategory,
     getAllProposalCards,
     getProposalCardsUserPledge,
+    getRandomProposals,
   }
 }

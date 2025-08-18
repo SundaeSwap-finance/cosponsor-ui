@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/shadcn/dialog'
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
 import { ArrowDown, ArrowUp, CornerDownLeft, Redo2, Search, X } from 'lucide-react'
 import { InputIcon } from '@/components/input/InputIcon'
@@ -22,38 +22,35 @@ import {
   CommandSeparator,
 } from '@/components/shadcn/command'
 import { useNavigate } from 'react-router-dom'
+import { iProposalCardData } from '@/types/Proposal'
 
 export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
-  const { getAllProposalCards } = useGetProposalData()
-  const allProposals = getAllProposalCards()
+  const { getAllProposalCards, getRandomProposals } = useGetProposalData()
   const [inputValue, setInputValue] = useState('')
   const navigate = useNavigate()
 
-  const getRandomProposals = (amount: number, exceptThisId?: string) => {
-    const candidates = exceptThisId
-      ? allProposals.filter((p) => p.id !== exceptThisId)
-      : [...allProposals]
-    const shuffled = candidates.sort(() => 0.5 - Math.random())
+  const [filteredProposals, setFilteredProposals] = useState<iProposalCardData[]>([])
 
-    return shuffled.slice(0, amount)
-  }
-
-  const filteredProposals = useMemo(() => {
+  useEffect(() => {
     if (inputValue.length > 0) {
-      return allProposals.filter((proposal) => {
-        return (
-          proposal.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-          proposal.ownerName.toLowerCase().includes(inputValue.toLowerCase()) ||
-          proposal.companyName.toLowerCase().includes(inputValue.toLowerCase()) ||
-          proposal.companyDomain.toLowerCase().includes(inputValue.toLowerCase()) ||
-          proposal.categoryName.toLowerCase().includes(inputValue.toLowerCase())
-        )
+      getAllProposalCards().then((allProposals) => {
+        const result = allProposals.filter((proposal) => {
+          return (
+            proposal.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+            proposal.ownerName.toLowerCase().includes(inputValue.toLowerCase()) ||
+            proposal.companyName.toLowerCase().includes(inputValue.toLowerCase()) ||
+            proposal.companyDomain.toLowerCase().includes(inputValue.toLowerCase()) ||
+            proposal.categoryName.toLowerCase().includes(inputValue.toLowerCase())
+          )
+        })
+        setFilteredProposals(result)
       })
     } else {
-      return getRandomProposals(4)
+      getRandomProposals(4).then((proposals) => {
+        setFilteredProposals(proposals)
+      })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue, allProposals])
+  }, [inputValue])
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value)

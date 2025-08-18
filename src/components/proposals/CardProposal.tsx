@@ -79,11 +79,11 @@ export const CardProposal = ({
         <div className={'flex flex-col gap-2'}>
           <h2 className={'text-sun-header sun-text-18-sb'}> {proposal?.name}</h2>
           <div className={'flex flex-row gap-4'}>
-            <div className={'flex flex-row gap-1'}>
+            <div className={'flex flex-col gap-1 md:flex-row'}>
               <div className={'sun-text-12-md text-sun-default'}>Proposed on</div>
               <div className={'sun-text-12-md text-sun-muted'}>{initDate}</div>
             </div>
-            <div className={'flex flex-row gap-1'}>
+            <div className={'flex flex-col gap-1 md:flex-row'}>
               <div className={'sun-text-12-md text-sun-default'}>Expires on</div>
               <div className={'sun-text-12-md text-sun-muted'}>{expiryDate}</div>
             </div>

@@ -4,19 +4,25 @@ import { ChevronLeft, ListFilter, Search } from 'lucide-react'
 import { InputIcon } from '@/components/input/InputIcon'
 import { Link } from 'react-router-dom'
 import { ModalSearchProposals } from '@/components/modals/searchProposals/ModalSearchProposals'
+import { useMemo } from 'react'
+import { Breadcrumbs, breadcrumbType } from '@/components/Breadcrumbs'
 
 export const SectionTitleProposalsView = ({
   title,
   subtitle,
   backButton,
+  breadcrumbs,
 }: {
   title: string
   subtitle?: string
   backButton: boolean
+  breadcrumbs?: breadcrumbType[]
 }) => {
   return (
     <div className={'flex h-full w-full flex-col gap-6'}>
-      <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
+      <div className={'text-muted-foreground sun-text-14-rg min-h-4'}>
+        {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
+      </div>
       <div
         className={cn(
           'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b md:pb-6 lg:flex-row',

@@ -14,11 +14,14 @@ import { BannerProposalExpired } from '@/components/proposals/pageDetails/Banner
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
 import { iProposalDetailsData } from '@/types/Proposal'
+import { Breadcrumbs, breadcrumbType } from '@/components/Breadcrumbs'
+import { useScreenSize } from '@/composables/useScreenSize'
 
 export const PageProposalDetails = () => {
+  const { getProposalDetailsById } = useGetProposalData()
+  const { isLg, isMd } = useScreenSize()
   const twoDayMilliseconds = 60000 * 60 * 48
   const { proposalId } = useParams()
-  const { getProposalDetailsById } = useGetProposalData()
   const [proposal, setProposal] = useState<iProposalDetailsData>()
   const [isLoading, setIsLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(
@@ -64,6 +67,31 @@ export const PageProposalDetails = () => {
     )
   }, [expiryDateTime, isExpired])
 
+  const breadcrumbs = useMemo((): breadcrumbType[] => {
+    if (isLoading) {
+      return [
+        { name: 'Overview', link: '/' },
+        { name: 'All Proposals', link: '/all' },
+      ]
+    } else {
+      const categoryLink = proposal?.categoryName.split(' ')[0].toLowerCase()
+      return [
+        { name: 'Overview', link: '/all', ellipsis: !isLg },
+        { name: 'All Proposals', link: '/all' },
+        {
+          name: proposal?.categoryName ?? '',
+          link: '/category/' + categoryLink,
+        },
+        {
+          name: proposal?.name ?? '',
+          link: '/proposal/' + proposalId,
+          active: true,
+          hide: !isMd,
+        },
+      ]
+    }
+  }, [isLoading, proposal?.categoryName, proposal?.name, isLg, isMd, proposalId])
+
   useEffect(() => {
     setIsLoading(true)
     getProposalDetailsById(proposalId as string).then((resultProp) => {
@@ -100,7 +128,7 @@ export const PageProposalDetails = () => {
     </div>
   ) : (
     <div className={'sun-page-padding-rb flex h-full w-full flex-col gap-8'}>
-      <div className={'text-muted-foreground sun-text-14-rg'}>Breadcrumbs placeholder</div>
+      <Breadcrumbs items={breadcrumbs} />
       <div
         className={
           'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b pb-6 lg:flex-row'

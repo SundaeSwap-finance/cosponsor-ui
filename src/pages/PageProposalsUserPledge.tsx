@@ -5,12 +5,16 @@ import { ListSimpleProposals } from '@/components/proposals/ListSimpleProposals'
 import { useEffect, useState } from 'react'
 import { iProposalCardData } from '@/types/Proposal'
 import { LoaderCircle } from 'lucide-react'
+import { breadcrumbType } from '@/components/Breadcrumbs'
 
 export const PageProposalsUserPledge = () => {
   const { getProposalCardsUserPledge } = useGetProposalData()
   const [proposals, setProposals] = useState<iProposalCardData[]>()
   const [isLoading, setIsLoading] = useState(true)
-
+  const breadcrumbs: breadcrumbType[] = [
+    { name: 'Overview', link: '/' },
+    { name: 'Your Pledges', link: '/your', active: true },
+  ]
   useEffect(() => {
     setIsLoading(true)
     getProposalCardsUserPledge()
@@ -28,6 +32,7 @@ export const PageProposalsUserPledge = () => {
         title={'Your Pledges'}
         subtitle={'Track the status of your committed funds and potential returns.'}
         backButton={false}
+        breadcrumbs={breadcrumbs}
       />
       {isLoading ? (
         <div className={'flex w-full justify-center'}>

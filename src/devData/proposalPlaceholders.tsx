@@ -5,7 +5,7 @@ import { iProposalCardData, iProposalDetailsData } from '@/types/Proposal'
 export const cardData: iProposalCardData[] = [
   // Partially funded, also by user
   {
-    id: '100',
+    id: '45',
     name: 'A Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser',
@@ -124,7 +124,7 @@ export const cardData: iProposalCardData[] = [
 
 export const detailsData: iProposalDetailsData[] = [
   {
-    id: '100',
+    id: '45',
     name: 'A Hardfork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser',
