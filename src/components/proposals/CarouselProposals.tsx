@@ -2,14 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CardProposal } from '@/components/proposals/CardProposal'
 import { Button } from '@/components/shadcn/button'
 import { ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react'
-import {
-  Carousel,
-  CarouselApi,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/shadcn/carousel'
+import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '@/components/shadcn/carousel'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { iProposalCardData } from '@/types/Proposal'
 import { Link } from 'react-router-dom'
@@ -21,10 +14,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
   const [proposals, setProposals] = useState<iProposalCardData[]>()
   const [hasProposals, setHasProposals] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [api, setApi] = useState<CarouselApi>()
-
-  const [canScrollPrev, setCanScrollPrev] = useState<boolean>(api?.canScrollPrev() ?? true)
-  const [canScrollNext, setCanScrollNext] = useState<boolean>(api?.canScrollNext() ?? true)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
 
   useEffect(() => {
     setIsLoading(true)
@@ -45,22 +35,18 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
   }, [categoryName])
 
   const clickNext = useCallback(() => {
-    if (!api) {
+    if (!carouselApi) {
       return
     }
-    api.scrollNext()
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
-  }, [api])
+    carouselApi.scrollNext()
+  }, [carouselApi])
 
   const clickPrev = useCallback(() => {
-    if (!api) {
+    if (!carouselApi) {
       return
     }
-    api.scrollPrev()
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
-  }, [api])
+    carouselApi.scrollPrev()
+  }, [carouselApi])
 
   const getCategoryLink = () => {
     return `/category/${encodeURIComponent(categoryName.toLowerCase())}`
@@ -85,7 +71,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
               variant="secondary"
               onClick={clickPrev}
               className={'size-8 rounded-full p-0'}
-              disabled={!api?.canScrollPrev()}
+              disabled={!carouselApi?.canScrollPrev()}
             >
               <ChevronLeft />
             </Button>
@@ -93,7 +79,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
               variant="secondary"
               onClick={clickNext}
               className={'size-8 rounded-full p-0'}
-              disabled={!api?.canScrollNext()}
+              disabled={!carouselApi?.canScrollNext()}
             >
               <ChevronRight />
             </Button>
@@ -106,7 +92,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
             </div>
           ) : (
             <Carousel
-              setApi={setApi}
+              setApi={setCarouselApi}
               className={'w-full'}
               opts={{
                 align: 'start',

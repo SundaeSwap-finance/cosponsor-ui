@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { ModalSearchProposals } from '@/components/modals/searchProposals/ModalSearchProposals'
 import { useMemo } from 'react'
 import { Breadcrumbs, breadcrumbType } from '@/components/Breadcrumbs'
+import { ButtonProposalFilter } from '@/components/button/ButtonProposalFilter'
 
 export const SectionTitleProposalsView = ({
   title,
@@ -34,14 +35,7 @@ export const SectionTitleProposalsView = ({
         </div>
 
         <div className={'flex w-full flex-col items-end gap-2 md:w-fit md:flex-row'}>
-          <Button
-            size="sm"
-            variant="outline"
-            className={cn('!bg-sun-white-pure text-sun-header sun-text-12-md')}
-          >
-            <ListFilter />
-            Filter
-          </Button>
+          <ButtonProposalFilter />
           <ModalSearchProposals
             modalTrigger={
               <Button variant="ghost" size="sm" className={'p-0 md:min-w-100'}>
