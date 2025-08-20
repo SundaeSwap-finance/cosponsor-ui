@@ -11,7 +11,7 @@ export const FilterPropFundProgress = ({
   const [inputValues, setInputValues] = useState<number[]>(defaultValues)
 
   return (
-    <div className={'flex flex-col gap-4'}>
+    <div className={'flex flex-col gap-8'}>
       <div className={'flex flex-col gap-2 pt-2'}>
         <Slider
           className={'[&_[data-slot=slider-range]]:bg-sun-highlight-primary/20'}

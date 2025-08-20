@@ -85,7 +85,7 @@ export const ButtonProposalFilter = () => {
               return <MainFilterList />
             } else {
               return (
-                <div className={'flex flex-col gap-4'}>
+                <div className={'flex flex-col gap-8'}>
                   <Button
                     size={'sm'}
                     variant={'outline'}

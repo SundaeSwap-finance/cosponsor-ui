@@ -6,7 +6,7 @@ export const cardData: iProposalCardData[] = [
   // Partially funded, also by user
   {
     id: '45',
-    name: 'A Hardfork proposal',
+    name: 'A Hard fork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser',
     requestedBudget: 12345,
@@ -18,13 +18,13 @@ export const cardData: iProposalCardData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
   },
   {
     // Partially funded, not by user
 
     id: '1',
-    name: 'A different Hardfork proposal',
+    name: 'A different Hard fork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'ATypicalUser',
     requestedBudget: 12345,
@@ -36,7 +36,7 @@ export const cardData: iProposalCardData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
   },
 
   // Completed funding, user has part
@@ -90,7 +90,7 @@ export const cardData: iProposalCardData[] = [
   },
   {
     id: '5',
-    name: 'A Hardfork proposal 88',
+    name: 'A Hard fork proposal 88',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser1',
     requestedBudget: 12345,
@@ -102,11 +102,11 @@ export const cardData: iProposalCardData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
   },
   {
     id: '6',
-    name: 'A Hardfork proposal 999',
+    name: 'A Hard fork proposal 999',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser2',
     requestedBudget: 12345,
@@ -118,14 +118,14 @@ export const cardData: iProposalCardData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
   },
 ]
 
 export const detailsData: iProposalDetailsData[] = [
   {
     id: '45',
-    name: 'A Hardfork proposal',
+    name: 'A Hard fork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser',
     requestedBudget: 12345,
@@ -137,7 +137,7 @@ export const detailsData: iProposalDetailsData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
     companyCountry: 'The Netherlands',
     motivation:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n' +
@@ -162,7 +162,7 @@ export const detailsData: iProposalDetailsData[] = [
     // Partially funded, not by user
 
     id: '1',
-    name: 'A different Hardfork proposal',
+    name: 'A different Hard fork proposal',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s23',
     ownerName: 'ATypicalUser',
     requestedBudget: 12345,
@@ -174,7 +174,7 @@ export const detailsData: iProposalDetailsData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
     companyCountry: 'The Netherlands',
     motivation:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n' +
@@ -304,7 +304,7 @@ export const detailsData: iProposalDetailsData[] = [
   },
   {
     id: '5',
-    name: 'A Hardfork proposal 88',
+    name: 'A Hard fork proposal 88',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser1',
     requestedBudget: 12345,
@@ -316,7 +316,7 @@ export const detailsData: iProposalDetailsData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
     companyCountry: 'The Netherlands',
     motivation:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n' +
@@ -339,7 +339,7 @@ export const detailsData: iProposalDetailsData[] = [
   },
   {
     id: '6',
-    name: 'A Hardfork proposal 999',
+    name: 'A Hard fork proposal 999',
     ownerId: 'addr1qxjavtjylrxwyunc7q9m...qnp5wfytd0872dyk2s7ch34m',
     ownerName: 'TypicalUser2',
     requestedBudget: 12345,
@@ -351,7 +351,7 @@ export const detailsData: iProposalDetailsData[] = [
     companyDomain: 'sundae.fi',
     abstract:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    categoryName: 'Hardfork',
+    categoryName: 'Hard fork',
     companyCountry: 'The Netherlands',
     motivation:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n' +

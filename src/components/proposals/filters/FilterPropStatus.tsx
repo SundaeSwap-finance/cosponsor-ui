@@ -23,7 +23,7 @@ export const FilterPropStatus = ({ applyFilter }: { applyFilter?: (filter: strin
   }
 
   return (
-    <div className={'flex flex-col gap-4'}>
+    <div className={'flex flex-col gap-8'}>
       <div className={'flex w-full flex-row flex-wrap justify-start gap-2'}>
         {proposalStatuses.map((status) => (
           <Toggle

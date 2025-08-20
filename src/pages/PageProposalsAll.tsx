@@ -20,7 +20,7 @@ export const PageProposalsAll: FC = () => {
       <CarouselProposals categoryName={'Confidence'} />
       <CarouselProposals categoryName={'Committee'} />
       <CarouselProposals categoryName={'Constitution'} />
-      <CarouselProposals categoryName={'Hardfork'} />
+      <CarouselProposals categoryName={'Hard fork'} />
       <CarouselProposals categoryName={'Protocol'} />
       <CarouselProposals categoryName={'Treasury'} />
       <CarouselProposals categoryName={'Info'} />

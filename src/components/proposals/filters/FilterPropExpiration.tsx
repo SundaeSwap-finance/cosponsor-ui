@@ -21,49 +21,51 @@ export const FilterPropExpiration = ({
   }
 
   return (
-    <div className={'flex flex-col gap-4'}>
-      <div className={'sun-text-12-rg'}>
-        Get proposals with their expiration date between these values.
-      </div>
-      <div className={'flex flex-row items-center justify-start gap-2'}>
-        <InputDatePicker
-          label={'Start'}
-          onSelect={(value) => onDateSelect(0, value)}
-          selectedDate={dateRange[0]}
-          hiddenAfter={dateRange[1]}
-        />
-        {dateRange[0] && (
-          <Button
-            aria-label={'Reset start date filter'}
-            size={'icon'}
-            className={'size-6'}
-            onClick={() => {
-              onDateSelect(0, undefined)
-            }}
-          >
-            <X />
-          </Button>
-        )}
-      </div>
-      <div className={'flex flex-row items-center justify-start gap-2'}>
-        <InputDatePicker
-          label={'End'}
-          onSelect={(value) => onDateSelect(1, value)}
-          selectedDate={dateRange[1]}
-          hiddenBefore={dateRange[0]}
-        />
-        {dateRange[1] && (
-          <Button
-            aria-label={'Reset end date filter'}
-            size={'icon'}
-            className={'size-6'}
-            onClick={() => {
-              onDateSelect(1, undefined)
-            }}
-          >
-            <X />
-          </Button>
-        )}
+    <div className={'flex flex-col gap-8'}>
+      <div className={'flex flex-col gap-2'}>
+        <div className={'sun-text-12-rg'}>
+          Get proposals with their expiration date between these values.
+        </div>
+        <div className={'flex flex-row items-center justify-start gap-2'}>
+          <InputDatePicker
+            label={'Start'}
+            onSelect={(value) => onDateSelect(0, value)}
+            selectedDate={dateRange[0]}
+            hiddenAfter={dateRange[1]}
+          />
+          {dateRange[0] && (
+            <Button
+              aria-label={'Reset start date filter'}
+              size={'icon'}
+              className={'size-6'}
+              onClick={() => {
+                onDateSelect(0, undefined)
+              }}
+            >
+              <X />
+            </Button>
+          )}
+        </div>
+        <div className={'flex flex-row items-center justify-start gap-2'}>
+          <InputDatePicker
+            label={'End'}
+            onSelect={(value) => onDateSelect(1, value)}
+            selectedDate={dateRange[1]}
+            hiddenBefore={dateRange[0]}
+          />
+          {dateRange[1] && (
+            <Button
+              aria-label={'Reset end date filter'}
+              size={'icon'}
+              className={'size-6'}
+              onClick={() => {
+                onDateSelect(1, undefined)
+              }}
+            >
+              <X />
+            </Button>
+          )}
+        </div>
       </div>
 
       <Button

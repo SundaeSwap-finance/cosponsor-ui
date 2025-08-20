@@ -7,7 +7,7 @@ const proposalTypes = [
   'Confidence',
   'Committee',
   'Constitution',
-  'Hardfork',
+  'Hard fork',
   'Protocol',
   'Treasury',
   'Info',
@@ -38,7 +38,7 @@ export const FilterPropType = ({
   }
 
   return (
-    <div className={'flex flex-col gap-4'}>
+    <div className={'flex flex-col gap-8'}>
       <div className={'flex w-full flex-row flex-wrap justify-start gap-2'}>
         {proposalTypes.map((type) => (
           <Toggle
