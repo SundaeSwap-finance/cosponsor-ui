@@ -12,18 +12,30 @@ import {
   FilterPropType,
 } from '@/components/proposals/filters'
 
-// TODO: review component visuals before adding actual filtering logic
+// TODO hook up filter functionality after design review.
 export const ButtonProposalFilter = () => {
   const [filterView, setFilterView] = useState('')
 
   const isDefaultView = useMemo(() => filterView.length == 0, [filterView])
 
   const filterComponents: { [key: string]: React.ReactNode } = {
-    'Proposal Type': <FilterPropType />,
-    Status: <FilterPropStatus />,
-    'Funding Progress': <FilterPropFundProgress />,
-    'Requested Budget': <FilterPropBudget />,
-    Expiration: <FilterPropExpiration />,
+    'Proposal Type': (
+      <FilterPropType applyFilter={(filters) => console.log('TODO apply type filter')} />
+    ),
+    Status: <FilterPropStatus applyFilter={(filters) => console.log('TODO apply status filter')} />,
+    'Funding Progress': (
+      <FilterPropFundProgress
+        applyFilter={(filters) => console.log('TODO apply progress filter')}
+      />
+    ),
+    'Requested Budget': (
+      <FilterPropBudget applyFilter={(filters) => console.log('TODO apply budget filter')} />
+    ),
+    Expiration: (
+      <FilterPropExpiration
+        applyFilter={(filters) => console.log('TODO apply expiration filter')}
+      />
+    ),
     'Creator / dRep': <FilterPropCreator />,
   }
   const mainFilters = Object.keys(filterComponents)
@@ -38,7 +50,7 @@ export const ButtonProposalFilter = () => {
               setFilterView(filter)
             }}
             className={
-              'sun-text-12-rg text-sun-default flex h-6.5 cursor-pointer items-center transition-transform duration-200 hover:pl-1'
+              'sun-text-12-rg text-sun-default flex h-6.5 cursor-pointer items-center transition-transform duration-1000 hover:pl-1'
             }
             key={filter}
           >
@@ -77,12 +89,12 @@ export const ButtonProposalFilter = () => {
             Back
           </div>
         )}
-        <div className={'px-4 pt-3'}>
+        <div className={'max-w-70 px-4 pt-3'}>
           {(() => {
             if (isDefaultView) {
               return <MainFilterList />
             } else {
-              return <div className={'w-70'}>{activeFilterComponent}</div>
+              return <div className={'w-full'}>{activeFilterComponent}</div>
             }
           })()}
         </div>

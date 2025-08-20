@@ -7,9 +7,10 @@ export const FilterPropBudget = ({ applyFilter }: { applyFilter?: (value: number
 
   return (
     <div className={'flex flex-col gap-4'}>
-      <div className={'flex w-full justify-center'}>Requested budget</div>
+      <div className={'flex w-full justify-start'}>Requested budget</div>
       <div className={'flex flex-col gap-2'}>
         <Slider
+          className={'[&_[data-slot=slider-range]]:bg-sun-highlight-primary/20'}
           defaultValue={defaultValues}
           onValueChange={setInputValues}
           onValueCommit={(value) => applyFilter?.(value)}
