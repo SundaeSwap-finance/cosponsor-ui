@@ -1,6 +1,7 @@
 import { Toggle } from '@/components/shadcn/toggle'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { useEffect, useState } from 'react'
+import { Button } from '@/components/shadcn/button'
 
 const proposalTypes = [
   'Confidence',
@@ -38,10 +39,10 @@ export const FilterPropType = ({
 
   return (
     <div className={'flex flex-col gap-4'}>
-      <div className={'flex w-full justify-start'}>Proposal Types</div>
       <div className={'flex w-full flex-row flex-wrap justify-start gap-2'}>
         {proposalTypes.map((type) => (
           <Toggle
+            pressed={proposalTypeFilters.includes(type)}
             onPressedChange={(newValue) => updateTypeFilter(type, newValue)}
             key={type}
             size={'sm'}
@@ -58,6 +59,16 @@ export const FilterPropType = ({
           </Toggle>
         ))}
       </div>
+      <Button
+        size={'sm'}
+        className={'w-fit'}
+        onClick={() => {
+          setProposalTypeFilters([])
+          applyFilter?.([])
+        }}
+      >
+        Reset
+      </Button>
     </div>
   )
 }

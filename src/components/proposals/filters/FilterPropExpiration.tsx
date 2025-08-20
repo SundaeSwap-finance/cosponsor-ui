@@ -1,6 +1,7 @@
 import { InputDatePicker } from '@/components/input/InputDatePicker'
 import { Button } from '@/components/shadcn/button'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { X } from 'lucide-react'
 
 export const FilterPropExpiration = ({
   applyFilter,
@@ -8,47 +9,74 @@ export const FilterPropExpiration = ({
   applyFilter?: (dates: (Date | undefined)[]) => void
 }) => {
   const defaultValues: (Date | undefined)[] = [undefined, undefined]
-  const [inputValues, setInputValues] = useState<(Date | undefined)[]>(defaultValues)
+  const [dateRange, setDateRange] = useState<(Date | undefined)[]>(defaultValues)
 
   const onDateSelect = (index: number, date: Date | undefined) => {
     const newFilters = {
-      ...inputValues,
+      ...dateRange,
       [index]: date,
     }
-    setInputValues(newFilters)
+    setDateRange(newFilters)
     applyFilter?.(newFilters)
   }
-  const startDate = useMemo(() => inputValues[0], [inputValues])
-  const endDate = useMemo(() => inputValues[1], [inputValues])
 
   return (
     <div className={'flex flex-col gap-4'}>
-      <div className={'flex w-full justify-start'}>Expiration Date</div>
-      <div className={'flex flex-col gap-4'}>
-        <div className={'sun-text-12-rg'}>
-          Get proposals with their expiration date between these values.
-        </div>
+      <div className={'sun-text-12-rg'}>
+        Get proposals with their expiration date between these values.
+      </div>
+      <div className={'flex flex-row items-center justify-start gap-2'}>
         <InputDatePicker
           label={'Start'}
-          className={'w-full'}
           onSelect={(value) => onDateSelect(0, value)}
-          selectedDate={startDate}
+          selectedDate={dateRange[0]}
+          hiddenAfter={dateRange[1]}
         />
+        {dateRange[0] && (
+          <Button
+            aria-label={'Reset start date filter'}
+            size={'icon'}
+            className={'size-6'}
+            onClick={() => {
+              onDateSelect(0, undefined)
+            }}
+          >
+            <X />
+          </Button>
+        )}
+      </div>
+      <div className={'flex flex-row items-center justify-start gap-2'}>
         <InputDatePicker
           label={'End'}
-          className={'w-full'}
           onSelect={(value) => onDateSelect(1, value)}
-          selectedDate={endDate}
+          selectedDate={dateRange[1]}
+          hiddenBefore={dateRange[0]}
         />
-        <Button
-          onClick={() => {
-            console.log('reset')
-            setInputValues([])
-          }}
-        >
-          Reset
-        </Button>
+        {dateRange[1] && (
+          <Button
+            aria-label={'Reset end date filter'}
+            size={'icon'}
+            className={'size-6'}
+            onClick={() => {
+              onDateSelect(1, undefined)
+            }}
+          >
+            <X />
+          </Button>
+        )}
       </div>
+
+      <Button
+        aria-label={'Reset all date filters'}
+        className={'w-fit'}
+        size={'sm'}
+        onClick={() => {
+          setDateRange(defaultValues)
+          applyFilter?.(defaultValues)
+        }}
+      >
+        Reset
+      </Button>
     </div>
   )
 }

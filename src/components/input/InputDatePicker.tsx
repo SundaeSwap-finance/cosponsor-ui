@@ -12,23 +12,25 @@ export const InputDatePicker = ({
   className,
   onSelect,
   selectedDate,
+  hiddenBefore,
+  hiddenAfter,
 }: {
   selectedDate?: Date
   label?: string
   className?: string
   onSelect?: (date: Date | undefined) => void
+  hiddenBefore?: Date | undefined
+  hiddenAfter?: Date | undefined
 }) => {
   const [open, setOpen] = useState(false)
-  const [date, setDate] = useState<Date | undefined>(undefined)
+  // const [date, setDate] = useState<Date | undefined>(undefined)
   const today = new Date()
   const yearsStart = new Date()
   yearsStart.setFullYear(today.getFullYear() - 10)
-
   const yearsEnd = new Date()
   yearsEnd.setFullYear(today.getFullYear() + 5)
-
+  //
   const onSelectDate = (date: Date | undefined) => {
-    setDate(date)
     setOpen(false)
     onSelect?.(date)
   }
@@ -42,17 +44,18 @@ export const InputDatePicker = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" id="date-picker" className="justify-between font-normal">
-              {date ? date.toLocaleDateString() : 'Select date'}
+              {selectedDate ? selectedDate.toLocaleDateString() : 'Select date'}
               <ChevronDownIcon />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto overflow-hidden p-0" align="start">
             <Calendar
+              hidden={{ before: hiddenBefore ?? yearsStart, after: hiddenAfter ?? yearsEnd }}
               startMonth={yearsStart}
               endMonth={yearsEnd}
               timeZone={'UTC'}
               mode="single"
-              selected={date}
+              selected={selectedDate}
               captionLayout="dropdown"
               onSelect={(date) => onSelectDate(date)}
             />

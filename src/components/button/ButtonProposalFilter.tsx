@@ -74,27 +74,30 @@ export const ButtonProposalFilter = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        align={'start'}
         className={'bg-sun-white-pure divide-sun-border-primary flex w-fit flex-col divide-y px-0'}
       >
-        {isDefaultView ? (
-          <div className={'sun-text-14-md w-55 px-4 pb-3'}>Filter by</div>
-        ) : (
-          <div
-            className={
-              'sun-text-14-md flex w-70 cursor-pointer flex-row items-center gap-1 px-4 pb-3'
-            }
-            onClick={() => setFilterView('')}
-          >
-            <ChevronLeft className={'size-4'} />
-            Back
-          </div>
-        )}
+        <div className={'sun-text-14-md w-55 px-4 pb-3'}>Filter by {filterView}</div>
+
         <div className={'max-w-70 px-4 pt-3'}>
           {(() => {
             if (isDefaultView) {
               return <MainFilterList />
             } else {
-              return <div className={'w-full'}>{activeFilterComponent}</div>
+              return (
+                <div className={'flex flex-col gap-4'}>
+                  <Button
+                    size={'sm'}
+                    variant={'outline'}
+                    className={'w-fit gap-1'}
+                    onClick={() => setFilterView('')}
+                  >
+                    <ChevronLeft className={'size-4'} />
+                    Back
+                  </Button>
+                  <div className={'w-full'}>{activeFilterComponent}</div>
+                </div>
+              )
             }
           })()}
         </div>
