@@ -48,6 +48,7 @@ export const FilterPropCreator = () => {
         <div className={'flex flex-row flex-wrap gap-2'}>
           {selection.map((item) => (
             <Button
+              key={item.id}
               aria-label={'Click to remove user filter'}
               onClick={() => onSelectItem(item.id)}
               variant={'ghost'}

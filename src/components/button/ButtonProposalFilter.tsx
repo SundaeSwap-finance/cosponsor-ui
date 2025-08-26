@@ -77,7 +77,7 @@ export const ButtonProposalFilter = () => {
         align={'start'}
         className={'bg-sun-white-pure divide-sun-border-primary flex w-fit flex-col divide-y px-0'}
       >
-        <div className={'sun-text-14-md w-55 px-4 pb-3'}>Filter by {filterView}</div>
+        <div className={'sun-text-14-md w-55 w-full px-4 pb-3'}>Filter by {filterView}</div>
 
         <div className={'max-w-70 px-4 pt-3'}>
           {(() => {
