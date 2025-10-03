@@ -9,7 +9,7 @@ import {
 } from '@/components/shadcn/breadcrumb'
 import { ChevronRight, PanelLeft } from 'lucide-react'
 
-export type breadcrumbType = {
+export type TBreadcrumbType = {
   name: string
   link: string
   active?: boolean
@@ -20,7 +20,7 @@ export const Breadcrumbs = ({
   items,
   maxNameLength = 30,
 }: {
-  items: breadcrumbType[]
+  items: TBreadcrumbType[]
   maxNameLength?: number
 }) => {
   return (
@@ -31,8 +31,8 @@ export const Breadcrumbs = ({
         {items.map(
           (item, index) =>
             !item.hide && (
-              <div className={'flex flex-row gap-2'} key={'anon' + item.name}>
-                {index != 0 && (
+              <div className={'flex flex-row gap-2'} key={`anon${item.name}`}>
+                {index !== 0 && (
                   <BreadcrumbSeparator>
                     <ChevronRight />
                   </BreadcrumbSeparator>

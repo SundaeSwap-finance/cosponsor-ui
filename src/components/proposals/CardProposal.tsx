@@ -1,17 +1,13 @@
+import React from 'react'
 import { Button } from '@/components/shadcn/button'
-import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
 import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { useContext, useEffect, useMemo, useState } from 'react'
-import { iProposalCardData } from '@/types/Proposal'
+import { useEffect, useMemo, useState } from 'react'
+import { IProposalCardData } from '@/types/Proposal'
 import { getShortDate } from '@/composables/useDateTime'
 import { ProposalStatusCardBase } from '@/components/proposals/state/CardProposalStatusBase'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
-import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
-import { useWalletObserver } from '@sundaeswap/wallet-lite'
-import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
 import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
 
@@ -19,7 +15,7 @@ export const CardProposal = ({
   proposal,
   className,
 }: {
-  proposal: iProposalCardData
+  proposal: IProposalCardData
   className?: string
 }) => {
   const [isExpired, setIsExpired] = useState<boolean>(false)
@@ -36,7 +32,7 @@ export const CardProposal = ({
     if (!proposal || isExpired) {
       return
     }
-    let timer: Timer | undefined
+    let timer: number | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
     const oneDayTimerLimit = 60000 * 60 * 24
@@ -44,9 +40,9 @@ export const CardProposal = ({
     if (timeRemaining <= 0) {
       setIsExpired(true)
     } else if (timeRemaining < oneDayTimerLimit) {
-      timer = setTimeout((remains) => {
+      timer = setTimeout((_remains) => {
         setIsExpired(true)
-      }, timeRemaining)
+      }, timeRemaining) as unknown as number
     }
 
     return () => {
@@ -67,7 +63,7 @@ export const CardProposal = ({
           <div>Created by</div>
           <div
             className={'text-sun-default underline decoration-dotted underline-offset-3'}
-            title={'UserId: ' + proposal?.ownerId}
+            title={`UserId: ${proposal?.ownerId}`}
           >
             @{proposal?.ownerName?.slice(0, 16)}
           </div>
@@ -124,7 +120,7 @@ export const CardProposal = ({
           ) : (
             <>
               <Button size="lg" className={'flex-1'} asChild>
-                <Link to={'/proposal/' + proposal.id}>View Details</Link>
+                <Link to={`/proposal/${proposal.id}`}>View Details</Link>
               </Button>
               <ButtonSponsor proposalId={proposal.id} content={'Sponsor!'} />
             </>

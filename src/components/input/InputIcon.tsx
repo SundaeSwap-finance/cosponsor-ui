@@ -2,12 +2,17 @@ import { InputDefault } from './InputDefault'
 import { cn } from '@/lib/utils'
 import React from 'react'
 
-interface IconInputProps extends React.ComponentProps<'input'> {
+interface IIconInputProps extends React.ComponentProps<'input'> {
   icon: React.ReactNode
   iconPosition?: 'left' | 'right'
 }
 
-export const InputIcon = ({ icon, iconPosition = 'left', className, ...props }: IconInputProps) => {
+export const InputIcon = ({
+  icon,
+  iconPosition = 'left',
+  className,
+  ...props
+}: IIconInputProps) => {
   return (
     <div className="relative flex w-full items-center">
       <div

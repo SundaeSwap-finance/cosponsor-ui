@@ -1,15 +1,13 @@
-import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { CardProposalExpired } from '@/components/proposals/state/CardProposalExpired'
 import { CardProposalUserPledged } from '@/components/proposals/state/CardProposalUserPledged'
 import { CardProposalProgress } from '@/components/proposals/state/CardProposalProgress'
-import { useEffect, useState } from 'react'
 
 export const ProposalStatusCardBase = ({
   proposal,
   isExpired,
 }: {
-  proposal: iProposalCardData | undefined
+  proposal: IProposalCardData | undefined
   isExpired?: boolean
 }) => {
   if (proposal && isExpired) {
@@ -17,7 +15,6 @@ export const ProposalStatusCardBase = ({
   } else if (proposal && proposal?.userPledged) {
     return (
       <CardProposalUserPledged
-        fundProgress={proposal?.pledgedAmount}
         reqBudget={proposal?.requestedBudget}
         userPledge={proposal?.userPledged}
       />

@@ -16,7 +16,7 @@ export const BadgeProposalPercent = ({
         className
       )}
     >
-      {isExpired ? 'EXPIRED' : percentage + '% Funded'}
+      {isExpired ? 'EXPIRED' : `${percentage}% Funded`}
     </div>
   )
 }

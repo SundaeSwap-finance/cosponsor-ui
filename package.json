@@ -50,6 +50,7 @@
     "typescript-eslint": "^8.35.1"
   },
   "devDependencies": {
+    "@sundaeswap/eslint-config": "^2.0.15",
     "@sundaeswap/tailwind-config": "^3.0.5",
     "@types/bun": "latest",
     "@types/react": "^19",

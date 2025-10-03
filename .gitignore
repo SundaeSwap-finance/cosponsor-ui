@@ -43,3 +43,6 @@ next-env.d.ts
 
 # IDE
 .idea/
+
+# dev version of cosponsor-sdk
+/src/lib/cosponsor-sdk/

@@ -1,12 +1,10 @@
 import { Button } from '@/components/shadcn/button'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ListFilter, Search } from 'lucide-react'
-import { InputIcon } from '@/components/input/InputIcon'
 import { Link } from 'react-router-dom'
 import { ModalSearchProposals } from '@/components/modals/searchProposals/ModalSearchProposals'
-import { useMemo } from 'react'
-import { Breadcrumbs, breadcrumbType } from '@/components/Breadcrumbs'
+import { Breadcrumbs, TBreadcrumbType } from '@/components/Breadcrumbs'
 import { ButtonProposalFilter } from '@/components/button/ButtonProposalFilter'
+import { Search, ChevronLeft } from 'lucide-react'
 
 export const SectionTitleProposalsView = ({
   title,
@@ -17,7 +15,7 @@ export const SectionTitleProposalsView = ({
   title: string
   subtitle?: string
   backButton: boolean
-  breadcrumbs?: breadcrumbType[]
+  breadcrumbs?: TBreadcrumbType[]
 }) => {
   return (
     <div className={'flex h-full w-full flex-col gap-6'}>

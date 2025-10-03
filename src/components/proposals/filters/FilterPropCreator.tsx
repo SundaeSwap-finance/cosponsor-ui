@@ -12,11 +12,11 @@ import {
 import { Check, ChevronsUpDown, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type userType = { name: string; id: string }
+type TUserType = { name: string; id: string }
 // !!
 //TODO move this data to useGetProposals and mark as WIP
 // !!
-const tempUserList: userType[] = [
+const tempUserList: TUserType[] = [
   { name: 'TypicalUser', id: '46' },
   { name: 'ATypicalUser', id: '47' },
   { name: 'ATypicalUser', id: '48' },
@@ -28,11 +28,11 @@ const tempUserList: userType[] = [
 
 export const FilterPropCreator = () => {
   const [open, setOpen] = useState(false)
-  const [selection, setSelection] = useState<userType[]>([])
+  const [selection, setSelection] = useState<TUserType[]>([])
 
   const onSelectItem = (selectedId: string) => {
-    const isInSelection: userType | undefined = selection.find((item) => item.id === selectedId)
-    const userExists: userType | undefined = tempUserList.find((user) => user.id === selectedId)
+    const isInSelection: TUserType | undefined = selection.find((item) => item.id === selectedId)
+    const userExists: TUserType | undefined = tempUserList.find((user) => user.id === selectedId)
 
     if (isInSelection) {
       setSelection(selection.filter((item) => item.id !== selectedId))
@@ -71,7 +71,7 @@ export const FilterPropCreator = () => {
               aria-expanded={open}
               className="w-60 justify-between"
             >
-              {selection.length > 0 ? selection.length + ' selected' : 'Search Creators / dReps'}
+              {selection.length > 0 ? `${selection.length} selected` : 'Search Creators / dReps'}
               <ChevronsUpDown className="opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -90,7 +90,7 @@ export const FilterPropCreator = () => {
                           : 'cursor-pointer'
                       }
                       key={user.id}
-                      value={user.id + ' ' + user.name}
+                      value={`${user.id} ${user.name}`}
                       onSelect={() => onSelectItem(user.id)}
                     >
                       {user.name}

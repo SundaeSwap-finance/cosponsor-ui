@@ -1,3 +1,4 @@
+import React from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ListFilter } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
@@ -16,24 +17,26 @@ import {
 export const ButtonProposalFilter = () => {
   const [filterView, setFilterView] = useState('')
 
-  const isDefaultView = useMemo(() => filterView.length == 0, [filterView])
+  const isDefaultView = useMemo(() => filterView.length === 0, [filterView])
 
   const filterComponents: { [key: string]: React.ReactNode } = {
     'Proposal Type': (
-      <FilterPropType applyFilter={(filters) => console.log('TODO apply type filter')} />
+      <FilterPropType applyFilter={(_filters) => console.warn('TODO: apply type filter')} />
     ),
-    Status: <FilterPropStatus applyFilter={(filters) => console.log('TODO apply status filter')} />,
+    Status: (
+      <FilterPropStatus applyFilter={(_filters) => console.warn('TODO: apply status filter')} />
+    ),
     'Funding Progress': (
       <FilterPropFundProgress
-        applyFilter={(filters) => console.log('TODO apply progress filter')}
+        applyFilter={(_filters) => console.warn('TODO: apply progress filter')}
       />
     ),
     'Requested Budget': (
-      <FilterPropBudget applyFilter={(filters) => console.log('TODO apply budget filter')} />
+      <FilterPropBudget applyFilter={(_filters) => console.warn('TODO: apply budget filter')} />
     ),
     Expiration: (
       <FilterPropExpiration
-        applyFilter={(filters) => console.log('TODO apply expiration filter')}
+        applyFilter={(_filters) => console.warn('TODO: apply expiration filter')}
       />
     ),
     'Creator / dRep': <FilterPropCreator />,
@@ -44,7 +47,7 @@ export const ButtonProposalFilter = () => {
   const MainFilterList = () => {
     return (
       <div className={'flex flex-col gap-2'}>
-        {mainFilters.map((filter, i) => (
+        {mainFilters.map((filter, _i) => (
           <div
             onClick={() => {
               setFilterView(filter)

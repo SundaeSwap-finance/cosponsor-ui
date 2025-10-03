@@ -1,13 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { IconCardano } from '@/icons/IconCardano'
-import {
-  LayoutDashboard,
-  LayoutGrid,
-  LoaderCircle,
-  LogIn,
-  LogOut,
-  PanelLeftClose,
-} from 'lucide-react'
+import { LayoutDashboard, LayoutGrid, PanelLeftClose } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { cn } from '@/lib/utils'

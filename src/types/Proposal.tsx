@@ -1,5 +1,5 @@
 // Data for the proposal overview cards.
-export interface iProposalCardData {
+export interface IProposalCardData {
   id: string
   name: string
   ownerId: string
@@ -16,16 +16,16 @@ export interface iProposalCardData {
 }
 
 // Data for the individual Proposal page to view details.
-export interface iProposalDetailsData extends iProposalCardData {
+export interface IProposalDetailsData extends IProposalCardData {
   companyCountry: string
   motivation: string
   rationale: string
   govActionId: string
   cip129ActionId: string
-  pledges: iPledgeData[]
+  pledges: IPledgeData[]
 }
 
-export interface iPledgeData {
+export interface IPledgeData {
   id: string
   ownerName: string
   amount: number

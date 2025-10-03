@@ -1,8 +1,8 @@
-import { iProposalCardData, iProposalDetailsData } from '@/types/Proposal'
+import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 
 // This file contains placeholder data for front-end visual development.
 
-export const cardData: iProposalCardData[] = [
+export const cardData: IProposalCardData[] = [
   // Partially funded, also by user
   {
     id: '45',
@@ -122,7 +122,7 @@ export const cardData: iProposalCardData[] = [
   },
 ]
 
-export const detailsData: iProposalDetailsData[] = [
+export const detailsData: IProposalDetailsData[] = [
   {
     id: '45',
     name: 'A Hard fork proposal',

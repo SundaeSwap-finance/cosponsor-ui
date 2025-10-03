@@ -4,14 +4,14 @@ import { Button } from '@/components/shadcn/button'
 import { ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react'
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '@/components/shadcn/carousel'
 import { useGetProposalData } from '@/composables/useGetProposalData'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
 export const CarouselProposals = ({ categoryName }: { categoryName: string }) => {
   // TODO replace this with filtered items
   const { getProposalCardsInCategory, doesCategoryHaveProposals } = useGetProposalData()
-  const [proposals, setProposals] = useState<iProposalCardData[]>()
+  const [proposals, setProposals] = useState<IProposalCardData[]>()
   const [hasProposals, setHasProposals] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
@@ -32,7 +32,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
     doesCategoryHaveProposals(categoryName).then((response) => {
       setHasProposals(response)
     })
-  }, [categoryName])
+  }, [categoryName, doesCategoryHaveProposals])
 
   const clickNext = useCallback(() => {
     if (!carouselApi) {
@@ -101,7 +101,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
             >
               {/* Slide spacing is done with negative ml on content and positive pl on item, according to docs.*/}
               <CarouselContent className={'-ml-2'}>
-                {proposals?.map((item, index) => (
+                {proposals?.map((item, _index) => (
                   <CarouselItem key={item.id} className={'basis-auto p-0 pl-2'}>
                     <CardProposal proposal={item} />
                   </CarouselItem>

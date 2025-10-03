@@ -1,23 +1,17 @@
-import { Progress } from '@/components/shadcn/progress'
-import { ProgressMulti } from '@/components/graphics/ProgressMulti'
 import { maxDecimalsAda } from '@/config/config'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
+import { ProgressMulti } from '@/components/graphics/ProgressMulti'
 
 export const CardProposalUserPledged = ({
-  fundProgress,
   reqBudget,
   userPledge,
 }: {
-  fundProgress: number
   reqBudget: number
   userPledge: number | undefined
 }) => {
   const { formatNumber } = useNumberFormatter()
 
   const calculateNonUserPercent = () => {
-    if (fundProgress && reqBudget && userPledge) {
-      return Math.round(((fundProgress - userPledge) / reqBudget) * 100)
-    }
     return -1
   }
 
@@ -29,9 +23,6 @@ export const CardProposalUserPledged = ({
     return -1
   }
   const calcTotalPercent = () => {
-    if (fundProgress && reqBudget) {
-      return (fundProgress / reqBudget) * 100
-    }
     return -1
   }
 
@@ -39,10 +30,7 @@ export const CardProposalUserPledged = ({
     <div className={'border-sun-border-primary flex w-full flex-col gap-2 rounded-lg border p-4'}>
       <div className={'flex w-full flex-row items-start justify-between'}>
         <div className={'flex w-fit flex-col gap-0.5'}>
-          <div className={'sun-text-12-md text-nowrap'}>Funding Progress</div>
-          <div className={'sun-text-20-sb text-sun-header text-nowrap'}>
-            ₳{formatNumber(fundProgress, maxDecimalsAda)}
-          </div>
+          <div className={'sun-text-20-sb text-sun-header text-nowrap'}></div>
         </div>
         <div className={'flex w-full flex-col justify-end gap-0.5 text-right'}>
           <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Requested Budget</div>

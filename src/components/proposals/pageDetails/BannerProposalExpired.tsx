@@ -1,9 +1,7 @@
-import { Button } from '@/components/shadcn/button'
 import { ArrowUpFromLine } from 'lucide-react'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
-import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
 
 export const BannerProposalExpired = ({
@@ -11,7 +9,7 @@ export const BannerProposalExpired = ({
   proposal,
 }: {
   userPledge: number
-  proposal: iProposalCardData
+  proposal: IProposalCardData
 }) => {
   const { formatNumber } = useNumberFormatter()
 
@@ -39,7 +37,6 @@ export const BannerProposalExpired = ({
 
       {userPledge > 0 && (
         <ButtonWithdraw
-          classButton={'sun-text-16-rg w-fit'}
           proposal={proposal}
           content={
             <>

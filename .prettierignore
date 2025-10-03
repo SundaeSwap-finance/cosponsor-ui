@@ -6,3 +6,4 @@ coverage
 **/*.md
 **/*.d.ts
 /src/components/shadcn/*
+/src/lib/cosponsor-sdk/*

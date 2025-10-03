@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 
-interface WindowSize {
+interface IWindowSize {
   width: number
   height: number
 }
 
-export function useWindowSize(): WindowSize {
-  const [windowSize, setWindowSize] = useState<WindowSize>({
+export function useWindowSize(): IWindowSize {
+  const [windowSize, setWindowSize] = useState<IWindowSize>({
     width: 0,
     height: 0,
   })
@@ -32,7 +32,7 @@ export function useWindowSize(): WindowSize {
   return windowSize
 }
 export const useScreenSize = () => {
-  const { width, height } = useWindowSize()
+  const { width } = useWindowSize()
 
   const isSm = useMemo<boolean>(() => width >= 640, [width])
   const isMd = useMemo<boolean>(() => width >= 768, [width])

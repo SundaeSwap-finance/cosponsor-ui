@@ -1,6 +1,6 @@
 import { Toggle } from '@/components/shadcn/toggle'
 import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/shadcn/button'
 
 const proposalTypes = [
@@ -13,17 +13,17 @@ const proposalTypes = [
   'Info',
 ]
 
-type propTypes = (typeof proposalTypes)[number] | undefined
+type TPropTypes = (typeof proposalTypes)[number] | undefined
 
 export const FilterPropType = ({
   applyFilter,
 }: {
-  applyFilter?: (filters: propTypes[]) => void
+  applyFilter?: (filters: TPropTypes[]) => void
 }) => {
-  const [proposalTypeFilters, setProposalTypeFilters] = useState<propTypes[]>([])
+  const [proposalTypeFilters, setProposalTypeFilters] = useState<TPropTypes[]>([])
 
-  const updateTypeFilter = (type: propTypes, enabled: boolean) => {
-    let newFilters: propTypes[] = []
+  const updateTypeFilter = (type: TPropTypes, enabled: boolean) => {
+    let newFilters: TPropTypes[] = []
 
     if (enabled) {
       newFilters = proposalTypeFilters.slice(0)
@@ -46,15 +46,14 @@ export const FilterPropType = ({
             onPressedChange={(newValue) => updateTypeFilter(type, newValue)}
             key={type}
             size={'sm'}
-            aria-label={'Toggle ' + type + ' Filter'}
+            aria-label={`Toggle ${type} Filter`}
             className={'data-[state=on]:bg-sun-highlight-primary/50 h-fit p-0'}
           >
             <BadgeProposalCategory
               category={type}
-              className={
-                'sun-text-12-md flex h-6 items-center justify-center ' +
-                (proposalTypeFilters.includes(type) ? ' text-sun-white-pure' : ' ')
-              }
+              className={`sun-text-12-md flex h-6 items-center justify-center ${
+                proposalTypeFilters.includes(type) ? 'text-sun-white-pure' : ' '
+              }`}
             />
           </Toggle>
         ))}

@@ -2,7 +2,7 @@ import React from 'react'
 import * as Progress from '@radix-ui/react-progress'
 import { cn } from '@/lib/utils'
 
-type ProgressSegment = {
+type TProgressSegment = {
   value: number
   colorClass: string
 }
@@ -14,11 +14,11 @@ export const ProgressMulti = ({
   ...props
 }: {
   className?: string
-  segments: ProgressSegment[]
+  segments: TProgressSegment[]
 }) => {
   let accumulatedValue = 0
 
-  const isLastSegment = (index: number, segments: ProgressSegment[]) => {
+  const isLastSegment = (index: number, segments: TProgressSegment[]) => {
     return index + 1 === segments.length
   }
 

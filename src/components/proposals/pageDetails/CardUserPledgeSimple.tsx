@@ -1,13 +1,11 @@
-import { Progress } from '@/components/shadcn/progress'
-import { ProgressMulti } from '@/components/graphics/ProgressMulti'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
+import { ProgressMulti } from '@/components/graphics/ProgressMulti'
 
 export const CardUserPledgeSimple = ({
   reqBudget,
   userPledge,
 }: {
-  fundProgress: number | undefined
   reqBudget: number | undefined
   userPledge: number | undefined
 }) => {

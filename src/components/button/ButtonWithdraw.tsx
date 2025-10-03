@@ -1,6 +1,7 @@
+import React from 'react'
 import { Button } from '@/components/shadcn/button'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import { useState } from 'react'
@@ -11,7 +12,7 @@ export const ButtonWithdraw = ({
   content,
   classButton,
 }: {
-  proposal: iProposalCardData
+  proposal: IProposalCardData
   content: React.ReactNode
   classButton?: string
 }) => {
@@ -33,7 +34,7 @@ export const ButtonWithdraw = ({
       <ModalWithdraw
         modalTrigger={
           <Button
-            id={'withdrawButton' + proposal.id}
+            id={`withdrawButton${proposal.id}`}
             onClick={(event) => verifyWalletConnection(event)}
             size="lg"
             className={cn(
@@ -51,9 +52,9 @@ export const ButtonWithdraw = ({
         modalTrigger={''}
         modalOpen={walletConnectModal}
         onModalClose={() => setWalletConnectModal(false)}
-        onWalletConnect={(key, wallet) => {
+        onWalletConnect={(key, _wallet) => {
           walletObserver.connectWallet(key).then(() => {
-            document.getElementById('withdrawButton' + proposal.id)?.click()
+            document.getElementById(`withdrawButton${proposal.id}`)?.click()
           })
         }}
       />

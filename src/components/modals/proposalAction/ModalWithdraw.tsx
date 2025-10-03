@@ -14,7 +14,7 @@ import { IconCardano } from '@/icons/IconCardano'
 import { LineOrderDetails } from '@/components/modals/proposalAction/LineOrderDetails'
 import { ArrowDownToLine, Fuel, Signature, Vote } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
 
@@ -23,7 +23,7 @@ export const ModalWithdraw = ({
   proposal,
 }: {
   modalTrigger: ReactNode
-  proposal: iProposalCardData
+  proposal: IProposalCardData
 }) => {
   const { formatLovelaceToAdaString, formatNumber } = useNumberFormatter()
 
@@ -50,7 +50,7 @@ export const ModalWithdraw = ({
       formatNumber(fees, maxDecimalsAda).length
     )
     return result
-  }, [userDepositGAda, userReceive, fees])
+  }, [userDepositGAda, userReceive, fees, formatNumber])
 
   return (
     <Dialog>

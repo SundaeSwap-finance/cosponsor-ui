@@ -1,5 +1,3 @@
-import { FC } from 'react'
-
 export const IconCardano = ({ className }: { className?: string }) => {
   return (
     <svg

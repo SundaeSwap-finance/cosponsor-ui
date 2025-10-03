@@ -15,5 +15,5 @@ export const getShortDate = (date: Date | undefined) => {
 
 export const getShortDateAndTime = (date: Date | undefined) => {
   const result = date?.toLocaleTimeString(defaultLocale)
-  return getShortDate(date) + ' ' + result
+  return `${getShortDate(date)} ${result}`
 }

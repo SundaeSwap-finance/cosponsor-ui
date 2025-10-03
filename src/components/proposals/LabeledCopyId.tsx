@@ -32,7 +32,7 @@ export const LabeledCopyId = ({
         <div className={'sun-text-12-md text-sun-muted leading-5'}>{label}</div>
         <div
           onClick={() => copyToClipboard()}
-          title={label + ': ' + id}
+          title={`${label}: ${id}`}
           className={
             'sun-text-16-md text-sun-action-tertiary flex cursor-pointer flex-row gap-4 leading-5 underline decoration-dotted underline-offset-4'
           }

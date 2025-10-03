@@ -1,7 +1,7 @@
+import React, { useState, useMemo } from 'react'
 import { LoaderCircle, LogIn, LogOut } from 'lucide-react'
 import {
   RenderWallet,
-  RenderWalletState,
   TRenderWalletFunctionState,
   useAvailableExtensions,
   useWalletObserver,
@@ -9,7 +9,6 @@ import {
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
 import { IconCardano } from '@/icons/IconCardano'
 import { Button } from '@/components/shadcn/button'
-import React, { createContext, useMemo, useState } from 'react'
 import { useTextFormatter } from '@/composables/useTextFormatter'
 
 export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean }) => {
@@ -37,11 +36,11 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
     activeWallet: string | undefined
   ) => {
     if (activeWallet) {
-      connectWallet(activeWallet).then((r) => {
+      connectWallet(activeWallet).then((_r) => {
         setModalOpen(false)
       })
     } else {
-      connectWallet('eternl').then((r) => {
+      connectWallet('eternl').then((_r) => {
         setModalOpen(false)
       })
     }
@@ -59,7 +58,7 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
         <ModalWalletConnect
           disableTrigger={(activeWallet as string)?.length > 0}
           modalOpen={modalOpen}
-          onWalletConnect={(key, wallet) => onClickConnectWallet(connectWallet, key)}
+          onWalletConnect={(key, _wallet) => onClickConnectWallet(connectWallet, key)}
           onModalClose={() => setModalOpen(false)}
           modalTrigger={
             <div
@@ -69,7 +68,7 @@ export const SidebarWallet = ({ sidebarExpanded }: { sidebarExpanded: boolean })
               {iconActiveWallet ? (
                 <img
                   src={iconActiveWallet}
-                  alt={'Wallet icon of ' + walletObserver.activeWallet}
+                  alt={`Wallet icon of ${walletObserver.activeWallet}`}
                   className="h-8 w-8"
                 />
               ) : (

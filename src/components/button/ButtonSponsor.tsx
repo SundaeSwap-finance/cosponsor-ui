@@ -1,3 +1,4 @@
+import React from 'react'
 import { ButtonGradient } from '@/components/button/ButtonGradient'
 import { ModalSponsor } from '@/components/modals/proposalAction/ModalSponsor'
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
@@ -32,7 +33,7 @@ export const ButtonSponsor = ({
       <ModalSponsor
         modalTrigger={
           <ButtonGradient
-            id={'sponsorButton' + proposalId}
+            id={`sponsorButton${proposalId}`}
             size="lg"
             className={cn('flex-1', classButton)}
             onClick={(event) => verifyWalletConnection(event)}
@@ -46,9 +47,9 @@ export const ButtonSponsor = ({
         modalTrigger={''}
         modalOpen={walletConnectModal}
         onModalClose={() => setWalletConnectModal(false)}
-        onWalletConnect={(key, wallet) => {
+        onWalletConnect={(key, _wallet) => {
           walletObserver.connectWallet(key).then(() => {
-            document.getElementById('sponsorButton' + proposalId)?.click()
+            document.getElementById(`sponsorButton${proposalId}`)?.click()
           })
         }}
       />

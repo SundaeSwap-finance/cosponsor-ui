@@ -1,17 +1,16 @@
-import { CardProposal } from '@/components/proposals/CardProposal'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { SectionTitleProposalsView } from '@/components/proposals/SectionTitleProposalsView'
 import { ListSimpleProposals } from '@/components/proposals/ListSimpleProposals'
 import { useEffect, useState } from 'react'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { LoaderCircle } from 'lucide-react'
-import { breadcrumbType } from '@/components/Breadcrumbs'
+import { TBreadcrumbType } from '@/components/Breadcrumbs'
 
 export const PageProposalsUserPledge = () => {
   const { getProposalCardsUserPledge } = useGetProposalData()
-  const [proposals, setProposals] = useState<iProposalCardData[]>()
+  const [proposals, setProposals] = useState<IProposalCardData[]>()
   const [isLoading, setIsLoading] = useState(true)
-  const breadcrumbs: breadcrumbType[] = [
+  const breadcrumbs: TBreadcrumbType[] = [
     { name: 'Overview', link: '/' },
     { name: 'Your Pledges', link: '/your', active: true },
   ]
@@ -24,7 +23,7 @@ export const PageProposalsUserPledge = () => {
       .finally(() => {
         setIsLoading(false)
       })
-  }, [])
+  }, [getProposalCardsUserPledge])
 
   return (
     <div className={'sun-page-padding-rb flex w-full flex-col gap-8 overflow-y-auto'}>

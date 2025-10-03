@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import React, { ReactNode, useMemo, useState } from 'react'
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
 
-interface CurrencyLargeInputProps extends React.ComponentProps<'input'> {
+interface ICurrencyLargeInputProps extends React.ComponentProps<'input'> {
   label: string
   currencyLabel: string
   currencyIcon: ReactNode
@@ -22,7 +22,7 @@ export const InputCurrencyLarge = ({
   // Default value is in ADA not in lovelace
   defaultValue,
   ...props
-}: CurrencyLargeInputProps) => {
+}: ICurrencyLargeInputProps) => {
   const { formatLovelaceToAdaNumber } = useNumberFormatter()
 
   const [value, setValue] = useState(defaultValue ? defaultValue : 0.0)
@@ -40,7 +40,7 @@ export const InputCurrencyLarge = ({
         return
       }
       setValue(newValue)
-      setWarning('Value exceeds available ' + currencyLabel)
+      setWarning(`Value exceeds available ${currencyLabel}`)
     }
   }
 

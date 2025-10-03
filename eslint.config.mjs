@@ -1,25 +1,16 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
+// dirname and __filename not needed for current config
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
 import globals from 'globals'
 import vitest from '@vitest/eslint-plugin'
-import pluginJs from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+import { configs as sundaeConfigs } from '@sundaeswap/eslint-config'
 
 const eslintConfig = [
-  // ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...sundaeConfigs,
   {
     plugins: {
       'simple-import-sort': eslintPluginSimpleImportSort,
+      'react-hooks': reactHooks,
     },
     languageOptions: {
       globals: {
@@ -28,30 +19,16 @@ const eslintConfig = [
         ...vitest.environments.env.globals,
       },
     },
-  },
-  // js
-  pluginJs.configs.recommended,
-  {
     rules: {
-      'no-unused-vars': 'off',
-      'no-undef': 'off',
       'no-console': ['warn', { allow: ['error', 'warn'] }],
       curly: ['error', 'all'],
-    },
-  },
-  // ts
-  ...tseslint.configs.recommended,
-  {
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
   {
-    ignores: ['node_modules', '.output', 'dist', 'src/components/shadcn'],
+    ignores: ['node_modules', '.output', 'dist', 'src/components/shadcn', 'src/lib/cosponsor-sdk'],
   },
-
-  reactHooks.configs['recommended-latest'],
 ]
 
 export default eslintConfig

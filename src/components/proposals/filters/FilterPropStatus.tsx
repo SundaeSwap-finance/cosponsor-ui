@@ -32,7 +32,7 @@ export const FilterPropStatus = ({ applyFilter }: { applyFilter?: (filter: strin
             key={status}
             size={'sm'}
             variant={'outline'}
-            aria-label={'Toggle ' + status + ' Filter'}
+            aria-label={`Toggle ${status} Filter`}
             className={
               'data-[state=on]:bg-sun-highlight-primary/50 data-[state=on]:text-sun-white-pure sun-text-14-rg border-2'
             }

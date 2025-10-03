@@ -1,10 +1,10 @@
 import { FC } from 'react'
 import { CarouselProposals } from '@/components/proposals/CarouselProposals'
 import { SectionTitleProposalsView } from '@/components/proposals/SectionTitleProposalsView'
-import { breadcrumbType } from '@/components/Breadcrumbs'
+import { TBreadcrumbType } from '@/components/Breadcrumbs'
 
 export const PageProposalsAll: FC = () => {
-  const breadcrumbs: breadcrumbType[] = [
+  const breadcrumbs: TBreadcrumbType[] = [
     { name: 'Overview', link: '/' },
     { name: 'All Proposals', link: '/all', active: true },
   ]

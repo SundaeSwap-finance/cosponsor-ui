@@ -6,9 +6,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/shadcn/dialog'
-import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import React, { ReactNode, useEffect, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
-import { ArrowDown, ArrowUp, CornerDownLeft, Redo2, Search, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, CornerDownLeft, Search, X } from 'lucide-react'
 import { InputIcon } from '@/components/input/InputIcon'
 import { SearchResultProposal } from '@/components/modals/searchProposals/SearchResultProposal.'
 import { SearchActionHint } from '@/components/modals/searchProposals/SearchActionHint'
@@ -19,17 +19,16 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/shadcn/command'
 import { useNavigate } from 'react-router-dom'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 
 export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode }) => {
   const { getAllProposalCards, getRandomProposals } = useGetProposalData()
   const [inputValue, setInputValue] = useState('')
   const navigate = useNavigate()
 
-  const [filteredProposals, setFilteredProposals] = useState<iProposalCardData[]>([])
+  const [filteredProposals, setFilteredProposals] = useState<IProposalCardData[]>([])
 
   useEffect(() => {
     if (inputValue.length > 0) {
@@ -50,7 +49,7 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
         setFilteredProposals(proposals)
       })
     }
-  }, [inputValue])
+  }, [inputValue, getAllProposalCards, getRandomProposals])
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value)
@@ -85,7 +84,7 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
                 <CommandItem
                   key={proposal.id}
                   className={'group/searchItem w-full p-0 pr-3'}
-                  onSelect={() => navigate('/proposal/' + proposal.id)}
+                  onSelect={() => navigate(`/proposal/${proposal.id}`)}
                 >
                   <SearchResultProposal proposal={proposal} />
                 </CommandItem>

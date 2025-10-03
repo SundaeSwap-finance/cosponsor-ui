@@ -4,7 +4,7 @@ import { Button } from '@/components/shadcn/button'
 import { Calendar } from '@/components/shadcn/calendar'
 import { Label } from '@/components/shadcn/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 export const InputDatePicker = ({

@@ -13,8 +13,8 @@ import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledT
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
-import { iProposalDetailsData } from '@/types/Proposal'
-import { Breadcrumbs, breadcrumbType } from '@/components/Breadcrumbs'
+import { IProposalDetailsData } from '@/types/Proposal'
+import { Breadcrumbs, TBreadcrumbType } from '@/components/Breadcrumbs'
 import { useScreenSize } from '@/composables/useScreenSize'
 
 export const PageProposalDetails = () => {
@@ -22,7 +22,7 @@ export const PageProposalDetails = () => {
   const { isLg, isMd } = useScreenSize()
   const twoDayMilliseconds = 60000 * 60 * 48
   const { proposalId } = useParams()
-  const [proposal, setProposal] = useState<iProposalDetailsData>()
+  const [proposal, setProposal] = useState<IProposalDetailsData>()
   const [isLoading, setIsLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(
     proposal?.expiryDate ? new Date() > proposal.expiryDate : false
@@ -58,16 +58,12 @@ export const PageProposalDetails = () => {
   }, [totalPledged, proposal?.requestedBudget])
 
   const expiryTitleTooltip = useMemo(() => {
-    return (
-      (isExpired ? 'Expired on ' : 'Expires on ') +
-      expiryDateTime +
-      ' ' +
-      Intl.DateTimeFormat().resolvedOptions().timeZone +
-      ' time'
-    )
+    return `${(isExpired ? 'Expired on ' : 'Expires on ') + expiryDateTime} ${
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    } time`
   }, [expiryDateTime, isExpired])
 
-  const breadcrumbs = useMemo((): breadcrumbType[] => {
+  const breadcrumbs = useMemo((): TBreadcrumbType[] => {
     if (isLoading) {
       return [
         { name: 'Overview', link: '/' },
@@ -80,11 +76,11 @@ export const PageProposalDetails = () => {
         { name: 'All Proposals', link: '/all' },
         {
           name: proposal?.categoryName ?? '',
-          link: '/category/' + categoryLink,
+          link: `/category/${categoryLink}`,
         },
         {
           name: proposal?.name ?? '',
-          link: '/proposal/' + proposalId,
+          link: `/proposal/${proposalId}`,
           active: true,
           hide: !isMd,
         },
@@ -95,25 +91,25 @@ export const PageProposalDetails = () => {
   useEffect(() => {
     setIsLoading(true)
     getProposalDetailsById(proposalId as string).then((resultProp) => {
-      setProposal(resultProp as iProposalDetailsData)
+      setProposal(resultProp as IProposalDetailsData)
       setIsLoading(false)
     })
-  }, [proposalId])
+  }, [proposalId, getProposalDetailsById])
 
   useEffect(() => {
     if (!proposal || isExpired) {
       return
     }
-    let timer: Timer | undefined
+    let timer: number | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
 
     if (timeRemaining <= 0) {
       setIsExpired(true)
     } else if (timeRemaining < twoDayMilliseconds) {
-      timer = setTimeout((remains) => {
+      timer = setTimeout((_remains) => {
         setIsExpired(true)
-      }, timeRemaining)
+      }, timeRemaining) as unknown as number
     }
 
     return () => {
@@ -144,7 +140,7 @@ export const PageProposalDetails = () => {
             <div>Created by</div>
             <div
               className={'text-sun-muted underline decoration-dotted underline-offset-4'}
-              title={'UserId: ' + proposal.ownerId}
+              title={`UserId: ${proposal.ownerId}`}
             >
               {proposal.ownerName}
             </div>
@@ -253,7 +249,6 @@ export const PageProposalDetails = () => {
           </div>
           {proposal.userPledged ? (
             <CardUserPledgeSimple
-              fundProgress={completionPercentage}
               reqBudget={proposal.requestedBudget}
               userPledge={proposal.userPledged}
             />

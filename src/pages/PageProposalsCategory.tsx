@@ -1,22 +1,21 @@
-import { FC, useEffect, useMemo, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 
-import { CardProposal } from '@/components/proposals/CardProposal'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { useParams } from 'react-router-dom'
 import { SectionTitleProposalsView } from '@/components/proposals/SectionTitleProposalsView'
 import { ListSimpleProposals } from '@/components/proposals/ListSimpleProposals'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 import { LoaderCircle } from 'lucide-react'
-import { breadcrumbType } from '@/components/Breadcrumbs'
+import { TBreadcrumbType } from '@/components/Breadcrumbs'
 
 export const PageProposalsCategory: FC = () => {
   const { getProposalCardsInCategory } = useGetProposalData()
   const { name } = useParams()
-  const [proposals, setProposals] = useState<iProposalCardData[]>()
+  const [proposals, setProposals] = useState<IProposalCardData[]>()
   const [isLoading, setIsLoading] = useState(true)
-  const breadcrumbs: breadcrumbType[] = [
+  const breadcrumbs: TBreadcrumbType[] = [
     { name: 'Overview', link: '/' },
-    { name: 'All ' + name + ' Proposals', link: window.location.href, active: true },
+    { name: `All ${name} Proposals`, link: window.location.href, active: true },
   ]
 
   useEffect(() => {
@@ -28,7 +27,7 @@ export const PageProposalsCategory: FC = () => {
       .finally(() => {
         setIsLoading(false)
       })
-  }, [name])
+  }, [name, getProposalCardsInCategory])
 
   return (
     <div className={'sun-page-padding-rb flex w-full flex-col gap-8 overflow-y-auto'}>

@@ -3,12 +3,12 @@ import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercen
 import { Button } from '@/components/shadcn/button'
 import { MoveRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { iProposalCardData } from '@/types/Proposal'
+import { IProposalCardData } from '@/types/Proposal'
 
-export const SearchResultProposal = ({ proposal }: { proposal: iProposalCardData }) => {
+export const SearchResultProposal = ({ proposal }: { proposal: IProposalCardData }) => {
   return (
     <Link
-      to={'/proposal/' + proposal.id}
+      to={`/proposal/${proposal.id}`}
       className={
         'flex w-full cursor-pointer flex-row items-center justify-between px-3 py-2 transition-all duration-600'
       }
@@ -26,7 +26,7 @@ export const SearchResultProposal = ({ proposal }: { proposal: iProposalCardData
             <div>Created by</div>
             <div
               className={'text-sun-default underline decoration-dotted underline-offset-3'}
-              title={'UserId: ' + proposal.ownerName}
+              title={`UserId: ${proposal.ownerName}`}
             >
               @{proposal.ownerName.slice(0, 16)}
             </div>
