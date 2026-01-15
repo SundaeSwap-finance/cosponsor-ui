@@ -5,6 +5,8 @@ import { defineConfig, PluginOption } from 'vite'
 import checker from 'vite-plugin-checker'
 import { nodePolyfills, PolyfillOptions } from 'vite-plugin-node-polyfills'
 import tailwindcss from '@tailwindcss/vite'
+import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await'
 // @ts-expect-error typing in plugin is incorrect
 import eslint from 'vite-plugin-eslint'
 
@@ -15,6 +17,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const plugins: PluginOption[] = [
+  wasm(),
+  topLevelAwait(),
   injectConfig(),
   tailwindcss(),
   nodePolyfills({
@@ -43,6 +47,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default defineConfig({
+  // Expose COSPONSOR_ prefixed env vars to the client
+  envPrefix: ['COSPONSOR_'],
   server: {
     watch: {
       followSymlinks: true,

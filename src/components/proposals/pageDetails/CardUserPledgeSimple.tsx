@@ -1,13 +1,17 @@
 import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
 import { ProgressMulti } from '@/components/graphics/ProgressMulti'
+import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
+import { IProposalCardData } from '@/types/Proposal'
 
 export const CardUserPledgeSimple = ({
   reqBudget,
   userPledge,
+  proposal,
 }: {
   reqBudget: number | undefined
   userPledge: number | undefined
+  proposal: IProposalCardData
 }) => {
   const { formatNumber } = useNumberFormatter()
 
@@ -19,7 +23,7 @@ export const CardUserPledgeSimple = ({
   }
 
   return (
-    <div className={'border-sun-border-primary flex w-full flex-col gap-2 rounded-lg border p-4'}>
+    <div className={'border-sun-border-primary flex w-full flex-col gap-4 rounded-lg border p-4'}>
       <div className={'flex w-full flex-row items-start justify-between'}>
         <div className={'flex w-fit flex-col gap-0.5'}>
           <div className={'sun-text-12-md text-sun-muted'}>Your Pledge</div>
@@ -31,6 +35,7 @@ export const CardUserPledgeSimple = ({
             ₳{formatNumber(userPledge ?? -1, maxDecimalsAda)}
           </div>
         </div>
+        <ButtonWithdraw proposal={proposal} content="Withdraw Pledge" classButton="" />
       </div>
       <div className={'flex w-full flex-row items-center gap-2'}>
         <ProgressMulti

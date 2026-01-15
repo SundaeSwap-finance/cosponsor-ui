@@ -12,10 +12,10 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Home
-        loader: () => redirect('/all'),
+        loader: () => redirect('/all-proposals'),
       },
       {
-        path: '/all',
+        path: '/all-proposals',
         element: <PageProposalsAll />,
       },
       {
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
         element: <PageProposalsCategory />,
       },
       {
-        path: '/your',
+        path: '/your-pledges',
         element: <PageProposalsUserPledge />,
       },
       {

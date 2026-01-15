@@ -1,99 +1,271 @@
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { useCallback } from 'react'
 
-import { cardData, detailsData } from '@/devData/proposalPlaceholders'
-import govToolsApi from '@/api/govToolsApi'
-import { AxiosError } from 'axios'
+import { useWalletObserver } from '@sundaeswap/wallet-lite'
+import {
+  createBlazeWithBrowserWallet,
+  fetchUserDeposits,
+  IUserDeposit,
+} from '@sundaeswap/cosponsor-sdk/browser'
+import {
+  getAllProposalsAsCards,
+  getProposalDetailsById as fetchProposalDetails,
+  getProposalsByCategory,
+  fetchProposalsPage,
+  getProposalsByCategoryPaginated,
+  IPaginatedProposals,
+} from '@/api/govToolsProposals'
 
 export const useGetProposalData = () => {
-  // -- README --
-  // TODO: replace with getting/refreshing data from BE in this file.
-  // Placeholder dev data is not consistent between details and cards!
+  const walletHook = useWalletObserver()
+  const walletObserver = walletHook.observer
 
-  const mapGovToolDataToCosponsorFE = useCallback(
-    (
-      list: IProposalCardData[] | IProposalDetailsData[]
-    ): Promise<IProposalCardData[] | IProposalDetailsData[]> => {
-      const result = list.map(async (proposal) => {
-        try {
-          const response = await govToolsApi.get(`/proposals/${proposal.id}`)
+  // Transform IUserDeposit to IProposalCardData
+  // Optionally pass GovTools data to enrich the proposal with proper category info
+  const transformDepositToProposal = useCallback(
+    (deposit: IUserDeposit, govToolsData?: IProposalCardData): IProposalCardData => {
+      // Calculate amounts in ADA
+      const userPledgedAmountAda = Number(deposit.tokenAmount) / 1_000_000
 
-          const responseData = response.data.data.attributes.content.attributes
-          return {
-            ...proposal,
-            name: responseData.prop_name,
-            ownerId: responseData.user_id,
-            ownerName: response.data.data.attributes.user_govtool_username,
-            initDate: new Date(responseData.createdAt),
-            abstract: responseData.prop_abstract,
-            categoryName: responseData.gov_action_type.attributes.gov_action_type_name,
-            // Check if this is details type.
-            ...('motivation' in proposal
-              ? {
-                  motivation: responseData.prop_motivation,
-                  rationale: responseData.prop_rationale,
-                }
-              : {}),
-          }
-        } catch (error) {
-          if (error instanceof AxiosError) {
-            console.warn(error.response?.data?.error?.details, error)
-          }
-          return proposal
-        }
-      })
-      return Promise.all(result)
+      // For on-chain proposals, we use the token asset name (proposal hash) as the ID
+      // This uniquely identifies the proposal and allows the details page to work
+      const proposalHash = deposit.proposalHash || deposit.tokenAssetName
+
+      // Use GovTools data if available, otherwise fallback to on-chain data
+      // Replace "Unknown" with more user-friendly "On-chain Proposal"
+      const actionKind = deposit.cosponsoredProposal.action.kind
+      const categoryName =
+        govToolsData?.categoryName || (actionKind === 'Unknown' ? 'On-chain Proposal' : actionKind)
+      const companyName =
+        govToolsData?.companyName || (actionKind === 'Unknown' ? 'On-chain Proposal' : actionKind)
+
+      return {
+        id: govToolsData?.id || proposalHash,
+        name: govToolsData?.name || `Proposal ${proposalHash.slice(0, 8)}...`,
+        ownerId: govToolsData?.ownerId || proposalHash.slice(0, 16),
+        ownerName: govToolsData?.ownerName || 'On-chain',
+        requestedBudget: govToolsData?.requestedBudget || 0,
+        pledgedAmount: govToolsData?.pledgedAmount || userPledgedAmountAda,
+        userPledged: userPledgedAmountAda,
+        initDate: govToolsData?.initDate || new Date(),
+        expiryDate: govToolsData?.expiryDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        companyName,
+        companyDomain: govToolsData?.companyDomain || 'On-chain',
+        abstract:
+          govToolsData?.abstract ||
+          `You have ${userPledgedAmountAda} ADA pledged to this on-chain proposal. Withdraw anytime before expiry.`,
+        categoryName,
+      }
     },
     []
   )
 
-  // Details page data
-  const getProposalDetailsById = useCallback(
-    async (id: string) => {
-      //console.log('getProposalDetailsById', id)
+  // Transform IUserDeposit to IProposalDetailsData
+  const transformDepositToProposalDetails = useCallback(
+    (deposit: IUserDeposit): IProposalDetailsData => {
+      const baseProposal = transformDepositToProposal(deposit)
+      const proposalHash = deposit.proposalHash || deposit.tokenAssetName
+      const userPledgedAmountAda = Number(deposit.tokenAmount) / 1_000_000
 
-      // TODO: Get proposal from cosponsor BE, so we know how much is sponsored and by who.
-      const cosponsorDetails = detailsData.filter((proposal) => proposal.id === id)[0]
+      // Use user-friendly name for Unknown action kinds
+      const actionKind = deposit.cosponsoredProposal.action.kind
+      const actionDisplay = actionKind === 'Unknown' ? 'on-chain' : actionKind
 
-      // console.log('getProposalDetailsById result', result)
-      return (await mapGovToolDataToCosponsorFE([cosponsorDetails]))[0]
+      // Add details-specific fields
+      return {
+        ...baseProposal,
+        companyCountry: 'N/A',
+        motivation: `This is an ${actionDisplay} proposal. You have pledged ${userPledgedAmountAda} ADA.`,
+        rationale: `Your gADA tokens represent your pledge. You can withdraw your ADA anytime before the proposal expires.`,
+        govActionId: proposalHash,
+        cip129ActionId: proposalHash,
+        pledges: [], // Individual pledge data not available from on-chain
+      }
     },
-    [mapGovToolDataToCosponsorFE]
+    [transformDepositToProposal]
   )
 
+  // Details page data - fetch from GovTools API or user deposits
+  const getProposalDetailsById = useCallback(
+    async (id: string): Promise<IProposalDetailsData | undefined> => {
+      // First try to fetch from GovTools API
+      const govToolsProposal = await fetchProposalDetails(id)
+      if (govToolsProposal) {
+        return govToolsProposal
+      }
+
+      // If not found in GovTools, check if it's a blockchain proposal
+      // Fetch deposits and look for matching proposal hash
+      if (walletObserver.api) {
+        try {
+          const blaze = await createBlazeWithBrowserWallet(walletObserver)
+          const deposits = await fetchUserDeposits(blaze)
+
+          // Find ALL deposits with matching proposal hash (user may have deposited multiple times)
+          const matchingDeposits = deposits.filter((d) => d.proposalHash === id)
+
+          if (matchingDeposits.length > 0) {
+            // eslint-disable-next-line no-console
+            console.log(
+              `Found blockchain proposal with hash: ${id} (${matchingDeposits.length} deposit(s))`
+            )
+
+            // Aggregate all deposits for this proposal
+            const totalDepositAmount = matchingDeposits.reduce(
+              (sum, d) => sum + d.depositAmount,
+              0n
+            )
+            const totalTokenAmount = matchingDeposits.reduce((sum, d) => sum + d.tokenAmount, 0n)
+
+            // Use first deposit as base, but with aggregated amounts
+            const aggregatedDeposit: IUserDeposit = {
+              ...matchingDeposits[0],
+              depositAmount: totalDepositAmount,
+              tokenAmount: totalTokenAmount,
+            }
+
+            return transformDepositToProposalDetails(aggregatedDeposit)
+          }
+
+          // Only warn if wallet IS connected but proposal not found
+          console.warn(
+            `Proposal not found with id: ${id} (checked ${deposits.length} user deposits)`
+          )
+        } catch (error) {
+          console.error('Failed to fetch blockchain proposal:', error)
+        }
+      } else {
+        // Wallet not connected yet - silently return undefined
+        // This is expected on initial page load before wallet connects
+        // eslint-disable-next-line no-console
+        console.log(
+          `Wallet not connected yet, cannot fetch blockchain proposal with id: ${id.slice(0, 16)}...`
+        )
+      }
+
+      // Return undefined
+      return undefined
+    },
+    [walletObserver, transformDepositToProposalDetails]
+  )
+
+  // Check if category has any proposals
   const doesCategoryHaveProposals = useCallback(async (categoryName: string) => {
-    // TODO: Get relevant data of this category from Cosponsor BE
-    const results = cardData.filter(
-      (proposal) => proposal.categoryName.toLowerCase() === categoryName.toLowerCase()
-    )
-    return results.length > 0
+    const proposals = await getProposalsByCategory(categoryName)
+    return proposals.length > 0
   }, [])
 
-  const getProposalCardsInCategory = useCallback(
-    async (categoryName: string) => {
-      // TODO: Get relevant data of this category from Cosponsor BE
-      const cosponsorBeData = cardData.filter(
-        (proposal) => proposal.categoryName.toLowerCase() === categoryName.toLowerCase()
-      )
-      return mapGovToolDataToCosponsorFE(cosponsorBeData)
-    },
-    [mapGovToolDataToCosponsorFE]
-  )
+  // Get proposals in a specific category
+  const getProposalCardsInCategory = useCallback(async (categoryName: string) => {
+    return getProposalsByCategory(categoryName)
+  }, [])
 
-  const getAllProposalCards = useCallback(async () => {
-    return mapGovToolDataToCosponsorFE(cardData) as Promise<IProposalDetailsData[]>
-  }, [mapGovToolDataToCosponsorFE])
+  // Get all proposals from GovTools API
+  const getAllProposalCards = useCallback(async (): Promise<IProposalCardData[]> => {
+    return getAllProposalsAsCards()
+  }, [])
 
-  const getProposalCardsUserPledge = useCallback(() => {
-    //console.log('getProposalCardsUserPledge')
-    const userPledged = cardData.filter(
-      (proposal) => proposal.userPledged && proposal.userPledged > 0
-    )
-    const result = mapGovToolDataToCosponsorFE(userPledged)
-    // console.log(result)
-    return result
-  }, [mapGovToolDataToCosponsorFE])
+  // Get user's pledged proposals from blockchain
+  const getProposalCardsUserPledge = useCallback(async () => {
+    // If wallet not connected, return empty array
+    if (!walletObserver.api) {
+      // eslint-disable-next-line no-console
+      console.log('Wallet not connected, returning empty user pledges')
+      return []
+    }
 
+    try {
+      // eslint-disable-next-line no-console
+      console.log('Fetching user pledges from blockchain...')
+
+      // Create Blaze instance with browser wallet
+      const blaze = await createBlazeWithBrowserWallet(walletObserver)
+
+      // Fetch user's deposits from blockchain and GovTools proposals in parallel
+      const [deposits, govToolsProposals] = await Promise.all([
+        fetchUserDeposits(blaze),
+        getAllProposalsAsCards().catch(() => [] as IProposalCardData[]),
+      ])
+
+      // eslint-disable-next-line no-console
+      console.log(`Found ${deposits.length} user deposits:`)
+      deposits.forEach((d, i) => {
+        // eslint-disable-next-line no-console
+        console.log(
+          `  ${i + 1}. ${Number(d.depositAmount) / 1_000_000} ADA - Deposit TX: ${d.depositTxHash.slice(0, 16)}...`
+        )
+        // eslint-disable-next-line no-console
+        console.log(`      Proposal Hash: ${d.proposalHash}`)
+        // eslint-disable-next-line no-console
+        console.log(`      Token: ${d.tokenAssetName.slice(0, 20)}...`)
+      })
+
+      // Create a map of GovTools proposals by ID for quick lookup
+      const govToolsById = new Map<string, IProposalCardData>()
+      for (const proposal of govToolsProposals) {
+        govToolsById.set(proposal.id, proposal)
+      }
+      // eslint-disable-next-line no-console
+      console.log(`Loaded ${govToolsById.size} GovTools proposals for enrichment`)
+
+      // Group deposits by proposal hash and aggregate amounts
+      const depositsByProposal = new Map<string, IUserDeposit[]>()
+
+      for (const deposit of deposits) {
+        const existing = depositsByProposal.get(deposit.proposalHash) || []
+        existing.push(deposit)
+        depositsByProposal.set(deposit.proposalHash, existing)
+      }
+
+      // eslint-disable-next-line no-console
+      console.log(`Deposits grouped into ${depositsByProposal.size} unique proposal(s)`)
+
+      // Transform to proposal cards, combining amounts for same proposal
+      const proposalCards: IProposalCardData[] = []
+
+      for (const [proposalHash, proposalDeposits] of depositsByProposal.entries()) {
+        // Use the first deposit as the base
+        const firstDeposit = proposalDeposits[0]
+
+        // Calculate total amounts across all deposits for this proposal
+        const totalDepositAmount = proposalDeposits.reduce((sum, d) => sum + d.depositAmount, 0n)
+        const totalTokenAmount = proposalDeposits.reduce((sum, d) => sum + d.tokenAmount, 0n)
+
+        // Create a combined deposit with aggregated amounts
+        const aggregatedDeposit: IUserDeposit = {
+          ...firstDeposit,
+          depositAmount: totalDepositAmount,
+          tokenAmount: totalTokenAmount,
+        }
+
+        // Try to find matching GovTools proposal by ID
+        const govToolsMatch = govToolsById.get(proposalHash)
+        if (govToolsMatch) {
+          // eslint-disable-next-line no-console
+          console.log(`  ✓ Found GovTools match for ${proposalHash.slice(0, 16)}...`)
+        }
+
+        proposalCards.push(transformDepositToProposal(aggregatedDeposit, govToolsMatch))
+
+        // eslint-disable-next-line no-console
+        console.log(
+          `  Proposal ${proposalHash.slice(0, 16)}...: ${proposalDeposits.length} deposit(s) = ${Number(totalDepositAmount) / 1_000_000} ADA total`
+        )
+      }
+
+      // eslint-disable-next-line no-console
+      console.log(`Transformed into ${proposalCards.length} proposal cards`)
+
+      // Return aggregated proposal cards
+      return proposalCards
+    } catch (error) {
+      console.error('Failed to fetch user deposits:', error)
+      // Fall back to empty array on error
+      return []
+    }
+  }, [walletObserver, transformDepositToProposal])
+
+  // Get random proposals (for "similar proposals" section etc.)
   const getRandomProposals = useCallback(
     async (amount: number, exceptThisId?: string): Promise<IProposalCardData[]> => {
       const allProposals = await getAllProposalCards()
@@ -107,6 +279,26 @@ export const useGetProposalData = () => {
     [getAllProposalCards]
   )
 
+  // Lazy load proposals with pagination (no category filter)
+  const getProposalsPage = useCallback(
+    async (start: number = 0, limit: number = 20): Promise<IPaginatedProposals> => {
+      return fetchProposalsPage(start, limit)
+    },
+    []
+  )
+
+  // Lazy load proposals by category with client-side pagination
+  const getCategoryProposalsPage = useCallback(
+    async (
+      categoryName: string,
+      start: number = 0,
+      limit: number = 20
+    ): Promise<IPaginatedProposals> => {
+      return getProposalsByCategoryPaginated(categoryName, start, limit)
+    },
+    []
+  )
+
   return {
     getProposalDetailsById,
     doesCategoryHaveProposals,
@@ -114,5 +306,7 @@ export const useGetProposalData = () => {
     getAllProposalCards,
     getProposalCardsUserPledge,
     getRandomProposals,
+    getProposalsPage,
+    getCategoryProposalsPage,
   }
 }

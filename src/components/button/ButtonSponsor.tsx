@@ -5,13 +5,17 @@ import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalle
 import { cn } from '@/lib/utils'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import { useState } from 'react'
+import { IProposalCardData } from '@/types/Proposal'
 
 export const ButtonSponsor = ({
   proposalId,
+  proposal,
   content,
   classButton,
 }: {
   proposalId: string
+  /** Optional full proposal data. If provided, deposit will be linked to this proposal. */
+  proposal?: IProposalCardData
   content: React.ReactNode
   classButton?: string
 }) => {
@@ -31,6 +35,7 @@ export const ButtonSponsor = ({
   return (
     <>
       <ModalSponsor
+        proposal={proposal}
         modalTrigger={
           <ButtonGradient
             id={`sponsorButton${proposalId}`}

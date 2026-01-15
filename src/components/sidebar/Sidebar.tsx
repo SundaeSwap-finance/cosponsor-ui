@@ -52,7 +52,7 @@ export const Sidebar = ({
               onClick={() => onNavigate?.()}
               label="Your Pledges"
               icon={<LayoutDashboard className="size-4" />}
-              path="/your"
+              path="/your-pledges"
               expanded={expanded}
             />
 
@@ -60,7 +60,7 @@ export const Sidebar = ({
               onClick={() => onNavigate?.()}
               label="All Proposals"
               icon={<LayoutGrid className="size-4 rotate-45" />}
-              path="/all"
+              path="/all-proposals"
               expanded={expanded}
             />
           </div>

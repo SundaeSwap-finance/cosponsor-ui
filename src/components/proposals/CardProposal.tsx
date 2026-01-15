@@ -122,7 +122,7 @@ export const CardProposal = ({
               <Button size="lg" className={'flex-1'} asChild>
                 <Link to={`/proposal/${proposal.id}`}>View Details</Link>
               </Button>
-              <ButtonSponsor proposalId={proposal.id} content={'Sponsor!'} />
+              <ButtonSponsor proposalId={proposal.id} proposal={proposal} content={'Sponsor!'} />
             </>
           )}
         </div>

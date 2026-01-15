@@ -6,7 +6,7 @@ import { TBreadcrumbType } from '@/components/Breadcrumbs'
 export const PageProposalsAll: FC = () => {
   const breadcrumbs: TBreadcrumbType[] = [
     { name: 'Overview', link: '/' },
-    { name: 'All Proposals', link: '/all', active: true },
+    { name: 'All Proposals', link: '/all-proposals', active: true },
   ]
 
   return (
@@ -17,13 +17,13 @@ export const PageProposalsAll: FC = () => {
         subtitle="Lorem ipsum"
         breadcrumbs={breadcrumbs}
       />
-      <CarouselProposals categoryName={'Confidence'} />
-      <CarouselProposals categoryName={'Committee'} />
-      <CarouselProposals categoryName={'Constitution'} />
-      <CarouselProposals categoryName={'Hard fork'} />
-      <CarouselProposals categoryName={'Protocol'} />
-      <CarouselProposals categoryName={'Treasury'} />
-      <CarouselProposals categoryName={'Info'} />
+      <CarouselProposals categoryName={'Info Action'} />
+      <CarouselProposals categoryName={'Treasury Withdrawal'} />
+      <CarouselProposals categoryName={'New Constitution'} />
+      <CarouselProposals categoryName={'Hard Fork'} />
+      <CarouselProposals categoryName={'No Confidence'} />
+      <CarouselProposals categoryName={'Protocol Parameters'} />
+      <CarouselProposals categoryName={'Constitutional Committee'} />
     </div>
   )
 }

@@ -9,6 +9,13 @@ export const BadgeProposalPercent = ({
   isExpired?: boolean
   className?: string
 }) => {
+  // Handle 'n/a' or invalid percentages for on-chain proposals without budget data
+  const displayText = isExpired
+    ? 'EXPIRED'
+    : percentage === 'n/a'
+      ? 'On-chain'
+      : `${percentage}% Funded`
+
   return (
     <div
       className={cn(
@@ -16,7 +23,7 @@ export const BadgeProposalPercent = ({
         className
       )}
     >
-      {isExpired ? 'EXPIRED' : `${percentage}% Funded`}
+      {displayText}
     </div>
   )
 }

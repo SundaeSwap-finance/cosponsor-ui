@@ -1,3 +1,15 @@
+// Treasury withdrawal beneficiary data
+export interface IProposalWithdrawal {
+  receivingAddress: string
+  amount: number // in lovelace
+}
+
+// Hard fork version data
+export interface IHardForkVersion {
+  major: number
+  minor: number
+}
+
 // Data for the proposal overview cards.
 export interface IProposalCardData {
   id: string
@@ -13,6 +25,13 @@ export interface IProposalCardData {
   companyDomain: string
   abstract: string
   categoryName: string
+  // Optional: Treasury withdrawal beneficiaries (for TreasuryWithdrawal proposals)
+  withdrawals?: IProposalWithdrawal[]
+  // Optional: Hard fork version (for HardFork proposals)
+  hardForkVersion?: IHardForkVersion
+  // Optional: Constitution data (for NewConstitution proposals)
+  constitutionHash?: string
+  constitutionUrl?: string
 }
 
 // Data for the individual Proposal page to view details.

@@ -9,18 +9,23 @@ import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
 export const CarouselProposals = ({ categoryName }: { categoryName: string }) => {
-  // TODO replace this with filtered items
-  const { getProposalCardsInCategory, doesCategoryHaveProposals } = useGetProposalData()
-  const [proposals, setProposals] = useState<IProposalCardData[]>()
-  const [hasProposals, setHasProposals] = useState(false)
+  const { getCategoryProposalsPage } = useGetProposalData()
+  const [proposals, setProposals] = useState<IProposalCardData[]>([])
+  const [hasMore, setHasMore] = useState(false)
+  const [nextStart, setNextStart] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
 
+  // Initial load - fetch first page only
   useEffect(() => {
     setIsLoading(true)
-    getProposalCardsInCategory(categoryName)
+    setProposals([])
+    getCategoryProposalsPage(categoryName, 0, 10)
       .then((response) => {
-        setProposals(response)
+        setProposals(response.proposals)
+        setHasMore(response.hasMore)
+        setNextStart(response.nextStart)
       })
       .finally(() => {
         setIsLoading(false)
@@ -28,11 +33,40 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryName])
 
+  // Load more when scrolling near end
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) {
+      return
+    }
+    setIsLoadingMore(true)
+    try {
+      const response = await getCategoryProposalsPage(categoryName, nextStart, 10)
+      setProposals((prev) => [...prev, ...response.proposals])
+      setHasMore(response.hasMore)
+      setNextStart(response.nextStart)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMore, nextStart, categoryName, getCategoryProposalsPage])
+
+  // Auto-load more when carousel reaches end
   useEffect(() => {
-    doesCategoryHaveProposals(categoryName).then((response) => {
-      setHasProposals(response)
-    })
-  }, [categoryName, doesCategoryHaveProposals])
+    if (!carouselApi) {
+      return
+    }
+
+    const onSelect = () => {
+      // If near the end, load more
+      if (carouselApi.canScrollNext() === false && hasMore) {
+        loadMore()
+      }
+    }
+
+    carouselApi.on('select', onSelect)
+    return () => {
+      carouselApi.off('select', onSelect)
+    }
+  }, [carouselApi, hasMore, loadMore])
 
   const clickNext = useCallback(() => {
     if (!carouselApi) {
@@ -51,6 +85,9 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
   const getCategoryLink = () => {
     return `/category/${encodeURIComponent(categoryName.toLowerCase())}`
   }
+
+  // Don't render if no proposals and not loading
+  const hasProposals = proposals.length > 0 || isLoading
 
   return (
     hasProposals && (

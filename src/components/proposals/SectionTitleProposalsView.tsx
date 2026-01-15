@@ -54,7 +54,7 @@ export const SectionTitleProposalsView = ({
         <>
           {backButton && (
             <Button variant="secondary" size="lg" asChild className={'self-end'}>
-              <Link to={'/all'}>
+              <Link to={'/all-proposals'}>
                 <ChevronLeft />
                 Back
               </Link>

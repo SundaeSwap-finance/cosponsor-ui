@@ -9,7 +9,8 @@ interface ICurrencyLargeInputProps extends React.ComponentProps<'input'> {
   currencyIcon: ReactNode
   // Currency available in base units (lovelace)
   currencyAvailable: bigint
-  onChangeSanitized: (value: number) => void
+  // Optional callback when value changes (not needed for disabled/display-only inputs)
+  onChangeSanitized?: (value: number) => void
 }
 
 export const InputCurrencyLarge = ({
