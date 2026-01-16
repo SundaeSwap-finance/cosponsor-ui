@@ -21,6 +21,8 @@ import {
   createBlazeWithBrowserWallet,
   createOgmiosEvaluator,
   parseAddressToCredential,
+  pendingUtxoTracker,
+  extractTransactionEffects,
 } from '@sundaeswap/cosponsor-sdk/browser'
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
@@ -391,7 +393,11 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         const depositAmount = BigInt(Math.floor(userPledging * 1_000_000))
         const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
-        const txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
+        let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
+        // Use Ogmios evaluator if available (has mempool access)
+        if (OGMIOS_URL) {
+          txBuilder = txBuilder.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+        }
         const completedTx = await txBuilder.complete()
 
         // Calculate fees
@@ -607,6 +613,16 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
           'View on explorer:',
           `https://preview.cardanoscan.io/transaction/${submittedTxHash}`
         )
+
+        // Track the transaction effects for tx chaining
+        // This allows subsequent transactions to know which UTxOs were spent/created
+        if (completedTx) {
+          const { spentInputs, createdOutputs } = extractTransactionEffects(
+            completedTx,
+            submittedTxHash
+          )
+          pendingUtxoTracker.recordTransaction(submittedTxHash, spentInputs, createdOutputs)
+        }
 
         setTxHash(submittedTxHash)
         setIsProcessing(false)

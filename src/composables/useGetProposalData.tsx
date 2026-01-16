@@ -32,12 +32,13 @@ export const useGetProposalData = () => {
       const proposalHash = deposit.proposalHash || deposit.tokenAssetName
 
       // Use GovTools data if available, otherwise fallback to on-chain data
-      // Replace "Unknown" with more user-friendly "On-chain Proposal"
+      // Replace "Unknown" or "Processed" with more user-friendly "On-chain Proposal"
       const actionKind = deposit.cosponsoredProposal.action.kind
+      const needsFallback = actionKind === 'Unknown' || actionKind === 'Processed'
       const categoryName =
-        govToolsData?.categoryName || (actionKind === 'Unknown' ? 'On-chain Proposal' : actionKind)
+        govToolsData?.categoryName || (needsFallback ? 'On-chain Proposal' : actionKind)
       const companyName =
-        govToolsData?.companyName || (actionKind === 'Unknown' ? 'On-chain Proposal' : actionKind)
+        govToolsData?.companyName || (needsFallback ? 'On-chain Proposal' : actionKind)
 
       return {
         id: govToolsData?.id || proposalHash,

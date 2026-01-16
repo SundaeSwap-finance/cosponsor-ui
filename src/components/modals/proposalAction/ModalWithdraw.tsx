@@ -23,7 +23,13 @@ import {
   fetchWithdrawalPlan,
   IWithdrawalPlan,
   browserWithdraw,
+  createOgmiosEvaluator,
+  pendingUtxoTracker,
+  extractTransactionEffects,
 } from '@sundaeswap/cosponsor-sdk/browser'
+
+// Get Ogmios URL from environment for script evaluation (has mempool access)
+const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string | undefined
 import { Core } from '@blaze-cardano/sdk'
 
 export const ModalWithdraw = ({
@@ -70,12 +76,16 @@ export const ModalWithdraw = ({
         setWithdrawalPlan(plan)
 
         // Build preview transaction with full available amount
-        const tx = await browserWithdraw({
+        let tx = await browserWithdraw({
           blaze,
           withdrawalPlan: plan,
           withdrawAmount: lovelaceToRetrieve,
         })
 
+        // Use Ogmios evaluator if available (has mempool access), otherwise fall back to Blockfrost
+        if (OGMIOS_URL) {
+          tx = tx.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+        }
         const completedTx = await tx.complete()
 
         // Calculate fees
@@ -146,7 +156,7 @@ export const ModalWithdraw = ({
         console.log(`Withdrawing ${lovelaceToRetrieve / 1_000_000n} ADA`)
 
         // Build withdrawal transaction
-        const tx = await browserWithdraw({
+        let tx = await browserWithdraw({
           blaze,
           withdrawalPlan: plan,
           withdrawAmount: lovelaceToRetrieve,
@@ -156,8 +166,12 @@ export const ModalWithdraw = ({
         console.log('✅ Withdrawal transaction built, completing...')
 
         // Complete the transaction (adds change, balances, etc.)
+        // Use Ogmios evaluator if available (has mempool access), otherwise fall back to Blockfrost
         // eslint-disable-next-line no-console
-        console.log('🔍 Completing transaction (evaluating scripts)...')
+        console.log('🔍 Completing transaction (evaluating scripts via Ogmios)...')
+        if (OGMIOS_URL) {
+          tx = tx.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+        }
         completedTx = await tx.complete()
       } else {
         // eslint-disable-next-line no-console
@@ -210,6 +224,14 @@ export const ModalWithdraw = ({
 
       // eslint-disable-next-line no-console
       console.log(`✅ Withdrawal transaction submitted: ${submittedTxHash}`)
+
+      // Track the transaction effects for tx chaining
+      // This allows subsequent transactions to know which UTxOs were spent/created
+      const { spentInputs, createdOutputs } = extractTransactionEffects(
+        completedTx,
+        submittedTxHash
+      )
+      pendingUtxoTracker.recordTransaction(submittedTxHash, spentInputs, createdOutputs)
 
       setTxHash(submittedTxHash)
       setIsProcessing(false)
