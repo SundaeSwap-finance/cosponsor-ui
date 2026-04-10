@@ -24,13 +24,14 @@ import {
   IWithdrawalPlan,
   browserWithdraw,
   createOgmiosEvaluator,
-  pendingUtxoTracker,
-  extractTransactionEffects,
 } from '@sundaeswap/cosponsor-sdk/browser'
+import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
+
+import { Core } from '@blaze-cardano/sdk'
+import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 
 // Get Ogmios URL from environment for script evaluation (has mempool access)
 const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string | undefined
-import { Core } from '@blaze-cardano/sdk'
 
 export const ModalWithdraw = ({
   modalTrigger,
@@ -183,55 +184,18 @@ export const ModalWithdraw = ({
         throw new Error('Failed to build transaction')
       }
 
-      // Get the transaction's witness set (contains script witnesses, etc)
-      const txWitnessSet = completedTx.witnessSet()
-
-      // Sign the transaction - this returns a witness set CBOR with vkey signatures
       // eslint-disable-next-line no-console
       console.log('✅ Transaction evaluated, requesting signature from wallet...')
-      const witnessSetHex = await walletObserver.api.signTx(completedTx.toCbor(), true)
 
-      // Parse wallet's witness set (has vkey witnesses/signatures)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const walletWitnessSet = Core.TransactionWitnessSet.fromCbor(witnessSetHex as any)
-
-      // Get vkey witnesses from wallet
-      const vkeyWitnesses = walletWitnessSet.vkeys()
-
-      // Add wallet's vkey witnesses to transaction's witness set
-      if (vkeyWitnesses && vkeyWitnesses.size() > 0) {
-        // eslint-disable-next-line no-console
-        console.log('Adding', vkeyWitnesses.size(), 'vkey witness(es) to transaction')
-        txWitnessSet.setVkeys(vkeyWitnesses)
-      }
-
-      // Create the signed transaction with combined witness set
-      const signedTx = new Core.Transaction(
-        completedTx.body(),
-        txWitnessSet,
-        completedTx.auxiliaryData()
-      )
-
-      // Get the signed transaction CBOR
-      const signedTxCbor = signedTx.toCbor()
-      // eslint-disable-next-line no-console
-      console.log('✅ Transaction signed, submitting...')
-      // eslint-disable-next-line no-console
-      console.log('Signed transaction CBOR length:', signedTxCbor.length)
-
-      // Submit the transaction
-      const submittedTxHash = await walletObserver.api.submitTx(signedTxCbor)
+      // Sign and submit (withdraw uses partial sign so script witnesses are preserved)
+      const { txHash: submittedTxHash } = await signAndSubmitTransaction({
+        walletApi: walletObserver.api,
+        completedTx,
+        partialSign: true,
+      })
 
       // eslint-disable-next-line no-console
       console.log(`✅ Withdrawal transaction submitted: ${submittedTxHash}`)
-
-      // Track the transaction effects for tx chaining
-      // This allows subsequent transactions to know which UTxOs were spent/created
-      const { spentInputs, createdOutputs } = extractTransactionEffects(
-        completedTx,
-        submittedTxHash
-      )
-      pendingUtxoTracker.recordTransaction(submittedTxHash, spentInputs, createdOutputs)
 
       setTxHash(submittedTxHash)
       setIsProcessing(false)
@@ -343,6 +307,9 @@ export const ModalWithdraw = ({
               <LineOrderDetails
                 label={`Total Fees`}
                 labelIcon={<Fuel />}
+                labelTooltip={
+                  'Cardano network fees are set by the protocol and do not scale with your withdrawal amount.'
+                }
                 currencyName={'ADA'}
                 currencyIcon={
                   <IconCardano
@@ -370,7 +337,7 @@ export const ModalWithdraw = ({
             <strong>Success!</strong> Withdrawal submitted.
             <br />
             <a
-              href={`https://preview.cardanoscan.io/transaction/${txHash}`}
+              href={getExplorerTxUrl(txHash)}
               target="_blank"
               rel="noopener noreferrer"
               className="underline"

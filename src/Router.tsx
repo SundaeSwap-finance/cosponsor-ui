@@ -4,6 +4,7 @@ import { PageProposalsAll } from '@/pages/PageProposalsAll'
 import { PageProposalsCategory } from '@/pages/PageProposalsCategory'
 import { PageProposalsUserPledge } from '@/pages/PageProposalsUserPledge'
 import { PageProposalDetails } from '@/pages/PageProposalDetails'
+import { PageAbout } from '@/pages/PageAbout'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
       {
         path: '/proposal/:proposalId',
         element: <PageProposalDetails />,
+      },
+      {
+        path: '/about',
+        element: <PageAbout />,
       },
     ],
   },

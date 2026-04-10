@@ -55,7 +55,7 @@ export const PageProposalsCategory: FC = () => {
   }, [isLoadingMore, hasMore, nextStart, name, getCategoryProposalsPage])
 
   return (
-    <div className={'sun-page-padding-rb flex w-full flex-col gap-8 overflow-y-auto'}>
+    <div className={'sun-page-padding-rb flex w-full flex-col gap-6 overflow-y-auto'}>
       <SectionTitleProposalsView
         title={proposals.length > 0 || isLoading ? `All ${name} Proposals` : 'No Proposals found'}
         backButton={true}

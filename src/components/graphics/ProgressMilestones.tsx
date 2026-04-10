@@ -12,9 +12,10 @@ export const ProgressMilestones = ({
   const [visualProgress, setVisProgress] = useState(0)
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setVisProgress(value <= 100 && value > 0 ? value : 0)
     }, 100)
+    return () => clearTimeout(timer)
   }, [value])
 
   return (

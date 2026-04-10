@@ -20,13 +20,17 @@ import {
   browserDeposit,
   createBlazeWithBrowserWallet,
   createOgmiosEvaluator,
-  parseAddressToCredential,
-  pendingUtxoTracker,
-  extractTransactionEffects,
 } from '@sundaeswap/cosponsor-sdk/browser'
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
+import {
+  SUPPORTED_ACTION_TYPES,
+  buildGovernanceAction,
+  mapCategoryToActionKind,
+} from '@/lib/cardano/governanceActions'
+import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
+import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 
 // URLs from environment variables
 const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string
@@ -80,110 +84,10 @@ async function verifyUtxoOnChain(
   }
 }
 
-// Browser-compatible Ogmios evaluation for debugging
-async function evaluateWithOgmios(txCbor: string): Promise<string> {
-  // eslint-disable-next-line no-console
-  console.log('evaluateWithOgmios: connecting to', OGMIOS_URL)
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(OGMIOS_URL)
-    const timeout = setTimeout(() => {
-      // eslint-disable-next-line no-console
-      console.log('evaluateWithOgmios: timeout')
-      ws.close()
-      reject(new Error('Ogmios WebSocket timeout'))
-    }, 15000)
-
-    ws.onopen = () => {
-      // eslint-disable-next-line no-console
-      console.log('evaluateWithOgmios: connected, sending request')
-      const request = {
-        jsonrpc: '2.0',
-        method: 'evaluateTransaction',
-        params: { transaction: { cbor: txCbor } },
-        id: `eval-${Date.now()}`,
-      }
-      ws.send(JSON.stringify(request))
-    }
-
-    ws.onmessage = (event) => {
-      clearTimeout(timeout)
-      // eslint-disable-next-line no-console
-      console.log('evaluateWithOgmios: received message', event.data)
-      ws.close()
-      try {
-        const response = JSON.parse(event.data)
-        if (response.error) {
-          reject(new Error(`Ogmios: ${JSON.stringify(response.error, null, 2)}`))
-        } else {
-          resolve(JSON.stringify(response.result, null, 2))
-        }
-      } catch (e) {
-        reject(e)
-      }
-    }
-
-    ws.onerror = (err) => {
-      clearTimeout(timeout)
-      // eslint-disable-next-line no-console
-      console.log('evaluateWithOgmios: error', err)
-      reject(new Error(`Ogmios WebSocket error: ${err}`))
-    }
-  })
-}
-
 export interface IModalSponsorProps {
   modalTrigger: ReactNode
   /** The proposal to sponsor. If not provided, uses test data. */
   proposal?: IProposalCardData
-}
-
-// Map UI category names to valid Aiken governance action kinds
-const CATEGORY_TO_ACTION_KIND: Record<string, string> = {
-  'Info Action': 'NicePoll',
-  'Treasury Withdrawal': 'TreasuryWithdrawal',
-  TreasuryWithdrawals: 'TreasuryWithdrawal',
-  'Treasury requests': 'TreasuryWithdrawal',
-  'Protocol Parameters': 'ProtocolParameters',
-  'Hard Fork': 'HardFork',
-  'No Confidence': 'NoConfidence',
-  'Constitutional Committee': 'ConstitutionalCommittee',
-  'New Constitution': 'NewConstitution',
-  'Updates to the Constitution': 'NewConstitution',
-  NicePoll: 'NicePoll',
-}
-
-// All 7 governance action types are now supported for cosponsoring
-const SUPPORTED_ACTION_TYPES = [
-  'ProtocolParameters', // Constructor 0: Protocol Parameters Update
-  'HardFork', // Constructor 1: Hard Fork Initiation
-  'TreasuryWithdrawal', // Constructor 2: Treasury Withdrawal
-  'NoConfidence', // Constructor 3: No Confidence Motion
-  'ConstitutionalCommittee', // Constructor 4: Constitutional Committee Update
-  'NewConstitution', // Constructor 5: New Constitution
-  'NicePoll', // Constructor 6: Info Action
-]
-
-// User-friendly names for governance action types
-const ACTION_TYPE_DISPLAY_NAMES: Record<string, string> = {
-  NicePoll: 'Info Action',
-  TreasuryWithdrawal: 'Treasury Withdrawal',
-  ProtocolParameters: 'Protocol Parameters',
-  HardFork: 'Hard Fork',
-  NoConfidence: 'No Confidence',
-  NewConstitution: 'New Constitution',
-  ConstitutionalCommittee: 'Constitutional Committee',
-}
-
-// Map category name to action kind
-const mapCategoryToActionKind = (category: string): string => {
-  const actionKind = CATEGORY_TO_ACTION_KIND[category]
-  if (!actionKind) {
-    throw new Error(
-      `Unknown governance action category: "${category}". ` +
-        `Valid categories: ${Object.keys(CATEGORY_TO_ACTION_KIND).join(', ')}`
-    )
-  }
-  return actionKind
 }
 
 export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => {
@@ -198,125 +102,6 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  // Build governance action with proper data for the action type
-  const buildGovernanceAction = (actionKind: string): GovernanceAction.TGovernanceAction => {
-    // Check if action type is supported
-    if (!SUPPORTED_ACTION_TYPES.includes(actionKind)) {
-      const displayName = ACTION_TYPE_DISPLAY_NAMES[actionKind] || actionKind
-      throw new Error(`Unknown governance action type: "${displayName}". Please report this issue.`)
-    }
-
-    switch (actionKind) {
-      case 'ProtocolParameters': {
-        // Constructor 0: Protocol Parameters Update
-        // For testing: uses empty parameters (no changes proposed)
-        return {
-          kind: 'ProtocolParameters',
-          ancestor: null,
-        } as GovernanceAction.IProtocolParameters
-      }
-
-      case 'HardFork': {
-        // Constructor 1: Hard Fork Initiation
-        // Requires version from proposal.hardForkVersion
-        if (!proposal?.hardForkVersion) {
-          throw new Error(
-            'Hard Fork proposals require version data. ' +
-              'No version information found for this proposal.'
-          )
-        }
-
-        return {
-          kind: 'HardFork',
-          ancestor: null, // No ancestor for new proposals
-          version: {
-            major: proposal.hardForkVersion.major,
-            minor: proposal.hardForkVersion.minor,
-          },
-        } as GovernanceAction.IHardFork
-      }
-
-      case 'TreasuryWithdrawal': {
-        // Constructor 2: Treasury Withdrawal
-        // Requires beneficiaries from proposal.withdrawals
-        if (!proposal?.withdrawals || proposal.withdrawals.length === 0) {
-          throw new Error(
-            'Treasury Withdrawal proposals require beneficiary data. ' +
-              'No withdrawal beneficiaries found for this proposal.'
-          )
-        }
-
-        // Build beneficiaries map from proposal withdrawals
-        const beneficiaries = new Map<{ vkey: string } | { script: string }, bigint>()
-        for (const withdrawal of proposal.withdrawals) {
-          try {
-            const credential = parseAddressToCredential(withdrawal.receivingAddress)
-            beneficiaries.set(credential, BigInt(withdrawal.amount))
-          } catch (error) {
-            throw new Error(
-              `Failed to parse beneficiary address: ${withdrawal.receivingAddress}. ` +
-                `${error instanceof Error ? error.message : String(error)}`
-            )
-          }
-        }
-
-        return {
-          kind: 'TreasuryWithdrawal',
-          beneficiaries,
-          // guardRails is undefined = Option::None (don't set it)
-        } as GovernanceAction.ITreasuryWithdrawal
-      }
-
-      case 'NoConfidence': {
-        // Constructor 3: No Confidence Motion
-        // Just needs ancestor (null for new proposals)
-        return {
-          kind: 'NoConfidence',
-          ancestor: null,
-        } as GovernanceAction.INoConfidence
-      }
-
-      case 'ConstitutionalCommittee': {
-        // Constructor 4: Constitutional Committee Update
-        // For testing: empty member changes with 2/3 quorum
-        return {
-          kind: 'ConstitutionalCommittee',
-          ancestor: null,
-          membersToRemove: [], // No members to remove
-          membersToAdd: new Map(), // No members to add
-          quorum: { numerator: 2n, denominator: 3n }, // 2/3 majority
-        } as GovernanceAction.IConstitutionalCommittee
-      }
-
-      case 'NewConstitution': {
-        // Constructor 5: New Constitution
-        // Requires constitution hash and URL from proposal
-        if (!proposal?.constitutionHash || !proposal?.constitutionUrl) {
-          throw new Error(
-            'New Constitution proposals require constitution data. ' +
-              'No constitution hash or URL found for this proposal.'
-          )
-        }
-
-        return {
-          kind: 'NewConstitution',
-          ancestor: null, // No ancestor for new proposals
-          constitutionHash: proposal.constitutionHash,
-          constitutionUrl: proposal.constitutionUrl,
-        } as GovernanceAction.INewConstitution
-      }
-
-      case 'NicePoll': {
-        // Constructor 6: Info Action (simplest - no data needed)
-        return { kind: 'NicePoll' } as GovernanceAction.INicePoll
-      }
-
-      default: {
-        throw new Error(`Unhandled governance action kind: ${actionKind}`)
-      }
-    }
-  }
 
   // Build cosponsored proposal from UI proposal data
   const buildCosponsoredProposal = (depositAmount: bigint): ICosponsoredProposal => {
@@ -334,7 +119,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
           // Use proposal ID as the anchor hash (it's already a hash)
           hash: proposal.id.padEnd(64, '0').slice(0, 64),
         },
-        action: buildGovernanceAction(actionKind),
+        action: buildGovernanceAction(actionKind, proposal),
       }
     }
 
@@ -484,53 +269,35 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       console.log('Building deposit transaction...')
       let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
 
-      // Use Ogmios evaluator instead of Blockfrost - Ogmios has mempool access
-      // This allows evaluating transactions that spend UTxOs from pending (unconfirmed) transactions
-      const ogmiosEvaluator = createOgmiosEvaluator(OGMIOS_URL)
-      txBuilder = txBuilder.useEvaluator(ogmiosEvaluator)
+      // Use Ogmios evaluator if available (has mempool access for pending UTxOs)
+      if (OGMIOS_URL) {
+        txBuilder = txBuilder.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+      }
 
-      // Complete the transaction - Ogmios handles evaluation
+      // Complete the transaction
       // eslint-disable-next-line no-console
-      console.log('Completing transaction with Ogmios evaluation...')
+      console.log('Completing transaction...')
       let completedTx: Core.Transaction | null = null
       try {
         completedTx = await txBuilder.complete()
         // eslint-disable-next-line no-console
         console.log('✅ Transaction completed successfully!')
-      } catch (blockfrostError) {
-        // Log the actual Blockfrost error
-        // eslint-disable-next-line no-console
-        console.log('⚠️ Blockfrost evaluation failed:')
-        console.error('Blockfrost error details:', blockfrostError)
-        if (blockfrostError instanceof Error) {
-          // eslint-disable-next-line no-console
-          console.log('Error message:', blockfrostError.message)
-          // eslint-disable-next-line no-console
-          console.log('Error stack:', blockfrostError.stack)
-        }
-        // Try Ogmios for detailed error message
-        // eslint-disable-next-line no-console
-        console.log('Trying Ogmios for detailed error...')
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const builder = txBuilder as any
-          const txBody = builder.body
+      } catch (evalError) {
+        console.error('Transaction evaluation failed:', evalError)
 
-          const witnessSet = new Core.TransactionWitnessSet()
-          if (builder.redeemers) {
-            witnessSet.setRedeemers(builder.redeemers)
-          }
-          // Note: plutusData handling skipped - not needed for Ogmios evaluation
-          const incompleteTx = new Core.Transaction(txBody, witnessSet, builder.auxiliaryData)
-          const txCbor = incompleteTx.toCbor()
-          const ogmiosResult = await evaluateWithOgmios(txCbor)
-          // eslint-disable-next-line no-console
-          console.log('Ogmios evaluation result:', ogmiosResult)
-        } catch (ogmiosError) {
-          console.error('Ogmios error:', ogmiosError)
+        // Detect stale UTxO errors and provide a clearer message
+        const errMsg = evalError instanceof Error ? evalError.message : String(evalError)
+        if (
+          errMsg.includes('missing from UTxO set') ||
+          errMsg.includes('Unknown transaction input')
+        ) {
+          throw new Error(
+            'A referenced UTxO is no longer available on-chain. ' +
+              'This can happen if your wallet state is stale. Please refresh the page and try again.'
+          )
         }
 
-        throw blockfrostError
+        throw evalError
       }
 
       // Ensure we have a completed transaction
@@ -549,85 +316,28 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         fees: fees,
       })
 
-      // Prompt wallet to sign the transaction
+      // Prompt wallet to sign and submit the transaction
       // eslint-disable-next-line no-console
       console.log('Requesting wallet signature...')
-      const witnessSetHex = await walletObserver.api.signTx(txCbor, false)
-
-      // eslint-disable-next-line no-console
-      console.log('Transaction signed successfully!')
-      // eslint-disable-next-line no-console
-      console.log('Wallet witness set CBOR:', witnessSetHex)
-
-      // Combine the transaction's witness set (redeemers) with wallet's witness set (signatures)
-      // eslint-disable-next-line no-console
-      console.log('Combining transaction with wallet signatures...')
-
-      // Get the transaction's existing witness set (has redeemers)
-      const txWitnessSet = completedTx.witnessSet()
-      // eslint-disable-next-line no-console
-      console.log('Transaction witness set (with redeemers):', txWitnessSet)
-
-      // Parse wallet's witness set (has vkey witnesses/signatures)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const walletWitnessSet = Core.TransactionWitnessSet.fromCbor(witnessSetHex as any)
-      // eslint-disable-next-line no-console
-      console.log('Wallet witness set (with signatures):', walletWitnessSet)
-
-      // Get vkey witnesses from wallet
-      const vkeyWitnesses = walletWitnessSet.vkeys()
-      // eslint-disable-next-line no-console
-      console.log('Wallet vkey witnesses:', vkeyWitnesses)
-
-      // Add wallet's vkey witnesses to transaction's witness set
-      if (vkeyWitnesses && vkeyWitnesses.size() > 0) {
-        // eslint-disable-next-line no-console
-        console.log('Adding', vkeyWitnesses.size(), 'vkey witness(es) to transaction')
-        txWitnessSet.setVkeys(vkeyWitnesses)
-      }
-
-      // Create the signed transaction with combined witness set and auxiliary data (metadata)
-      // Include the auxiliary data from the original transaction which contains the CIP-25 metadata
-      const auxiliaryData = completedTx.auxiliaryData()
-      const signedTx = new Core.Transaction(completedTx.body(), txWitnessSet, auxiliaryData)
-
-      // Get the signed transaction CBOR
-      const signedTxCbor = signedTx.toCbor()
-      // eslint-disable-next-line no-console
-      console.log('Combined signed transaction CBOR length:', signedTxCbor.length)
-
-      // Submit the transaction to the blockchain
-      // eslint-disable-next-line no-console
-      console.log('Submitting transaction to blockchain...')
 
       try {
-        // Use wallet's submitTx method to submit the signed transaction
-        const submittedTxHash = await walletObserver.api.submitTx(signedTxCbor)
+        const { txHash: submittedTxHash } = await signAndSubmitTransaction({
+          walletApi: walletObserver.api,
+          completedTx,
+          partialSign: false,
+        })
 
         // eslint-disable-next-line no-console
         console.log('✅ Transaction submitted successfully!')
         // eslint-disable-next-line no-console
         console.log('Transaction hash:', submittedTxHash)
         // eslint-disable-next-line no-console
-        console.log(
-          'View on explorer:',
-          `https://preview.cardanoscan.io/transaction/${submittedTxHash}`
-        )
-
-        // Track the transaction effects for tx chaining
-        // This allows subsequent transactions to know which UTxOs were spent/created
-        if (completedTx) {
-          const { spentInputs, createdOutputs } = extractTransactionEffects(
-            completedTx,
-            submittedTxHash
-          )
-          pendingUtxoTracker.recordTransaction(submittedTxHash, spentInputs, createdOutputs)
-        }
+        console.log('View on explorer:', getExplorerTxUrl(submittedTxHash))
 
         setTxHash(submittedTxHash)
         setIsProcessing(false)
       } catch (submitError) {
-        console.error('Failed to submit transaction:', submitError)
+        console.error('Failed to sign/submit transaction:', submitError)
         throw new Error(
           `Transaction submission failed: ${submitError instanceof Error ? submitError.message : String(submitError)}`
         )
@@ -726,6 +436,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
               <LineOrderDetails
                 label={`Total Fees`}
                 labelIcon={isLoadingFees ? <LoaderCircle className="animate-spin" /> : <Fuel />}
+                labelTooltip={
+                  'Cardano network fees are set by the protocol and do not scale with your pledge amount.'
+                }
                 currencyName={'ADA'}
                 currencyIcon={
                   <IconCardano className={'bg-sun-ada fill-sun-white-pure size-4 rounded-full'} />
@@ -751,7 +464,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
             <strong>Success!</strong> Your pledge has been submitted.
             <br />
             <a
-              href={`https://preview.cardanoscan.io/transaction/${txHash}`}
+              href={getExplorerTxUrl(txHash)}
               target="_blank"
               rel="noopener noreferrer"
               className="underline"

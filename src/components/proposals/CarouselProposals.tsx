@@ -1,14 +1,76 @@
-import { useCallback, useEffect, useState } from 'react'
-import { CardProposal } from '@/components/proposals/CardProposal'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CardProposal, CardProposalSkeleton } from '@/components/proposals/CardProposal'
 import { Button } from '@/components/shadcn/button'
-import { ArrowUpRight, ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react'
+import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '@/components/shadcn/carousel'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import { IProposalCardData } from '@/types/Proposal'
+import { IProposalFilters } from '@/types/IProposalFilters'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 
-export const CarouselProposals = ({ categoryName }: { categoryName: string }) => {
+const applyIProposalFilters = (
+  proposals: IProposalCardData[],
+  filters: IProposalFilters
+): IProposalCardData[] => {
+  return proposals.filter((p) => {
+    // Status filter
+    if (filters.status && filters.status.length > 0) {
+      const now = new Date()
+      const isExpired = p.expiryDate < now
+      const progress = p.requestedBudget > 0 ? p.pledgedAmount / p.requestedBudget : 0
+      const isCompleted = progress >= 1
+      const isActive = !isExpired && !isCompleted
+
+      const matchesStatus =
+        (filters.status.includes('Active') && isActive) ||
+        (filters.status.includes('Completed') && isCompleted) ||
+        (filters.status.includes('Expired') && isExpired)
+
+      if (!matchesStatus) {
+        return false
+      }
+    }
+
+    // Budget filter
+    if (filters.budget) {
+      const [min, max] = filters.budget
+      if (p.requestedBudget < min || p.requestedBudget > max) {
+        return false
+      }
+    }
+
+    // Fund progress filter
+    if (filters.fundProgress) {
+      const [min, max] = filters.fundProgress
+      const progress = p.requestedBudget > 0 ? (p.pledgedAmount / p.requestedBudget) * 100 : 0
+      if (progress < min || progress > max) {
+        return false
+      }
+    }
+
+    // Expiration date filter
+    if (filters.expiration) {
+      const [start, end] = filters.expiration
+      if (start && p.expiryDate < start) {
+        return false
+      }
+      if (end && p.expiryDate > end) {
+        return false
+      }
+    }
+
+    return true
+  })
+}
+
+export const CarouselProposals = ({
+  categoryName,
+  filters,
+}: {
+  categoryName: string
+  filters?: IProposalFilters
+}) => {
   const { getCategoryProposalsPage } = useGetProposalData()
   const [proposals, setProposals] = useState<IProposalCardData[]>([])
   const [hasMore, setHasMore] = useState(false)
@@ -86,8 +148,19 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
     return `/category/${encodeURIComponent(categoryName.toLowerCase())}`
   }
 
+  // Apply per-proposal filters
+  const filteredProposals = useMemo(() => {
+    if (
+      !filters ||
+      Object.keys(filters).every((k) => filters[k as keyof IProposalFilters] === undefined)
+    ) {
+      return proposals
+    }
+    return applyIProposalFilters(proposals, filters)
+  }, [proposals, filters])
+
   // Don't render if no proposals and not loading
-  const hasProposals = proposals.length > 0 || isLoading
+  const hasProposals = filteredProposals.length > 0 || isLoading
 
   return (
     hasProposals && (
@@ -124,8 +197,12 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
         </div>
         <div className={'relative w-full overflow-x-hidden'}>
           {isLoading ? (
-            <div className={'flex h-[492px] w-full items-center justify-center'}>
-              <LoaderCircle className={'size-8 animate-spin'} />
+            <div className={'-ml-2 flex flex-row'}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className={'shrink-0 pl-2'}>
+                  <CardProposalSkeleton />
+                </div>
+              ))}
             </div>
           ) : (
             <Carousel
@@ -138,7 +215,7 @@ export const CarouselProposals = ({ categoryName }: { categoryName: string }) =>
             >
               {/* Slide spacing is done with negative ml on content and positive pl on item, according to docs.*/}
               <CarouselContent className={'-ml-2'}>
-                {proposals?.map((item, _index) => (
+                {filteredProposals?.map((item, _index) => (
                   <CarouselItem key={item.id} className={'basis-auto p-0 pl-2'}>
                     <CardProposal proposal={item} />
                   </CarouselItem>

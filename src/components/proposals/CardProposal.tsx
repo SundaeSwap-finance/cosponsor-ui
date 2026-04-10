@@ -10,6 +10,57 @@ import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
 import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
+import { Skeleton } from '@/components/shadcn/skeleton'
+
+export const CardProposalSkeleton = ({ className }: { className?: string }) => {
+  return (
+    <div
+      className={cn(
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border md:max-w-100',
+        className
+      )}
+    >
+      <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
+        <Skeleton className={'h-4 w-32'} />
+        <Skeleton className={'h-5 w-12 rounded-full'} />
+      </div>
+      <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
+        <div className={'flex flex-col gap-2'}>
+          <Skeleton className={'h-6 w-3/4'} />
+          <div className={'flex flex-row gap-4'}>
+            <Skeleton className={'h-4 w-24'} />
+            <Skeleton className={'h-4 w-24'} />
+            <Skeleton className={'h-5 w-16 rounded-full'} />
+          </div>
+        </div>
+        <div className={'flex flex-col gap-2'}>
+          <Skeleton className={'h-3 w-full'} />
+          <Skeleton className={'h-6 w-full rounded-full'} />
+        </div>
+        <div className={'flex w-full flex-row gap-4'}>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <Skeleton className={'h-3 w-16'} />
+            <Skeleton className={'h-4 w-24'} />
+          </div>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <Skeleton className={'h-3 w-16'} />
+            <Skeleton className={'h-4 w-24'} />
+          </div>
+        </div>
+        <div className={'flex w-full flex-col gap-1.5'}>
+          <Skeleton className={'h-3 w-16'} />
+          <Skeleton className={'h-4 w-full'} />
+          <Skeleton className={'h-4 w-5/6'} />
+          <Skeleton className={'h-4 w-2/3'} />
+        </div>
+      </div>
+      <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
+        <Skeleton className={'h-10 flex-1 rounded-md'} />
+        <Skeleton className={'h-10 w-24 rounded-md'} />
+      </div>
+    </div>
+  )
+}
 
 export const CardProposal = ({
   proposal,
@@ -51,7 +102,6 @@ export const CardProposal = ({
   }, [proposal, isExpired])
 
   return (
-    // TODO: skeleton loading to prevent flicker.
     <div
       className={cn(
         'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border transition-all duration-500 md:max-w-100',
