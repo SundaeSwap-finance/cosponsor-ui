@@ -1,5 +1,6 @@
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { useCallback } from 'react'
+import { logger } from '@/lib/logger'
 
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import {
@@ -106,8 +107,7 @@ export const useGetProposalData = () => {
           const matchingDeposits = deposits.filter((d) => d.proposalHash === id)
 
           if (matchingDeposits.length > 0) {
-            // eslint-disable-next-line no-console
-            console.log(
+            logger.debug(
               `Found blockchain proposal with hash: ${id} (${matchingDeposits.length} deposit(s))`
             )
 
@@ -129,7 +129,7 @@ export const useGetProposalData = () => {
           }
 
           // Only warn if wallet IS connected but proposal not found
-          console.warn(
+          logger.warn(
             `Proposal not found with id: ${id} (checked ${deposits.length} user deposits)`
           )
         } catch (error) {
@@ -138,8 +138,7 @@ export const useGetProposalData = () => {
       } else {
         // Wallet not connected yet - silently return undefined
         // This is expected on initial page load before wallet connects
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.debug(
           `Wallet not connected yet, cannot fetch blockchain proposal with id: ${id.slice(0, 16)}...`
         )
       }
@@ -170,14 +169,12 @@ export const useGetProposalData = () => {
   const getProposalCardsUserPledge = useCallback(async () => {
     // If wallet not connected, return empty array
     if (!walletObserver.api) {
-      // eslint-disable-next-line no-console
-      console.log('Wallet not connected, returning empty user pledges')
+      logger.debug('Wallet not connected, returning empty user pledges')
       return []
     }
 
     try {
-      // eslint-disable-next-line no-console
-      console.log('Fetching user pledges from blockchain...')
+      logger.debug('Fetching user pledges from blockchain...')
 
       // Create Blaze instance with browser wallet
       const blaze = await createBlazeWithBrowserWallet(walletObserver)
@@ -188,17 +185,13 @@ export const useGetProposalData = () => {
         getAllProposalsAsCards().catch(() => [] as IProposalCardData[]),
       ])
 
-      // eslint-disable-next-line no-console
-      console.log(`Found ${deposits.length} user deposits:`)
+      logger.debug(`Found ${deposits.length} user deposits:`)
       deposits.forEach((d, i) => {
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.debug(
           `  ${i + 1}. ${Number(d.depositAmount) / 1_000_000} ADA - Deposit TX: ${d.depositTxHash.slice(0, 16)}...`
         )
-        // eslint-disable-next-line no-console
-        console.log(`      Proposal Hash: ${d.proposalHash}`)
-        // eslint-disable-next-line no-console
-        console.log(`      Token: ${d.tokenAssetName.slice(0, 20)}...`)
+        logger.debug(`      Proposal Hash: ${d.proposalHash}`)
+        logger.debug(`      Token: ${d.tokenAssetName.slice(0, 20)}...`)
       })
 
       // Create a map of GovTools proposals by ID for quick lookup
@@ -206,8 +199,7 @@ export const useGetProposalData = () => {
       for (const proposal of govToolsProposals) {
         govToolsById.set(proposal.id, proposal)
       }
-      // eslint-disable-next-line no-console
-      console.log(`Loaded ${govToolsById.size} GovTools proposals for enrichment`)
+      logger.debug(`Loaded ${govToolsById.size} GovTools proposals for enrichment`)
 
       // Group deposits by proposal hash and aggregate amounts
       const depositsByProposal = new Map<string, IUserDeposit[]>()
@@ -218,8 +210,7 @@ export const useGetProposalData = () => {
         depositsByProposal.set(deposit.proposalHash, existing)
       }
 
-      // eslint-disable-next-line no-console
-      console.log(`Deposits grouped into ${depositsByProposal.size} unique proposal(s)`)
+      logger.debug(`Deposits grouped into ${depositsByProposal.size} unique proposal(s)`)
 
       // Transform to proposal cards, combining amounts for same proposal
       const proposalCards: IProposalCardData[] = []
@@ -242,20 +233,17 @@ export const useGetProposalData = () => {
         // Try to find matching GovTools proposal by ID
         const govToolsMatch = govToolsById.get(proposalHash)
         if (govToolsMatch) {
-          // eslint-disable-next-line no-console
-          console.log(`  ✓ Found GovTools match for ${proposalHash.slice(0, 16)}...`)
+          logger.debug(`  Found GovTools match for ${proposalHash.slice(0, 16)}...`)
         }
 
         proposalCards.push(transformDepositToProposal(aggregatedDeposit, govToolsMatch))
 
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.debug(
           `  Proposal ${proposalHash.slice(0, 16)}...: ${proposalDeposits.length} deposit(s) = ${Number(totalDepositAmount) / 1_000_000} ADA total`
         )
       }
 
-      // eslint-disable-next-line no-console
-      console.log(`Transformed into ${proposalCards.length} proposal cards`)
+      logger.debug(`Transformed into ${proposalCards.length} proposal cards`)
 
       // Return aggregated proposal cards
       return proposalCards

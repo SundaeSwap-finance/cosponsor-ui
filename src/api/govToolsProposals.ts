@@ -5,9 +5,10 @@
  * and local caching for reliability and performance.
  */
 
-import govToolsApi from './govToolsApi'
+import { govToolsApi } from '@/api/govToolsApi'
 import { IGovToolsProposal, TGovToolsProposalsListResponse } from '@/types/GovToolsApi'
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
+import { logger } from '@/lib/logger'
 
 // Import backup data as fallback
 import backupData from '@/data/govtools-proposals-backup.json'
@@ -62,18 +63,18 @@ export const fetchAllGovToolsProposals = async (
 
       // Safety limit to prevent infinite loops and unnecessary load
       if (allProposals.length >= 100) {
-        console.warn('Reached safety limit of 100 proposals')
+        logger.warn('Reached safety limit of 100 proposals')
         hasMore = false
       }
     } catch (error) {
-      console.warn('Failed to fetch proposals from GovTools API, using backup data:', error)
+      logger.warn('Failed to fetch proposals from GovTools API, using backup data:', error)
       apiAvailable = false
     }
   }
 
   // If API failed or returned no data, use backup
   if (allProposals.length === 0) {
-    console.warn('Using local backup data for proposals')
+    logger.warn('Using local backup data for proposals')
     const backup = backupData as TGovToolsProposalsListResponse
     allProposals.push(...backup.data)
   }
@@ -122,7 +123,7 @@ export const fetchProposalsPage = async (
       nextStart: totalFetched,
     }
   } catch (error) {
-    console.warn('Failed to fetch proposals page from GovTools API:', error)
+    logger.warn('Failed to fetch proposals page from GovTools API:', error)
 
     // Fallback to backup data for first page
     if (start === 0) {
@@ -191,7 +192,7 @@ export const fetchGovToolsProposalById = async (
     const response = await govToolsApi.get<{ data: IGovToolsProposal }>(`/proposals/${id}`)
     return response.data.data
   } catch (error) {
-    console.warn(`Failed to fetch proposal ${id} from GovTools API:`, error)
+    logger.warn(`Failed to fetch proposal ${id} from GovTools API:`, error)
     return null
   }
 }

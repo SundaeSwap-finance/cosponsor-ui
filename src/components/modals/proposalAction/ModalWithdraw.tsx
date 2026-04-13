@@ -29,6 +29,7 @@ import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 
 import { Core } from '@blaze-cardano/sdk'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
+import { logger } from '@/lib/logger'
 
 // Get Ogmios URL from environment for script evaluation (has mempool access)
 const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string | undefined
@@ -63,8 +64,7 @@ export const ModalWithdraw = ({
     const buildPreview = async () => {
       setIsLoadingPreview(true)
       try {
-        // eslint-disable-next-line no-console
-        console.log('📊 Building transaction preview to calculate fees...')
+        logger.debug('Building transaction preview to calculate fees...')
 
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
         const plan = await fetchWithdrawalPlan(blaze)
@@ -96,8 +96,7 @@ export const ModalWithdraw = ({
         setFees(feeAda)
         setPreviewTx(completedTx)
 
-        // eslint-disable-next-line no-console
-        console.log(`💰 Transaction fees: ${feeAda} ADA`)
+        logger.debug(`Transaction fees: ${feeAda} ADA`)
       } catch (err) {
         console.error('Failed to build transaction preview:', err)
         // Don't show error to user for preview failure, just use fallback
@@ -133,15 +132,13 @@ export const ModalWithdraw = ({
     setTxHash(null)
 
     try {
-      // eslint-disable-next-line no-console
-      console.log('🔄 Starting withdrawal process...')
+      logger.debug('Starting withdrawal process...')
 
       // Use preview transaction if available, otherwise build new one
       let completedTx = previewTx
 
       if (!completedTx) {
-        // eslint-disable-next-line no-console
-        console.log('⚠️ No preview transaction available, building fresh transaction...')
+        logger.warn('No preview transaction available, building fresh transaction...')
 
         // Create Blaze instance
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
@@ -153,8 +150,7 @@ export const ModalWithdraw = ({
           throw new Error('No gADA tokens available to withdraw')
         }
 
-        // eslint-disable-next-line no-console
-        console.log(`Withdrawing ${lovelaceToRetrieve / 1_000_000n} ADA`)
+        logger.debug(`Withdrawing ${lovelaceToRetrieve / 1_000_000n} ADA`)
 
         // Build withdrawal transaction
         let tx = await browserWithdraw({
@@ -163,20 +159,17 @@ export const ModalWithdraw = ({
           withdrawAmount: lovelaceToRetrieve,
         })
 
-        // eslint-disable-next-line no-console
-        console.log('✅ Withdrawal transaction built, completing...')
+        logger.debug('Withdrawal transaction built, completing...')
 
         // Complete the transaction (adds change, balances, etc.)
         // Use Ogmios evaluator if available (has mempool access), otherwise fall back to Blockfrost
-        // eslint-disable-next-line no-console
-        console.log('🔍 Completing transaction (evaluating scripts via Ogmios)...')
+        logger.debug('Completing transaction (evaluating scripts via Ogmios)...')
         if (OGMIOS_URL) {
           tx = tx.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
         }
         completedTx = await tx.complete()
       } else {
-        // eslint-disable-next-line no-console
-        console.log('✅ Using pre-built transaction from preview')
+        logger.debug('Using pre-built transaction from preview')
       }
 
       // Ensure we have a completed transaction
@@ -184,8 +177,7 @@ export const ModalWithdraw = ({
         throw new Error('Failed to build transaction')
       }
 
-      // eslint-disable-next-line no-console
-      console.log('✅ Transaction evaluated, requesting signature from wallet...')
+      logger.debug('Transaction evaluated, requesting signature from wallet...')
 
       // Sign and submit (withdraw uses partial sign so script witnesses are preserved)
       const { txHash: submittedTxHash } = await signAndSubmitTransaction({
@@ -194,8 +186,7 @@ export const ModalWithdraw = ({
         partialSign: true,
       })
 
-      // eslint-disable-next-line no-console
-      console.log(`✅ Withdrawal transaction submitted: ${submittedTxHash}`)
+      logger.debug(`Withdrawal transaction submitted: ${submittedTxHash}`)
 
       setTxHash(submittedTxHash)
       setIsProcessing(false)
@@ -203,24 +194,11 @@ export const ModalWithdraw = ({
       console.error('❌ Withdrawal failed:', err)
 
       // Log error details for debugging
-      // eslint-disable-next-line no-console
-      console.log('Error type:', typeof err)
-      // eslint-disable-next-line no-console
-      console.log('Error properties:', Object.keys(err as object))
-      // eslint-disable-next-line no-console
-      console.log('Error message:', (err as Error)?.message)
-      // eslint-disable-next-line no-console
-      console.log('Error code:', (err as { code?: unknown })?.code)
-      // eslint-disable-next-line no-console
-      console.log('Error info:', (err as { info?: unknown })?.info)
-      // eslint-disable-next-line no-console
-      console.log('Error response:', (err as { response?: unknown })?.response)
-      // eslint-disable-next-line no-console
-      console.log('Error data:', (err as { data?: unknown })?.data)
-      // eslint-disable-next-line no-console
-      console.log('Error cause:', (err as { cause?: unknown })?.cause)
-      // eslint-disable-next-line no-console
-      console.log('Full error object:', err)
+      logger.debug('Withdrawal error details:', {
+        type: typeof err,
+        message: (err as Error)?.message,
+        err,
+      })
 
       let errorMessage = 'Withdrawal failed'
       if (err instanceof Error) {

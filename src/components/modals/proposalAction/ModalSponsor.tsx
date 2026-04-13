@@ -31,58 +31,10 @@ import {
 } from '@/lib/cardano/governanceActions'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
+import { logger } from '@/lib/logger'
 
-// URLs from environment variables
+// Ogmios URL from environment for script evaluation
 const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string
-const BLOCKFROST_API = import.meta.env.COSPONSOR_BLOCKFROST_API_URL as string
-
-// Verify if a specific UTxO exists on-chain via Blockfrost
-// Kept for debugging stale UTxO issues - see commented block in handleSponsor
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function verifyUtxoOnChain(
-  txHash: string,
-  outputIndex: number
-): Promise<{ exists: boolean; error?: string }> {
-  const apiKey = import.meta.env.COSPONSOR_BLOCKFROST_API_KEY
-  if (!apiKey) {
-    return { exists: false, error: 'No Blockfrost API key' }
-  }
-
-  try {
-    const response = await fetch(`${BLOCKFROST_API}/txs/${txHash}/utxos`, {
-      headers: { project_id: apiKey },
-    })
-
-    if (response.status === 404) {
-      return { exists: false, error: 'Transaction not found' }
-    }
-
-    if (!response.ok) {
-      return { exists: false, error: `Blockfrost error: ${response.status}` }
-    }
-
-    const data = await response.json()
-    // Check if the specific output exists and is unspent
-    const output = data.outputs?.find(
-      (o: { output_index: number; consumed_by_tx?: string }) => o.output_index === outputIndex
-    )
-
-    if (!output) {
-      return { exists: false, error: `Output #${outputIndex} not found in tx` }
-    }
-
-    if (output.consumed_by_tx) {
-      return {
-        exists: false,
-        error: `UTxO already spent by: ${output.consumed_by_tx}`,
-      }
-    }
-
-    return { exists: true }
-  } catch (err) {
-    return { exists: false, error: String(err) }
-  }
-}
 
 export interface IModalSponsorProps {
   modalTrigger: ReactNode
@@ -170,8 +122,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
     const timeoutId = setTimeout(async () => {
       setIsLoadingFees(true)
       try {
-        // eslint-disable-next-line no-console
-        console.log(`📊 Building transaction preview for ${userPledging} ADA to calculate fees...`)
+        logger.debug(`📊 Building transaction preview for ${userPledging} ADA to calculate fees...`)
 
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
@@ -191,8 +142,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
 
         setFees(feeAda)
 
-        // eslint-disable-next-line no-console
-        console.log(`💰 Transaction fees: ${feeAda} ADA`)
+        logger.debug(`💰 Transaction fees: ${feeAda} ADA`)
       } catch (err) {
         console.error('Failed to build transaction preview:', err)
         // Use fallback estimate
@@ -227,32 +177,14 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       // Convert ADA to lovelace (1 ADA = 1,000,000 lovelace)
       const depositAmount = BigInt(Math.floor(userPledging * 1_000_000))
 
-      // NOTE: On-chain UTxO verification disabled - wallet should be trusted
-      // Re-enable this block if debugging stale UTxO issues by uncommenting below
-      // See verifyUtxoOnChain() function for the verification logic
-      /*
-      const utxosHex = await walletObserver.api.getUtxos()
-      if (utxosHex && utxosHex.length > 0) {
-        for (let i = 0; i < utxosHex.length; i++) {
-          const utxo = Core.TransactionUnspentOutput.fromCbor(utxosHex[i] as Core.HexBlob)
-          const txId = utxo.input().transactionId()
-          const outputIndex = Number(utxo.input().index())
-          const verification = await verifyUtxoOnChain(txId, outputIndex)
-          console.log(`${txId}#${outputIndex}`, verification.exists ? '✅' : `❌ ${verification.error}`)
-        }
-      }
-      */
-
       // Always build a fresh transaction when clicking Pledge
       // Never use preview transaction - it may have stale UTxOs from a previous action
-      // eslint-disable-next-line no-console
-      console.log('🔨 Building fresh transaction (ignoring any preview)...')
+      logger.debug('🔨 Building fresh transaction (ignoring any preview)...')
 
       // Create the cosponsored proposal with user's pledge amount
       const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
-      // eslint-disable-next-line no-console
-      console.log('Building transaction for deposit:', {
+      logger.debug('Building transaction for deposit:', {
         depositAmount: depositAmount.toString(),
         depositADA: userPledging,
         proposalId: proposal?.id || 'test',
@@ -260,13 +192,11 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       })
 
       // Create Blaze instance with browser wallet
-      // eslint-disable-next-line no-console
-      console.log('Creating Blaze instance with browser wallet...')
+      logger.debug('Creating Blaze instance with browser wallet...')
       const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
       // Build the deposit transaction using browser-compatible function
-      // eslint-disable-next-line no-console
-      console.log('Building deposit transaction...')
+      logger.debug('Building deposit transaction...')
       let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
 
       // Use Ogmios evaluator if available (has mempool access for pending UTxOs)
@@ -275,13 +205,11 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       }
 
       // Complete the transaction
-      // eslint-disable-next-line no-console
-      console.log('Completing transaction...')
+      logger.debug('Completing transaction...')
       let completedTx: Core.Transaction | null = null
       try {
         completedTx = await txBuilder.complete()
-        // eslint-disable-next-line no-console
-        console.log('✅ Transaction completed successfully!')
+        logger.debug('✅ Transaction completed successfully!')
       } catch (evalError) {
         console.error('Transaction evaluation failed:', evalError)
 
@@ -307,8 +235,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
 
       // Log the transaction details
       const txCbor = completedTx.toCbor()
-      // eslint-disable-next-line no-console
-      console.log('Built transaction:', {
+      logger.debug('Built transaction:', {
         type: 'deposit',
         depositAmount: depositAmount.toString(),
         depositADA: userPledging,
@@ -317,8 +244,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       })
 
       // Prompt wallet to sign and submit the transaction
-      // eslint-disable-next-line no-console
-      console.log('Requesting wallet signature...')
+      logger.debug('Requesting wallet signature...')
 
       try {
         const { txHash: submittedTxHash } = await signAndSubmitTransaction({
@@ -327,12 +253,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
           partialSign: false,
         })
 
-        // eslint-disable-next-line no-console
-        console.log('✅ Transaction submitted successfully!')
-        // eslint-disable-next-line no-console
-        console.log('Transaction hash:', submittedTxHash)
-        // eslint-disable-next-line no-console
-        console.log('View on explorer:', getExplorerTxUrl(submittedTxHash))
+        logger.debug('✅ Transaction submitted successfully!')
+        logger.debug('Transaction hash:', submittedTxHash)
+        logger.debug('View on explorer:', getExplorerTxUrl(submittedTxHash))
 
         setTxHash(submittedTxHash)
         setIsProcessing(false)
