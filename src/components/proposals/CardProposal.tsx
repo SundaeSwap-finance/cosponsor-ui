@@ -83,7 +83,7 @@ export const CardProposal = ({
     if (!proposal || isExpired) {
       return
     }
-    let timer: number | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
     const oneDayTimerLimit = 60000 * 60 * 24
@@ -91,9 +91,9 @@ export const CardProposal = ({
     if (timeRemaining <= 0) {
       setIsExpired(true)
     } else if (timeRemaining < oneDayTimerLimit) {
-      timer = setTimeout((_remains) => {
+      timer = setTimeout(() => {
         setIsExpired(true)
-      }, timeRemaining) as unknown as number
+      }, timeRemaining)
     }
 
     return () => {

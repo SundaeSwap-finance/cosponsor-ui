@@ -45,7 +45,6 @@ export const PageProposalDetails = () => {
       }
       return countAmount + proposal.userPledged
     } else {
-      //console.warn('Could not find pledges')
       return proposal?.pledgedAmount ?? 0
     }
   }, [proposal])
@@ -100,16 +99,16 @@ export const PageProposalDetails = () => {
     if (!proposal || isExpired) {
       return
     }
-    let timer: number | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
 
     if (timeRemaining <= 0) {
       setIsExpired(true)
     } else if (timeRemaining < twoDayMilliseconds) {
-      timer = setTimeout((_remains) => {
+      timer = setTimeout(() => {
         setIsExpired(true)
-      }, timeRemaining) as unknown as number
+      }, timeRemaining)
     }
 
     return () => {
