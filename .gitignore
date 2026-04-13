@@ -19,7 +19,6 @@
 
 # production
 /build
-/dist
 
 # misc
 .DS_Store
@@ -49,6 +48,7 @@ next-env.d.ts
 
 # Root-level scratch/notes markdown files
 /*.md
+!DEPLOYMENT.md
 
 # Misc scratch files
 nul
