@@ -202,7 +202,7 @@
 ### From original M2 plan (code quality)
 | # | Item | Source | File(s) | Status | Resolution |
 |---|------|--------|---------|--------|------------|
-| 15 | CIP-25 metadata chunking refactor | M2 issue #4 | `BrowserDeposit.ts` | Pending | Not user-facing, code quality improvement |
+| 15 | ~~CIP-25 metadata chunking refactor~~ | M2 issue #4 | `BrowserDeposit.ts`, new `metadataUtils.ts` | Done | Extracted inline `chunkImageData()` to named `chunkCip25Text()` in `cosponsor-contracts/offchain/src/browser/metadataUtils.ts`. Properly named, documented, exported from SDK browser index. 3 call sites updated in BrowserDeposit.ts. |
 
 ### Already tracked from M1 (overlap)
 | Original M2 Item | Maps to |

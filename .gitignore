@@ -46,3 +46,11 @@ next-env.d.ts
 
 # dev version of cosponsor-sdk
 /src/lib/cosponsor-sdk/
+
+# Root-level scratch/notes markdown files
+/*.md
+
+# Misc scratch files
+nul
+/tmp/
+/scripts/
