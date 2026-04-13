@@ -1,4 +1,4 @@
-import { InputDefault } from './InputDefault'
+import { InputDefault } from '@/components/input/InputDefault'
 import { cn } from '@/lib/utils'
 import React from 'react'
 
