@@ -33,7 +33,13 @@ export const ButtonProposalFilter = ({
   }
 
   const filterComponents: { [key: string]: React.ReactNode } = {
-    'Proposal Type': <FilterPropType applyFilter={(filters) => onTypeFilter?.(filters)} />,
+    'Proposal Type': (
+      <FilterPropType
+        applyFilter={(filters) =>
+          onTypeFilter?.(filters.filter((f): f is string => f !== undefined))
+        }
+      />
+    ),
     Status: (
       <FilterPropStatus
         applyFilter={(filters) =>

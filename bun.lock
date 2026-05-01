@@ -9,6 +9,7 @@
         "@blaze-cardano/data": "^0.6.4",
         "@blaze-cardano/ogmios": "^0.0.7",
         "@blaze-cardano/sdk": "^0.2.43",
+        "@dezons/cosponsor-sdk": "1.0.0-alpha.1",
         "@radix-ui/react-dialog": "^1.1.14",
         "@radix-ui/react-label": "^2.1.7",
         "@radix-ui/react-popover": "^1.1.15",
@@ -17,7 +18,6 @@
         "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/react-toggle": "^1.1.10",
         "@radix-ui/react-tooltip": "^1.2.7",
-        "@sundaeswap/cosponsor-sdk": "link:@sundaeswap/cosponsor-sdk",
         "@sundaeswap/ui-toolkit": "^2.3.6",
         "@sundaeswap/wallet-lite": "^0.0.92",
         "class-variance-authority": "^0.7.1",
@@ -155,6 +155,8 @@
     "@chainsafe/netmask": ["@chainsafe/netmask@2.0.0", "", { "dependencies": { "@chainsafe/is-ip": "^2.0.1" } }, "sha512-I3Z+6SWUoaljh3TBzCnCxjlUyN8tA+NAk5L6m9IxvCf1BENQTePzPMis97CoN/iMW1St3WN+AWCCRp+TTBRiDg=="],
 
     "@date-fns/tz": ["@date-fns/tz@1.4.1", "", {}, "sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA=="],
+
+    "@dezons/cosponsor-sdk": ["@dezons/cosponsor-sdk@1.0.0-alpha.1", "", { "dependencies": { "@blaze-cardano/core": "^0.7.0", "@blaze-cardano/data": "^0.6.4", "@blaze-cardano/ogmios": "^0.0.7", "@blaze-cardano/sdk": "^0.2.43", "@blaze-cardano/uplc": "^0.3.2", "@scure/bip39": "^2.0.0", "dotenv": "^16.4.5", "ws": "^8.18.3" }, "peerDependencies": { "typescript": "^5" } }, "sha512-HvZ2um6eYPDaiU6zwNYvDCGhU7lW/YlwxcmIyS7tRpk/LflOs6881NeHlMUJpztIxH8KAmqXRNiLrS0wlQvUqg=="],
 
     "@emurgo/cardano-message-signing-browser": ["@emurgo/cardano-message-signing-browser@1.1.0", "", {}, "sha512-LyeiGIqCyZu9DZnKsi4wlBjZA1MN+uy3Cqpb5J6RZWvFXDJnCoxrYB/EixUiGRD/la4WsldBgtPsrIHyGsVkpg=="],
 
@@ -692,8 +694,6 @@
 
     "@sundaeswap/asset": ["@sundaeswap/asset@1.0.6", "", { "dependencies": { "@sundaeswap/fraction": "1.0.5" } }, "sha512-zdaxcBucIlA4lo8xb7y64XkSjJdLu0PEfB3v9JTEFXZ0Bv9ewkA60o89pQVIv2bs6itRbW14MmOw7aH9VCTkog=="],
 
-    "@sundaeswap/cosponsor-sdk": ["@sundaeswap/cosponsor-sdk@link:@sundaeswap/cosponsor-sdk", {}],
-
     "@sundaeswap/eslint-config": ["@sundaeswap/eslint-config@2.0.15", "", { "dependencies": { "eslint": "^9.4.0", "eslint-config-prettier": "^9.1.0", "eslint-plugin-import": "^2.29.1", "eslint-plugin-jest": "^28.6.0", "eslint-plugin-jsx-a11y": "^6.8.0", "eslint-plugin-prettier": "^5.1.3", "eslint-plugin-react": "^7.34.2", "eslint-plugin-react-hooks": "^4.6.2", "globals": "^15.6.0", "typescript-eslint": "^7.13.0" }, "peerDependencies": { "prettier": "^3.0.0" } }, "sha512-vW+Ulw655EKyZvr/H9UxFvzVM1H1sQWyiXgL+TS8d9PP2pa7rsIimV8Y1yzkMcEniPYs1wBRr+/CHK58mbXPpw=="],
 
     "@sundaeswap/fraction": ["@sundaeswap/fraction@1.0.5", "", {}, "sha512-Whc6bHHIXL3PoHocaY9CN6rbdPGfvfQq72+Fa/44JDsfZKFhAcrqHOHI2mmnhM1osWFn2tT8P/ZNZ7YoeAaO/w=="],
@@ -1179,6 +1179,8 @@
     "doctrine": ["doctrine@2.1.0", "", { "dependencies": { "esutils": "^2.0.2" } }, "sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw=="],
 
     "domain-browser": ["domain-browser@4.22.0", "", {}, "sha512-IGBwjF7tNk3cwypFNH/7bfzBcgSCbaMOD3GsaY1AU/JRrnHnYgEM0+9kQt52iZxjNsjBtJYtao146V+f8jFZNw=="],
+
+    "dotenv": ["dotenv@16.6.1", "", {}, "sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow=="],
 
     "dunder-proto": ["dunder-proto@1.0.1", "", { "dependencies": { "call-bind-apply-helpers": "^1.0.1", "es-errors": "^1.3.0", "gopd": "^1.2.0" } }, "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A=="],
 
@@ -2214,6 +2216,8 @@
 
     "update-browserslist-db": ["update-browserslist-db@1.1.3", "", { "dependencies": { "escalade": "^3.2.0", "picocolors": "^1.1.1" }, "peerDependencies": { "browserslist": ">= 4.21.0" }, "bin": { "update-browserslist-db": "cli.js" } }, "sha512-UxhIZQ+QInVdunkDAaiazvvT/+fXL5Osr0JZlJulepYu6Jd7qJtDZjlur0emRlT71EN3ScPoE7gvsuIKKNavKw=="],
 
+    "uplc-node": ["uplc-wasm@github:SundaeSwap-finance/uplc-node#2d99037", {}, "SundaeSwap-finance-uplc-node-2d99037", "sha512-sJHDHuLxkAHb0IpBxVzzGVHacKD+AwrBYRQAnZHGsBrr9NqrimdveNXec1qoTTEERrn1PBJK1Bct2KTW5LPI9A=="],
+
     "uri-js": ["uri-js@4.4.1", "", { "dependencies": { "punycode": "^2.1.0" } }, "sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg=="],
 
     "url": ["url@0.11.4", "", { "dependencies": { "punycode": "^1.4.1", "qs": "^6.12.3" } }, "sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg=="],
@@ -2337,6 +2341,10 @@
     "@cardano-sdk/dapp-connector/@cardano-sdk/crypto": ["@cardano-sdk/crypto@0.2.3", "", { "dependencies": { "@cardano-sdk/util": "~0.16.0", "blake2b": "^2.1.4", "i": "^0.3.7", "libsodium-wrappers-sumo": "^0.7.5", "lodash": "^4.17.21", "npm": "^9.3.0", "pbkdf2": "^3.1.2", "ts-custom-error": "^3.2.0", "ts-log": "^2.2.4" }, "peerDependencies": { "@dcspark/cardano-multiplatform-lib-asmjs": "^3.1.1", "@dcspark/cardano-multiplatform-lib-browser": "^3.1.1", "@dcspark/cardano-multiplatform-lib-nodejs": "^3.1.1" }, "optionalPeers": ["@dcspark/cardano-multiplatform-lib-asmjs", "@dcspark/cardano-multiplatform-lib-browser", "@dcspark/cardano-multiplatform-lib-nodejs"] }, "sha512-jTl8rbocV1XO5DBR6+lGY6Owc/bP+wBg5eO3PttTeKhx/J7o99pyuTa5H36a/XTJwqDwKIXV922QxZR+rfjVbA=="],
 
     "@cardano-sdk/dapp-connector/@cardano-sdk/util": ["@cardano-sdk/util@0.16.0", "", { "dependencies": { "bech32": "^2.0.0", "lodash": "^4.17.21", "serialize-error": "^8", "ts-custom-error": "^3.2.0", "ts-log": "^2.2.4", "type-fest": "^2.19.0" } }, "sha512-f0tfX8oiauqAFCyyc/o2Ouezyk83QD4zqLl4DUjZNyCtITL8gBHh25Bkw7RUCGEZ+hf6Qms1n0ui0j3wVY7zRg=="],
+
+    "@dezons/cosponsor-sdk/@blaze-cardano/uplc": ["@blaze-cardano/uplc@0.3.9", "", { "dependencies": { "@blaze-cardano/core": "0.7.0", "@blaze-cardano/data": "0.6.4", "@blaze-cardano/tx": "0.13.2", "hex-encoding": "^2.0.2" } }, "sha512-Uk4IYen/tAywiJgn0jyOHt9+jdYtNDTimTcf7I+yJ5G68sK1HxakHNH2o/AwHykJVjWNxkVikup0efyC1HPBYQ=="],
+
+    "@dezons/cosponsor-sdk/@scure/bip39": ["@scure/bip39@2.2.0", "", { "dependencies": { "@noble/hashes": "2.2.0", "@scure/base": "2.2.0" } }, "sha512-T/Bj/YvYMNkIPq6EENO6/rcs2e7qTNuyoUXf0KBFDmp0ZDu0H2X4Lq6yC3i0c8PcWkov5EbW+yQZZbdMmk154A=="],
 
     "@emurgo/cip14-js/blake2b": ["blake2b@2.1.3", "", { "dependencies": { "blake2b-wasm": "^1.1.0", "nanoassert": "^1.0.0" } }, "sha512-pkDss4xFVbMb4270aCyGD3qLv92314Et+FsKzilCLxDz5DuZ2/1g3w4nmBbu6nKApPspnjG7JcwTjGZnduB1yg=="],
 
@@ -2950,6 +2958,12 @@
 
     "@cardano-sdk/dapp-connector/@cardano-sdk/core/fraction.js": ["fraction.js@4.0.1", "", {}, "sha512-NQYzZw8MUsxSZFQo6E8tKOlmSd/BlDTNOR4puXFSHSwFwNaIlmbortQy5PDN/KnVQ4xWG2NtN0J0hjPw7eE06A=="],
 
+    "@dezons/cosponsor-sdk/@blaze-cardano/uplc/@blaze-cardano/tx": ["@blaze-cardano/tx@0.13.2", "", { "dependencies": { "@blaze-cardano/core": "0.7.0", "@blaze-cardano/vm": "0.1.12" } }, "sha512-GTuvpRdNDcsqYXlbjGSimrjYLYMIw7K2byEPhu9coGvIiSEQyJSf0uYo6fFj/2BGYfAOgZYBV8ZQrC8RHfiorQ=="],
+
+    "@dezons/cosponsor-sdk/@scure/bip39/@noble/hashes": ["@noble/hashes@2.2.0", "", {}, "sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg=="],
+
+    "@dezons/cosponsor-sdk/@scure/bip39/@scure/base": ["@scure/base@2.2.0", "", {}, "sha512-b8XEupJibegiXV+tDUseI8oLQc8ei3d/4Jkb2RpbHh3MfE054ov3uIz2dhFkB3FI8iwYkEh0gGCApkrYggkPNg=="],
+
     "@emurgo/cip14-js/blake2b/blake2b-wasm": ["blake2b-wasm@1.1.7", "", { "dependencies": { "nanoassert": "^1.0.0" } }, "sha512-oFIHvXhlz/DUgF0kq5B1CqxIDjIJwh9iDeUUGQUcvgiGz7Wdw03McEO7CfLBy7QKGdsydcMCgO9jFNBAFCtFcA=="],
 
     "@emurgo/cip14-js/blake2b/nanoassert": ["nanoassert@1.1.0", "", {}, "sha512-C40jQ3NzfkP53NsO8kEOFd79p4b9kDXQMwgiY1z8ZwrDZgUyom0AHwGegF4Dm99L+YoYhuaB0ceerUcXmqr1rQ=="],
@@ -3049,6 +3063,8 @@
     "wrap-ansi-cjs/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 
     "@babel/cli/chokidar/readdirp/picomatch": ["picomatch@2.3.1", "", {}, "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="],
+
+    "@dezons/cosponsor-sdk/@blaze-cardano/uplc/@blaze-cardano/tx/@blaze-cardano/vm": ["@blaze-cardano/vm@0.1.12", "", { "dependencies": { "@blaze-cardano/core": "0.7.0", "uplc-node": "github:SundaeSwap-finance/uplc-node#2d99037a215950b46a47a13eb69a12190cb25836" } }, "sha512-/zHk3KfDEiAV37MgLuFXL8AgpQ3E/ZkDk5PBTDb5W4T/LnnfEo7v6eeOsfPn5G0xoQwMJLxrKGNJS5oUqLkdJA=="],
 
     "@sundaeswap/eslint-config/typescript-eslint/@typescript-eslint/eslint-plugin/@typescript-eslint/scope-manager": ["@typescript-eslint/scope-manager@7.18.0", "", { "dependencies": { "@typescript-eslint/types": "7.18.0", "@typescript-eslint/visitor-keys": "7.18.0" } }, "sha512-jjhdIE/FPF2B7Z1uzc6i3oWKbGcHb87Qw7AWj6jmEqNOfDFbJWtjt/XfwCpvNkpGWlcJaog5vTR+VV8+w9JflA=="],
 

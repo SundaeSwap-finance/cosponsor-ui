@@ -1,13 +1,14 @@
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { useCallback } from 'react'
 import { logger } from '@/lib/logger'
+import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import {
   createBlazeWithBrowserWallet,
   fetchUserDeposits,
   IUserDeposit,
-} from '@sundaeswap/cosponsor-sdk/browser'
+} from '@dezons/cosponsor-sdk/browser'
 import {
   getAllProposalsAsCards,
   getProposalDetailsById as fetchProposalDetails,
@@ -100,6 +101,7 @@ export const useGetProposalData = () => {
       // Fetch deposits and look for matching proposal hash
       if (walletObserver.api) {
         try {
+          requireConnectedWallet(walletObserver)
           const blaze = await createBlazeWithBrowserWallet(walletObserver)
           const deposits = await fetchUserDeposits(blaze)
 
@@ -177,6 +179,7 @@ export const useGetProposalData = () => {
       logger.debug('Fetching user pledges from blockchain...')
 
       // Create Blaze instance with browser wallet
+      requireConnectedWallet(walletObserver)
       const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
       // Fetch user's deposits from blockchain and GovTools proposals in parallel

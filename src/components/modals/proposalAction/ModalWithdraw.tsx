@@ -24,8 +24,9 @@ import {
   IWithdrawalPlan,
   browserWithdraw,
   createOgmiosEvaluator,
-} from '@sundaeswap/cosponsor-sdk/browser'
+} from '@dezons/cosponsor-sdk/browser'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
+import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 
 import { Core } from '@blaze-cardano/sdk'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
@@ -66,6 +67,7 @@ export const ModalWithdraw = ({
       try {
         logger.debug('Building transaction preview to calculate fees...')
 
+        requireConnectedWallet(walletObserver)
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
         const plan = await fetchWithdrawalPlan(blaze)
 
@@ -141,6 +143,7 @@ export const ModalWithdraw = ({
         logger.warn('No preview transaction available, building fresh transaction...')
 
         // Create Blaze instance
+        requireConnectedWallet(walletObserver)
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
         // Fetch withdrawal plan

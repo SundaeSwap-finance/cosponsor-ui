@@ -27,7 +27,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@sundaeswap/cosponsor-sdk": "link:@sundaeswap/cosponsor-sdk",
+    "@dezons/cosponsor-sdk": "1.0.0-alpha.1",
     "@sundaeswap/ui-toolkit": "^2.3.6",
     "@sundaeswap/wallet-lite": "^0.0.92",
     "class-variance-authority": "^0.7.1",

@@ -20,8 +20,8 @@ import {
   browserDeposit,
   createBlazeWithBrowserWallet,
   createOgmiosEvaluator,
-} from '@sundaeswap/cosponsor-sdk/browser'
-import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
+} from '@dezons/cosponsor-sdk/browser'
+import { ICosponsoredProposal, GovernanceAction } from '@dezons/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
 import {
@@ -31,6 +31,7 @@ import {
 } from '@/lib/cardano/governanceActions'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
+import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 import { logger } from '@/lib/logger'
 
 // Ogmios URL from environment for script evaluation
@@ -124,6 +125,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       try {
         logger.debug(`📊 Building transaction preview for ${userPledging} ADA to calculate fees...`)
 
+        requireConnectedWallet(walletObserver)
         const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
         const depositAmount = BigInt(Math.floor(userPledging * 1_000_000))
@@ -193,6 +195,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
 
       // Create Blaze instance with browser wallet
       logger.debug('Creating Blaze instance with browser wallet...')
+      requireConnectedWallet(walletObserver)
       const blaze = await createBlazeWithBrowserWallet(walletObserver)
 
       // Build the deposit transaction using browser-compatible function
