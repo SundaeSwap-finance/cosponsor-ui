@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  git-credential-helper: yes
+  secrets-manager:
+    DEV_ACCESS_KEY_ID: "dev/user/codebuild:AWS_ACCESS_KEY_ID"
+    DEV_SECRET_ACCESS_KEY: "dev/user/codebuild:AWS_SECRET_ACCESS_KEY"
+    NPM_TOKEN: "NPM_TOKEN"
+  exported-variables:
+    - VERSION
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - echo "NPM_AUTH_TOKEN=${NPM_TOKEN}" > ./.env
+      - npm install -g bun@1.2.0
+
+  build:
+    commands:
+      - export VERSION="${CODEBUILD_BUILD_NUMBER:=0}.$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:=$(date +%Y%m%d%H%M%S)}" | cut -c1-7)"
+      - scripts/package-artifact.sh
+
+artifacts:
+  files:
+    - config/*
+    - dist/**/*
+    - buildspec.delegated.yml
+    - target/resources.template
+    - "scripts/deploy-cloudfront.sh"
+    - "scripts/interpolate-index.sh"

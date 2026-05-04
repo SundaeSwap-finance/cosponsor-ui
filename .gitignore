@@ -19,6 +19,8 @@
 
 # production
 /build
+/target
+/cosponsor-ui-*.tar.gz
 
 # misc
 .DS_Store
@@ -53,4 +55,3 @@ next-env.d.ts
 # Misc scratch files
 nul
 /tmp/
-/scripts/
