@@ -1,0 +1,182 @@
+import React from 'react'
+import { Button } from '@/components/shadcn/button'
+import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
+import { BadgeProposalPercent } from '@/components/proposals/BadgeProposalPercent'
+import { useEffect, useMemo, useState } from 'react'
+import { IProposalCardData } from '@/types/Proposal'
+import { getShortDate } from '@/composables/useDateTime'
+import { ProposalStatusCardBase } from '@/components/proposals/state/CardProposalStatusBase'
+import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
+import { ButtonSponsor } from '@/components/button/ButtonSponsor'
+import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
+import { Skeleton } from '@/components/shadcn/skeleton'
+
+export const CardProposalSkeleton = ({ className }: { className?: string }) => {
+  return (
+    <div
+      className={cn(
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border md:max-w-100',
+        className
+      )}
+    >
+      <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
+        <Skeleton className={'h-4 w-32'} />
+        <Skeleton className={'h-5 w-12 rounded-full'} />
+      </div>
+      <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
+        <div className={'flex flex-col gap-2'}>
+          <Skeleton className={'h-6 w-3/4'} />
+          <div className={'flex flex-row gap-4'}>
+            <Skeleton className={'h-4 w-24'} />
+            <Skeleton className={'h-4 w-24'} />
+            <Skeleton className={'h-5 w-16 rounded-full'} />
+          </div>
+        </div>
+        <div className={'flex flex-col gap-2'}>
+          <Skeleton className={'h-3 w-full'} />
+          <Skeleton className={'h-6 w-full rounded-full'} />
+        </div>
+        <div className={'flex w-full flex-row gap-4'}>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <Skeleton className={'h-3 w-16'} />
+            <Skeleton className={'h-4 w-24'} />
+          </div>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <Skeleton className={'h-3 w-16'} />
+            <Skeleton className={'h-4 w-24'} />
+          </div>
+        </div>
+        <div className={'flex w-full flex-col gap-1.5'}>
+          <Skeleton className={'h-3 w-16'} />
+          <Skeleton className={'h-4 w-full'} />
+          <Skeleton className={'h-4 w-5/6'} />
+          <Skeleton className={'h-4 w-2/3'} />
+        </div>
+      </div>
+      <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
+        <Skeleton className={'h-10 flex-1 rounded-md'} />
+        <Skeleton className={'h-10 w-24 rounded-md'} />
+      </div>
+    </div>
+  )
+}
+
+export const CardProposal = ({
+  proposal,
+  className,
+}: {
+  proposal: IProposalCardData
+  className?: string
+}) => {
+  const [isExpired, setIsExpired] = useState<boolean>(false)
+  const initDate = useMemo(() => getShortDate(proposal.initDate), [proposal.initDate])
+  const expiryDate = useMemo(() => getShortDate(proposal.expiryDate), [proposal.expiryDate])
+  const completionPercentage = useMemo(() => {
+    if (proposal.pledgedAmount && proposal.requestedBudget) {
+      return ((proposal.pledgedAmount / proposal.requestedBudget) * 100).toPrecision(4)
+    }
+    return 'n/a'
+  }, [proposal.pledgedAmount, proposal.requestedBudget])
+
+  useEffect(() => {
+    if (!proposal || isExpired) {
+      return
+    }
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
+    const oneDayTimerLimit = 60000 * 60 * 24
+
+    if (timeRemaining <= 0) {
+      setIsExpired(true)
+    } else if (timeRemaining < oneDayTimerLimit) {
+      timer = setTimeout(() => {
+        setIsExpired(true)
+      }, timeRemaining)
+    }
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [proposal, isExpired])
+
+  return (
+    <div
+      className={cn(
+        'border-sun-border-secondary divide-sun-border-primary flex h-[492px] w-full max-w-[90vw] flex-col divide-y rounded-xl border transition-all duration-500 md:max-w-100',
+        className
+      )}
+    >
+      <div className={'flex h-12.5 flex-row items-center justify-between px-6 py-4'}>
+        <div className={'text-sun-muted sun-text-12-md flex flex-row gap-2'}>
+          <div>Created by</div>
+          <div
+            className={'text-sun-default underline decoration-dotted underline-offset-3'}
+            title={`UserId: ${proposal?.ownerId}`}
+          >
+            @{proposal?.ownerName?.slice(0, 16)}
+          </div>
+        </div>
+        <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
+      </div>
+
+      <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
+        <div className={'flex flex-col gap-2'}>
+          <h2 className={'text-sun-header sun-text-18-sb'}> {proposal?.name}</h2>
+          <div className={'flex flex-row gap-4'}>
+            <div className={'flex flex-col gap-1 md:flex-row'}>
+              <div className={'sun-text-12-md text-sun-default'}>Proposed on</div>
+              <div className={'sun-text-12-md text-sun-muted'}>{initDate}</div>
+            </div>
+            <div className={'flex flex-col gap-1 md:flex-row'}>
+              <div className={'sun-text-12-md text-sun-default'}>Expires on</div>
+              <div className={'sun-text-12-md text-sun-muted'}>{expiryDate}</div>
+            </div>
+            <BadgeProposalCategory category={proposal?.categoryName as string} />
+          </div>
+        </div>
+
+        <ProposalStatusCardBase proposal={proposal} isExpired={isExpired} />
+
+        <div className={'flex w-full flex-row gap-4'}>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <div className={'text-sun-muted sun-text-12-md'}>Company</div>
+            <div className={'sun-text-14-md text-sun-default'}>{proposal?.companyName}</div>
+          </div>
+          <div className={'flex w-full flex-col gap-1.5'}>
+            <div className={'text-sun-muted sun-text-12-md'}>Domain</div>
+            <div className={'sun-text-14-md text-sun-default'}>{proposal?.companyDomain}</div>
+          </div>
+        </div>
+        <div className={'flex w-full flex-col gap-1.5'}>
+          <div className={'text-sun-muted sun-text-12-md'}>Abstract</div>
+          <div
+            className={cn(
+              proposal?.userPledged && !isExpired
+                ? 'line-clamp-2 xl:line-clamp-3'
+                : 'line-clamp-3 xl:line-clamp-4',
+              'sun-text-14-md text-sun-header'
+            )}
+          >
+            {proposal?.abstract}
+          </div>
+        </div>
+      </div>
+      {!isExpired || proposal.userPledged > 0 ? (
+        <div className={'flex w-full flex-row gap-2 px-6 py-4'}>
+          {isExpired && proposal.userPledged > 0 ? (
+            <ButtonWithdraw proposal={proposal} content={'Withdraw Your Pledge'} />
+          ) : (
+            <>
+              <Button size="lg" className={'flex-1'} asChild>
+                <Link to={`/proposal/${proposal.id}`}>View Details</Link>
+              </Button>
+              <ButtonSponsor proposalId={proposal.id} proposal={proposal} content={'Sponsor!'} />
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  )
+}

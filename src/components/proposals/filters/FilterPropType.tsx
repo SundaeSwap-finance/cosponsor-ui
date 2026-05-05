@@ -1,0 +1,73 @@
+import { Toggle } from '@/components/shadcn/toggle'
+import { BadgeProposalCategory } from '@/components/proposals/BadgeProposalCategory'
+import { useState } from 'react'
+import { Button } from '@/components/shadcn/button'
+
+const proposalTypes = [
+  'Confidence',
+  'Committee',
+  'Constitution',
+  'Hard fork',
+  'Protocol',
+  'Treasury',
+  'Info',
+]
+
+type TPropTypes = (typeof proposalTypes)[number] | undefined
+
+export const FilterPropType = ({
+  applyFilter,
+}: {
+  applyFilter?: (filters: TPropTypes[]) => void
+}) => {
+  const [proposalTypeFilters, setProposalTypeFilters] = useState<TPropTypes[]>([])
+
+  const updateTypeFilter = (type: TPropTypes, enabled: boolean) => {
+    let newFilters: TPropTypes[] = []
+
+    if (enabled) {
+      newFilters = proposalTypeFilters.slice(0)
+      newFilters.push(type)
+    } else {
+      newFilters = proposalTypeFilters.filter((item) => item !== type)
+    }
+
+    setProposalTypeFilters(newFilters)
+
+    applyFilter?.(newFilters)
+  }
+
+  return (
+    <div className={'flex flex-col gap-8'}>
+      <div className={'flex w-full flex-row flex-wrap justify-start gap-2'}>
+        {proposalTypes.map((type) => (
+          <Toggle
+            pressed={proposalTypeFilters.includes(type)}
+            onPressedChange={(newValue) => updateTypeFilter(type, newValue)}
+            key={type}
+            size={'sm'}
+            aria-label={`Toggle ${type} Filter`}
+            className={'data-[state=on]:bg-sun-highlight-primary/50 h-fit p-0'}
+          >
+            <BadgeProposalCategory
+              category={type}
+              className={`sun-text-12-md flex h-6 items-center justify-center ${
+                proposalTypeFilters.includes(type) ? 'text-sun-white-pure' : ' '
+              }`}
+            />
+          </Toggle>
+        ))}
+      </div>
+      <Button
+        size={'sm'}
+        className={'w-fit'}
+        onClick={() => {
+          setProposalTypeFilters([])
+          applyFilter?.([])
+        }}
+      >
+        Reset
+      </Button>
+    </div>
+  )
+}

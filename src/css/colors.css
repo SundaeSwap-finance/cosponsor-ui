@@ -1,0 +1,29 @@
+@theme {
+  /* Colors as in the main section Figma.
+  Removed text names as that creates confusing syntax in components.*/
+  --color-sun-header: #374151; /* a.k.a. text-header */
+  --color-sun-muted: #9ea4b0; /* a.k.a. text-muted */
+  --color-sun-default: #6b7280; /* a.k.a. text-body */
+  --color-sun-other: #828282;
+  --color-sun-foreground: #020617;
+  --color-sun-sidebar-foreground: #334155;
+  --color-sun-muted-foreground: #64748b;
+  --color-sun-sidebar-background: #f8fafc;
+
+  --color-sun-action-primary: #0f172a;
+  --color-sun-action-secondary: #e5e8ec;
+  --color-sun-action-tertiary: #1d4ed8;
+
+  --color-sun-border-primary: #e5e7eb;
+  --color-sun-border-secondary: #e2e8f0;
+  --color-sun-surface-muted: #f1f5f9;
+  --color-sun-surface-gray: #f9fafb;
+
+  --color-sun-highlight-primary: #d328d6;
+  --color-sun-highlight-secondary: #4092e5;
+  --color-sun-error: #be123c;
+  --color-sun-white-pure: #ffffff;
+  --color-sun-black-pure: #000000;
+  --color-sun-ada: #1d4ed8;
+  --color-sun-gada: #501dd3;
+}

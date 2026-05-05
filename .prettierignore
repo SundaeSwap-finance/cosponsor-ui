@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+.github
+**/*.md
+**/*.d.ts
+/src/components/shadcn/*
+/src/lib/cosponsor-sdk/*
