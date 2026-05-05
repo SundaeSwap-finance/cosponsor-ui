@@ -2,6 +2,8 @@ version: 0.2
 
 env:
   git-credential-helper: yes
+  variables:
+    NODE_OPTIONS: '--max-old-space-size=8192'
   secrets-manager:
     DEV_ACCESS_KEY_ID: 'dev/user/codebuild:AWS_ACCESS_KEY_ID'
     DEV_SECRET_ACCESS_KEY: 'dev/user/codebuild:AWS_SECRET_ACCESS_KEY'
