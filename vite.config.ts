@@ -65,6 +65,7 @@ export default defineConfig({
       'uplc-node': 'uplc-web',
       'node:stream/web': 'stream-browserify',
       'stream/web': 'stream-browserify',
+      ws: path.resolve(__dirname, './src/shims/ws.ts'),
       '@': path.resolve(__dirname, './src'),
       // "@emurgo/cardano-message-signing-nodejs":
       //   "@emurgo/cardano-message-signing-browser",
@@ -88,7 +89,7 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV !== 'production' ? true : 'hidden',
     target: 'esnext',
     rollupOptions: {
-      external: ['node-fetch', '@peculiar/webcrypto', 'ws'],
+      external: ['node-fetch', '@peculiar/webcrypto'],
       output: {
         // Customize the output chunking
         manualChunks(id) {
