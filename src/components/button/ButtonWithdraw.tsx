@@ -3,9 +3,8 @@ import { Button } from '@/components/shadcn/button'
 import { ModalWithdraw } from '@/components/modals/proposalAction/ModalWithdraw'
 import { IProposalCardData } from '@/types/Proposal'
 import { ModalWalletConnect } from '@/components/modals/walletConnect/ModalWalletConnect'
-import { useWalletObserver } from '@sundaeswap/wallet-lite'
-import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useWalletVerification } from '@/composables/useWalletVerification'
 
 export const ButtonWithdraw = ({
   proposal,
@@ -16,25 +15,20 @@ export const ButtonWithdraw = ({
   content: React.ReactNode
   classButton?: string
 }) => {
-  const walletObserver = useWalletObserver()
-  const [walletConnectModal, setWalletConnectModal] = useState<boolean>(false)
-
-  const verifyWalletConnection = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    if (walletObserver && walletObserver.activeWallet) {
-      // continue as usual with user action
-    } else {
-      event.stopPropagation()
-      event.preventDefault()
-      setWalletConnectModal(true)
-    }
-  }
+  const triggerId = `withdrawButton${proposal.id}`
+  const {
+    verifyWalletConnection,
+    walletConnectModalOpen,
+    setWalletConnectModalOpen,
+    handleWalletConnect,
+  } = useWalletVerification(triggerId)
 
   return (
     <>
       <ModalWithdraw
         modalTrigger={
           <Button
-            id={`withdrawButton${proposal.id}`}
+            id={triggerId}
             onClick={(event) => verifyWalletConnection(event)}
             size="lg"
             className={cn(
@@ -50,13 +44,9 @@ export const ButtonWithdraw = ({
 
       <ModalWalletConnect
         modalTrigger={''}
-        modalOpen={walletConnectModal}
-        onModalClose={() => setWalletConnectModal(false)}
-        onWalletConnect={(key, _wallet) => {
-          walletObserver.connectWallet(key).then(() => {
-            document.getElementById(`withdrawButton${proposal.id}`)?.click()
-          })
-        }}
+        modalOpen={walletConnectModalOpen}
+        onModalClose={() => setWalletConnectModalOpen(false)}
+        onWalletConnect={(key, _wallet) => handleWalletConnect(key)}
       />
     </>
   )

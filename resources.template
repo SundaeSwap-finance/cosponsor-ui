@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Env:
+    Type: "String"
+    Default: "local"
+  S3Bucket:
+    Type: "String"
+    Default: "codebuild-artifacts-us-east-2-113073460856"
+  S3Prefix:
+    Type: "String"
+    Default: "cosponsor-ui"
+  Version:
+    Type: "String"
+    Default: "latest"
+
+Mappings:
+  Env:
+    preview:
+      Domains: ["cosponsor.preview.sundae.fi"]
+      DistributionCertificate: "arn:aws:acm:us-east-1:529991308818:certificate/4a27f695-dd6f-48d2-b132-89553d419c3c"
+      HostedZoneId: "Z0609244DFBX99Y22ZA3"
+    mainnet:
+      Domains: ["cosponsor.sundae.fi"]
+      DistributionCertificate: "arn:aws:acm:us-east-1:705895683800:certificate/ee0e9ded-dfcc-46d8-b01a-0a9faf9609e8"
+      HostedZoneId: "Z0595022N0R5T7A526YD"
+
+Resources:
+  UIBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AccessControl: BucketOwnerFullControl
+      BucketName: !Sub "${Env}-cosponsor-ui-${AWS::AccountId}-${AWS::Region}"
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Days: 21
+            Mode: GOVERNANCE
+      ObjectLockEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  UIBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UIBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              "Service": "cloudfront.amazonaws.com"
+            Action:
+              - "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${UIBucket}/*"
+
+  UIBucketAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Description: "OriginAccessControl for cosponsor-ui"
+        Name: !Sub "${Env}-cosponsor-ui-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases: !FindInMap [Env, !Ref Env, Domains]
+        Origins:
+          - Id: Bucket
+            DomainName: !Sub "${UIBucket}.s3.${AWS::Region}.amazonaws.com"
+            OriginAccessControlId: !Ref UIBucketAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        Enabled: "true"
+        HttpVersion: http2and3
+        Comment: !Sub "${Env}-cosponsor-ui Distribution"
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          Compress: true
+          TargetOriginId: Bucket
+          ForwardedValues:
+            QueryString: "false"
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: "redirect-to-https"
+          CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 0
+            ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: "/index.html"
+          - ErrorCachingMinTTL: 0
+            ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: "/index.html"
+        DefaultRootObject: index.html
+        PriceClass: "PriceClass_All"
+        ViewerCertificate:
+          AcmCertificateArn: !FindInMap
+            - Env
+            - !Ref Env
+            - DistributionCertificate
+          MinimumProtocolVersion: "TLSv1.1_2016"
+          SslSupportMethod: "sni-only"
+
+  UIRecordSetGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      Comment: !Sub "${Env}-cosponsor-ui DNS"
+      HostedZoneId: !FindInMap [Env, !Ref Env, HostedZoneId]
+      RecordSets:
+        - AliasTarget:
+            DNSName: !GetAtt Distribution.DomainName
+            HostedZoneId: "Z2FDTNDATAQYW2"
+          Name: !Select [0, !FindInMap [Env, !Ref Env, Domains]]
+          Type: A

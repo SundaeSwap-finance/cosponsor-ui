@@ -4,6 +4,7 @@ import { PageProposalsAll } from '@/pages/PageProposalsAll'
 import { PageProposalsCategory } from '@/pages/PageProposalsCategory'
 import { PageProposalsUserPledge } from '@/pages/PageProposalsUserPledge'
 import { PageProposalDetails } from '@/pages/PageProposalDetails'
+import { PageAbout } from '@/pages/PageAbout'
 
 export const router = createBrowserRouter([
   {
@@ -12,10 +13,10 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true, // Home
-        loader: () => redirect('/all'),
+        loader: () => redirect('/all-proposals'),
       },
       {
-        path: '/all',
+        path: '/all-proposals',
         element: <PageProposalsAll />,
       },
       {
@@ -23,12 +24,16 @@ export const router = createBrowserRouter([
         element: <PageProposalsCategory />,
       },
       {
-        path: '/your',
+        path: '/your-pledges',
         element: <PageProposalsUserPledge />,
       },
       {
         path: '/proposal/:proposalId',
         element: <PageProposalDetails />,
+      },
+      {
+        path: '/about',
+        element: <PageAbout />,
       },
     ],
   },

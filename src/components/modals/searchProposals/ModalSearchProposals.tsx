@@ -10,7 +10,7 @@ import React, { ReactNode, useEffect, useState } from 'react'
 import { DialogContentSundae } from '@/components/modals/DialogContentSundae'
 import { ArrowDown, ArrowUp, CornerDownLeft, Search, X } from 'lucide-react'
 import { InputIcon } from '@/components/input/InputIcon'
-import { SearchResultProposal } from '@/components/modals/searchProposals/SearchResultProposal.'
+import { SearchResultProposal } from '@/components/modals/searchProposals/SearchResultProposal'
 import { SearchActionHint } from '@/components/modals/searchProposals/SearchActionHint'
 import { useGetProposalData } from '@/composables/useGetProposalData'
 import {
@@ -67,7 +67,7 @@ export const ModalSearchProposals = ({ modalTrigger }: { modalTrigger: ReactNode
             Discover proposals to sponsor!
           </DialogDescription>
         </DialogHeader>
-        <Command className={'w-full gap-6'}>
+        <Command shouldFilter={false} className={'w-full gap-6'}>
           <InputIcon
             value={inputValue}
             onChange={handleInput}

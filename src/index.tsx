@@ -1,7 +1,24 @@
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
+import { setLoggerEnabled } from '@sundaeswap/cosponsor-sdk'
 import './css/index.css'
 import { router } from '@/Router'
+
+// Enable SDK debug logging in dev so deposit/withdrawal internals are
+// visible. The SDK is silent by default in production builds.
+if (import.meta.env.DEV) {
+  setLoggerEnabled(true)
+}
+
+// Suppress React 19 forwardRef warning from cmdk/Radix UI libraries
+// TODO: Remove when libraries are updated for React 19 compatibility
+const originalError = console.error
+console.error = (...args) => {
+  if (args[0]?.includes?.('forwardRef render functions')) {
+    return
+  }
+  originalError.apply(console, args)
+}
 
 const container = document.querySelector('#app')
 if (container) {

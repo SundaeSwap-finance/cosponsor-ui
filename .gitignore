@@ -19,7 +19,8 @@
 
 # production
 /build
-/dist
+/target
+/cosponsor-ui-*.tar.gz
 
 # misc
 .DS_Store
@@ -46,3 +47,11 @@ next-env.d.ts
 
 # dev version of cosponsor-sdk
 /src/lib/cosponsor-sdk/
+
+# Root-level scratch/notes markdown files
+/*.md
+!DEPLOYMENT.md
+
+# Misc scratch files
+nul
+/tmp/

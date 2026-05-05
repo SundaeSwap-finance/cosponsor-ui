@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { IconCardano } from '@/icons/IconCardano'
-import { LayoutDashboard, LayoutGrid, PanelLeftClose } from 'lucide-react'
+import { HelpCircle, LayoutDashboard, LayoutGrid, PanelLeftClose } from 'lucide-react'
 import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { cn } from '@/lib/utils'
@@ -52,7 +52,7 @@ export const Sidebar = ({
               onClick={() => onNavigate?.()}
               label="Your Pledges"
               icon={<LayoutDashboard className="size-4" />}
-              path="/your"
+              path="/your-pledges"
               expanded={expanded}
             />
 
@@ -60,7 +60,15 @@ export const Sidebar = ({
               onClick={() => onNavigate?.()}
               label="All Proposals"
               icon={<LayoutGrid className="size-4 rotate-45" />}
-              path="/all"
+              path="/all-proposals"
+              expanded={expanded}
+            />
+
+            <ButtonSideNav
+              onClick={() => onNavigate?.()}
+              label="About"
+              icon={<HelpCircle className="size-4" />}
+              path="/about"
               expanded={expanded}
             />
           </div>

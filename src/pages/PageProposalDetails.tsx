@@ -45,7 +45,6 @@ export const PageProposalDetails = () => {
       }
       return countAmount + proposal.userPledged
     } else {
-      //console.warn('Could not find pledges')
       return proposal?.pledgedAmount ?? 0
     }
   }, [proposal])
@@ -67,13 +66,13 @@ export const PageProposalDetails = () => {
     if (isLoading) {
       return [
         { name: 'Overview', link: '/' },
-        { name: 'All Proposals', link: '/all' },
+        { name: 'All Proposals', link: '/all-proposals' },
       ]
     } else {
       const categoryLink = proposal?.categoryName.split(' ')[0].toLowerCase()
       return [
-        { name: 'Overview', link: '/all', ellipsis: !isLg },
-        { name: 'All Proposals', link: '/all' },
+        { name: 'Overview', link: '/all-proposals', ellipsis: !isLg },
+        { name: 'All Proposals', link: '/all-proposals' },
         {
           name: proposal?.categoryName ?? '',
           link: `/category/${categoryLink}`,
@@ -100,16 +99,16 @@ export const PageProposalDetails = () => {
     if (!proposal || isExpired) {
       return
     }
-    let timer: number | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
 
     const timeRemaining = proposal.expiryDate.getTime() - new Date().getTime()
 
     if (timeRemaining <= 0) {
       setIsExpired(true)
     } else if (timeRemaining < twoDayMilliseconds) {
-      timer = setTimeout((_remains) => {
+      timer = setTimeout(() => {
         setIsExpired(true)
-      }, timeRemaining) as unknown as number
+      }, timeRemaining)
     }
 
     return () => {
@@ -173,7 +172,7 @@ export const PageProposalDetails = () => {
         </div>
         <div className={'flex flex-row items-end gap-2'}>
           <Button variant="secondary" size="lg" asChild className={'sun-text-16-rg h-12 !px-6'}>
-            <Link to={'/all'}>
+            <Link to={'/all-proposals'}>
               <ChevronLeft />
               Back
             </Link>
@@ -182,6 +181,7 @@ export const PageProposalDetails = () => {
             <ButtonSponsor
               classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
               proposalId={proposal.id}
+              proposal={proposal}
               content={
                 <>
                   <Vote />
@@ -251,6 +251,7 @@ export const PageProposalDetails = () => {
             <CardUserPledgeSimple
               reqBudget={proposal.requestedBudget}
               userPledge={proposal.userPledged}
+              proposal={proposal}
             />
           ) : null}
           <div className={'flex flex-col gap-2'}>

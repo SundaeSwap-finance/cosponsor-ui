@@ -5,35 +5,40 @@ import { ModalSearchProposals } from '@/components/modals/searchProposals/ModalS
 import { Breadcrumbs, TBreadcrumbType } from '@/components/Breadcrumbs'
 import { ButtonProposalFilter } from '@/components/button/ButtonProposalFilter'
 import { Search, ChevronLeft } from 'lucide-react'
+import { IProposalFilters } from '@/types/IProposalFilters'
 
 export const SectionTitleProposalsView = ({
   title,
   subtitle,
   backButton,
   breadcrumbs,
+  onTypeFilter,
+  onFiltersChange,
 }: {
   title: string
   subtitle?: string
   backButton: boolean
   breadcrumbs?: TBreadcrumbType[]
+  onTypeFilter?: (filters: string[]) => void
+  onFiltersChange?: (filters: IProposalFilters) => void
 }) => {
   return (
-    <div className={'flex h-full w-full flex-col gap-6'}>
+    <div className={'flex h-full w-full flex-col gap-4'}>
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} />}
 
       <div
         className={cn(
-          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b md:pb-6 lg:flex-row',
+          'border-b-sun-border-secondary flex h-full w-full flex-col justify-between gap-4 border-b md:pb-4 lg:flex-row',
           'sun-page-padding-rb'
         )}
       >
-        <div className={'flex flex-col gap-4'}>
+        <div className={'flex flex-col gap-2'}>
           <h1 className={'text-sun-header sun-text-h2-md leading-12 capitalize'}>{title}</h1>
           <div className={'sun-text-14-rg text-sun-default'}>{subtitle}</div>
         </div>
 
         <div className={'flex w-full flex-col items-end gap-2 md:w-fit md:flex-row'}>
-          <ButtonProposalFilter />
+          <ButtonProposalFilter onTypeFilter={onTypeFilter} onFiltersChange={onFiltersChange} />
           <ModalSearchProposals
             modalTrigger={
               <Button variant="ghost" size="sm" className={'p-0 md:min-w-100'}>
@@ -54,7 +59,7 @@ export const SectionTitleProposalsView = ({
         <>
           {backButton && (
             <Button variant="secondary" size="lg" asChild className={'self-end'}>
-              <Link to={'/all'}>
+              <Link to={'/all-proposals'}>
                 <ChevronLeft />
                 Back
               </Link>

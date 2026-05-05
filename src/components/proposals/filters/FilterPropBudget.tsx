@@ -1,4 +1,4 @@
-import { Slider } from '../../shadcn/slider'
+import { Slider } from '@/components/shadcn/slider'
 import { useState } from 'react'
 import { Button } from '@/components/shadcn/button'
 

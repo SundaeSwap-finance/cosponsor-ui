@@ -12,31 +12,69 @@ import {
   FilterPropStatus,
   FilterPropType,
 } from '@/components/proposals/filters'
+import { IProposalFilters } from '@/types/IProposalFilters'
 
-// TODO hook up filter functionality after design review.
-export const ButtonProposalFilter = () => {
+export const ButtonProposalFilter = ({
+  onTypeFilter,
+  onFiltersChange,
+}: {
+  onTypeFilter?: (filters: string[]) => void
+  onFiltersChange?: (filters: IProposalFilters) => void
+}) => {
   const [filterView, setFilterView] = useState('')
+  const [currentFilters, setCurrentFilters] = useState<IProposalFilters>({})
 
   const isDefaultView = useMemo(() => filterView.length === 0, [filterView])
 
+  const updateFilters = (patch: Partial<IProposalFilters>) => {
+    const updated = { ...currentFilters, ...patch }
+    setCurrentFilters(updated)
+    onFiltersChange?.(updated)
+  }
+
   const filterComponents: { [key: string]: React.ReactNode } = {
     'Proposal Type': (
-      <FilterPropType applyFilter={(_filters) => console.warn('TODO: apply type filter')} />
+      <FilterPropType
+        applyFilter={(filters) =>
+          onTypeFilter?.(filters.filter((f): f is string => f !== undefined))
+        }
+      />
     ),
     Status: (
-      <FilterPropStatus applyFilter={(_filters) => console.warn('TODO: apply status filter')} />
+      <FilterPropStatus
+        applyFilter={(filters) =>
+          updateFilters({ status: filters.length > 0 ? filters : undefined })
+        }
+      />
     ),
     'Funding Progress': (
       <FilterPropFundProgress
-        applyFilter={(_filters) => console.warn('TODO: apply progress filter')}
+        applyFilter={(value) => {
+          const isDefault = value[0] === 0 && value[1] === 100
+          updateFilters({
+            fundProgress: isDefault ? undefined : (value as [number, number]),
+          })
+        }}
       />
     ),
     'Requested Budget': (
-      <FilterPropBudget applyFilter={(_filters) => console.warn('TODO: apply budget filter')} />
+      <FilterPropBudget
+        applyFilter={(value) => {
+          const isDefault = value[0] === 0 && value[1] === 100000
+          updateFilters({
+            budget: isDefault ? undefined : (value as [number, number]),
+          })
+        }}
+      />
     ),
     Expiration: (
       <FilterPropExpiration
-        applyFilter={(_filters) => console.warn('TODO: apply expiration filter')}
+        applyFilter={(dates) => {
+          const isDefault = !dates[0] && !dates[1]
+          updateFilters({
+            expiration: isDefault ? undefined : (dates as [Date | undefined, Date | undefined]),
+          })
+        }}
       />
     ),
     'Creator / dRep': <FilterPropCreator />,
