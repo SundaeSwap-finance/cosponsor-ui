@@ -16,7 +16,7 @@ phases:
     commands:
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - echo "NPM_AUTH_TOKEN=${NPM_TOKEN}" > ./.env
-      - npm install -g bun@1.2.0
+      - npm install -g bun@latest
 
   build:
     commands:

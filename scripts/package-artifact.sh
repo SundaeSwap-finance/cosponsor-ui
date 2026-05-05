@@ -2,6 +2,15 @@
 
 set -eu
 
+# Diagnostic: log container memory limits to confirm whether vite OOMs
+# are bounded by cgroup or by the JS engine's heap limit.
+echo "=== container memory ==="
+cat /sys/fs/cgroup/memory.max 2>/dev/null \
+  || cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null \
+  || echo "(no cgroup memory file found)"
+grep -E '^MemTotal|^MemAvailable' /proc/meminfo 2>/dev/null || true
+echo "========================"
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO="$(basename "${CODEBUILD_SRC_DIR:=${ROOT}}")"
 VERSION="${CODEBUILD_BUILD_NUMBER:=0}.$(echo "${CODEBUILD_RESOLVED_SOURCE_VERSION:=$(date +%Y%m%d%H%M%S)}" | cut -c1-7)"
