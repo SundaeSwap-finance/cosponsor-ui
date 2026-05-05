@@ -3,9 +3,9 @@ version: 0.2
 env:
   git-credential-helper: yes
   secrets-manager:
-    DEV_ACCESS_KEY_ID: "dev/user/codebuild:AWS_ACCESS_KEY_ID"
-    DEV_SECRET_ACCESS_KEY: "dev/user/codebuild:AWS_SECRET_ACCESS_KEY"
-    NPM_TOKEN: "NPM_TOKEN"
+    DEV_ACCESS_KEY_ID: 'dev/user/codebuild:AWS_ACCESS_KEY_ID'
+    DEV_SECRET_ACCESS_KEY: 'dev/user/codebuild:AWS_SECRET_ACCESS_KEY'
+    NPM_TOKEN: 'NPM_TOKEN'
   exported-variables:
     - VERSION
 
@@ -29,5 +29,5 @@ artifacts:
     - dist/**/*
     - buildspec.delegated.yml
     - target/resources.template
-    - "scripts/deploy-cloudfront.sh"
-    - "scripts/interpolate-index.sh"
+    - 'scripts/deploy-cloudfront.sh'
+    - 'scripts/interpolate-index.sh'
