@@ -1,5 +1,5 @@
 import { Core } from '@blaze-cardano/sdk'
-import { extractTransactionEffects, pendingUtxoTracker } from '@dezons/cosponsor-sdk/browser'
+import { extractTransactionEffects, pendingUtxoTracker } from '@sundaeswap/cosponsor-sdk/browser'
 import type { Cip30WalletApi } from '@cardano-sdk/dapp-connector'
 
 export interface ISignAndSubmitParams {

@@ -24,7 +24,7 @@ import {
   IWithdrawalPlan,
   browserWithdraw,
   createOgmiosEvaluator,
-} from '@dezons/cosponsor-sdk/browser'
+} from '@sundaeswap/cosponsor-sdk/browser'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 

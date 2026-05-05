@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
-import { setLoggerEnabled } from '@dezons/cosponsor-sdk'
+import { setLoggerEnabled } from '@sundaeswap/cosponsor-sdk'
 import './css/index.css'
 import { router } from '@/Router'
 

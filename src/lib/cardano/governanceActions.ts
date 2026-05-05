@@ -1,5 +1,5 @@
-import { GovernanceAction } from '@dezons/cosponsor-sdk/validators'
-import { parseAddressToCredential } from '@dezons/cosponsor-sdk/browser'
+import { GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
+import { parseAddressToCredential } from '@sundaeswap/cosponsor-sdk/browser'
 import { IProposalCardData } from '@/types/Proposal'
 
 // Map UI category names to valid Aiken governance action kinds

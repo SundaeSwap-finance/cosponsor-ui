@@ -8,9 +8,8 @@
 
 ## Build pipeline
 
-The SDK is published to npm as `@dezons/cosponsor-sdk` (currently
-`1.0.0-alpha.1` under the `alpha` dist-tag). The UI consumes it as a
-regular dependency — no local linking required.
+The SDK is published to npm as `@sundaeswap/cosponsor-sdk`. The UI
+consumes it as a regular dependency — no local linking required.
 
 ### 1. Install dependencies
 
@@ -19,8 +18,8 @@ cd cosponsor-ui
 bun install
 ```
 
-This pulls `@dezons/cosponsor-sdk@1.0.0-alpha.1` from the registry along
-with everything else.
+This pulls `@sundaeswap/cosponsor-sdk` from the registry along with
+everything else.
 
 ### 2. Configure environment
 
@@ -78,7 +77,7 @@ dependency for a path-based link:
 
 ```jsonc
 // cosponsor-ui/package.json
-"@dezons/cosponsor-sdk": "link:../cosponsor-contracts/offchain"
+"@sundaeswap/cosponsor-sdk": "link:../cosponsor-contracts/offchain"
 ```
 
 Then `bun install` and rebuild the SDK with `bun run build` (or
@@ -88,12 +87,8 @@ dependency before merging.
 
 ## Releasing a new SDK version
 
-From `cosponsor-contracts/offchain`:
-
-```bash
-# Bump version in package.json (e.g. 1.0.0-alpha.1 -> 1.0.0-alpha.2)
-npm publish --access public --tag alpha --otp <code>
-```
-
-`prepublishOnly` runs `clean && build` automatically. Then bump the UI's
+Bump `version` in `cosponsor-contracts/offchain/package.json` and push
+to `main` (or `catalyst/milestone-2`). The `CI/CD (Offchain)` workflow
+compares the local version against `npm view @sundaeswap/cosponsor-sdk
+version` and runs `npm publish` when they differ. Then bump the UI's
 `package.json` to the new version and `bun install`.

@@ -8,7 +8,7 @@ import {
   createBlazeWithBrowserWallet,
   fetchUserDeposits,
   IUserDeposit,
-} from '@dezons/cosponsor-sdk/browser'
+} from '@sundaeswap/cosponsor-sdk/browser'
 import {
   getAllProposalsAsCards,
   getProposalDetailsById as fetchProposalDetails,

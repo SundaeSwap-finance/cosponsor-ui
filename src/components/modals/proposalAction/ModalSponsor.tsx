@@ -20,8 +20,8 @@ import {
   browserDeposit,
   createBlazeWithBrowserWallet,
   createOgmiosEvaluator,
-} from '@dezons/cosponsor-sdk/browser'
-import { ICosponsoredProposal, GovernanceAction } from '@dezons/cosponsor-sdk/validators'
+} from '@sundaeswap/cosponsor-sdk/browser'
+import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
 import {
