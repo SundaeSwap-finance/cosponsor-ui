@@ -5,10 +5,10 @@ import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import {
-  createBlazeWithBrowserWallet,
   fetchUserDeposits,
   IUserDeposit,
 } from '@sundaeswap/cosponsor-sdk/browser'
+import { createConfiguredBlaze } from '@/lib/cardano/blaze'
 import {
   getAllProposalsAsCards,
   getProposalDetailsById as fetchProposalDetails,
@@ -102,7 +102,7 @@ export const useGetProposalData = () => {
       if (walletObserver.api) {
         try {
           requireConnectedWallet(walletObserver)
-          const blaze = await createBlazeWithBrowserWallet(walletObserver)
+          const blaze = await createConfiguredBlaze(walletObserver)
           const deposits = await fetchUserDeposits(blaze)
 
           // Find ALL deposits with matching proposal hash (user may have deposited multiple times)
@@ -180,7 +180,7 @@ export const useGetProposalData = () => {
 
       // Create Blaze instance with browser wallet
       requireConnectedWallet(walletObserver)
-      const blaze = await createBlazeWithBrowserWallet(walletObserver)
+      const blaze = await createConfiguredBlaze(walletObserver)
 
       // Fetch user's deposits from blockchain and GovTools proposals in parallel
       const [deposits, govToolsProposals] = await Promise.all([

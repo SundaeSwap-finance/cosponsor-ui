@@ -19,7 +19,6 @@ import { useNumberFormatter } from '@/composables/useNumberFormatter'
 import { maxDecimalsAda } from '@/config/config'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import {
-  createBlazeWithBrowserWallet,
   fetchWithdrawalPlan,
   IWithdrawalPlan,
   browserWithdraw,
@@ -32,8 +31,11 @@ import { Core } from '@blaze-cardano/sdk'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { logger } from '@/lib/logger'
 
-// Get Ogmios URL from environment for script evaluation (has mempool access)
-const OGMIOS_URL = import.meta.env.COSPONSOR_OGMIOS_URL as string | undefined
+import { config } from '@/lib/config'
+import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+
+// Get Ogmios URL from runtime config for script evaluation (has mempool access)
+const OGMIOS_URL = config.ogmiosUrl
 
 export const ModalWithdraw = ({
   modalTrigger,
@@ -68,7 +70,7 @@ export const ModalWithdraw = ({
         logger.debug('Building transaction preview to calculate fees...')
 
         requireConnectedWallet(walletObserver)
-        const blaze = await createBlazeWithBrowserWallet(walletObserver)
+        const blaze = await createConfiguredBlaze(walletObserver)
         const plan = await fetchWithdrawalPlan(blaze)
 
         if (plan.availableToWithdraw <= 0n) {
@@ -144,7 +146,7 @@ export const ModalWithdraw = ({
 
         // Create Blaze instance
         requireConnectedWallet(walletObserver)
-        const blaze = await createBlazeWithBrowserWallet(walletObserver)
+        const blaze = await createConfiguredBlaze(walletObserver)
 
         // Fetch withdrawal plan
         const plan = withdrawalPlan ?? (await fetchWithdrawalPlan(blaze))
