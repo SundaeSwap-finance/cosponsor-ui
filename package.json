@@ -19,6 +19,15 @@
     "@blaze-cardano/data": "^0.6.4",
     "@blaze-cardano/ogmios": "^0.0.7",
     "@blaze-cardano/sdk": "^0.2.43",
+    "@react-aria/button": "^3.14.0",
+    "@react-aria/calendar": "^3.9.0",
+    "@react-aria/datepicker": "^3.15.0",
+    "@react-aria/dialog": "^3.5.28",
+    "@react-aria/focus": "^3.21.0",
+    "@react-aria/overlays": "^3.28.0",
+    "@react-aria/utils": "^3.30.0",
+    "@react-stately/calendar": "^3.8.3",
+    "@react-stately/datepicker": "^3.15.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-popover": "^1.1.15",
@@ -63,8 +72,12 @@
     "vite": "^7.3.2",
     "vite-plugin-checker": "^0.9.1",
     "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-node-polyfills": "^0.23.0",
+    "vite-plugin-node-polyfills": "0.23.0",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
+  },
+  "overrides": {
+    "libsodium-wrappers-sumo": "0.7.15",
+    "libsodium-sumo": "0.7.15"
   }
 }
