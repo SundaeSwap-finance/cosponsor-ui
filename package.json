@@ -15,7 +15,7 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
-    "@blaze-cardano/core": "^0.7.0",
+    "@blaze-cardano/core": "^0.8.0",
     "@blaze-cardano/data": "^0.6.4",
     "@blaze-cardano/ogmios": "^0.0.7",
     "@blaze-cardano/sdk": "^0.2.43",
@@ -75,8 +75,14 @@
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
   },
+  "//overrides": {
+    "@blaze-cardano/core": "Collapse duplicate copies (0.7.x vs 0.8.0). cosponsor-sdk@0.0.1 still declares ^0.7.0 and its nested @blaze-cardano/uplc@0.3.9 pins 0.7.0 exactly, so without this pin Bun keeps a 0.7.x subtree. Duplicate Core.Transaction prototypes are what surfaces as `a.toCore is not a function` at runtime.",
+    "@cardano-sdk/core": "Collapse duplicate copies (0.45.0 vs 0.46.12). wallet-lite peer-deps 0.45.0 exactly while dapp-connector wants ~0.46.12 — semver-incompatible. Without this override, two TransactionUnspentOutput prototypes coexist and CIP-30 plumbing breaks."
+  },
   "overrides": {
     "libsodium-wrappers-sumo": "0.7.15",
-    "libsodium-sumo": "0.7.15"
+    "libsodium-sumo": "0.7.15",
+    "@blaze-cardano/core": "0.8.0",
+    "@cardano-sdk/core": "0.46.12"
   }
 }
