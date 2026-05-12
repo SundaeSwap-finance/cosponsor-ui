@@ -1,4 +1,10 @@
 
+[install]
+# Refuse to install packages published less than 7 days ago, reducing the
+# blast radius if a maintainer account is briefly compromised and a malicious
+# release is yanked within the typical detection window.
+minimumReleaseAge = 604800
+
 [serve.static]
 plugins = ["bun-plugin-tailwind"]
 env = "BUN_PUBLIC_*"
