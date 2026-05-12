@@ -80,8 +80,6 @@
     "@cardano-sdk/core": "Collapse duplicate copies (0.45.0 vs 0.46.12). wallet-lite peer-deps 0.45.0 exactly while dapp-connector wants ~0.46.12 — semver-incompatible. Without this override, two TransactionUnspentOutput prototypes coexist and CIP-30 plumbing breaks."
   },
   "overrides": {
-    "libsodium-wrappers-sumo": "0.7.15",
-    "libsodium-sumo": "0.7.15",
     "@blaze-cardano/core": "0.8.0",
     "@cardano-sdk/core": "0.46.12"
   }
