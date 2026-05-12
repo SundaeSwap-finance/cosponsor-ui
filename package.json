@@ -19,6 +19,7 @@
     "@blaze-cardano/data": "^0.6.4",
     "@blaze-cardano/ogmios": "^0.0.7",
     "@blaze-cardano/sdk": "^0.2.43",
+    "@cardano-sdk/dapp-connector": "^0.13.26",
     "@react-aria/button": "^3.14.0",
     "@react-aria/calendar": "^3.9.0",
     "@react-aria/datepicker": "^3.15.0",
@@ -36,9 +37,12 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@sundaeswap/asset": "^1.0.11",
     "@sundaeswap/cosponsor-sdk": "^0.0.1",
+    "@sundaeswap/react-hooks": "^2.0.9",
     "@sundaeswap/ui-toolkit": "^2.3.6",
     "@sundaeswap/wallet-lite": "^0.0.92",
+    "@tanstack/react-query": "^5.100.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -76,11 +80,13 @@
     "vite-plugin-wasm": "^3.5.0"
   },
   "//overrides": {
-    "@blaze-cardano/core": "Collapse duplicate copies (0.7.x vs 0.8.0). cosponsor-sdk@0.0.1 still declares ^0.7.0 and its nested @blaze-cardano/uplc@0.3.9 pins 0.7.0 exactly, so without this pin Bun keeps a 0.7.x subtree. Duplicate Core.Transaction prototypes are what surfaces as `a.toCore is not a function` at runtime.",
+    "@blaze-cardano/core": "Collapse duplicate copies (0.7.x vs 0.8.0). cosponsor-sdk@0.0.1 still declares ^0.7.0, so without this pin Bun keeps a 0.7.x subtree. Duplicate Core.Transaction prototypes surface as `*.toCore is not a function` at runtime.",
+    "@blaze-cardano/uplc": "Same problem one level deeper: cosponsor-sdk@0.0.1 pins ^0.3.2 (resolves to 0.3.9, which exact-pins @blaze-cardano/core 0.7.0). The blaze-cardano/core override alone does NOT cascade into a nested-version subtree, so we also force uplc itself to 0.4.3 (the version built against core 0.8.0). Symptom this fixes: `address.toCore is not a function` when calling browserDeposit's txBuilder.complete().",
     "@cardano-sdk/core": "Collapse duplicate copies (0.45.0 vs 0.46.12). wallet-lite peer-deps 0.45.0 exactly while dapp-connector wants ~0.46.12 — semver-incompatible. Without this override, two TransactionUnspentOutput prototypes coexist and CIP-30 plumbing breaks."
   },
   "overrides": {
     "@blaze-cardano/core": "0.8.0",
+    "@blaze-cardano/uplc": "0.4.3",
     "@cardano-sdk/core": "0.46.12"
   }
 }
