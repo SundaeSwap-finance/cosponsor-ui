@@ -88,6 +88,12 @@
     @apply bg-background text-foreground;
   }
 
+  /* Lock the app scroll container while any Radix dialog is open so
+     keyboard/wheel events inside the modal can't scroll the page behind it. */
+  html:has([data-slot='dialog-content'][data-state='open']) [data-app-scroll] {
+    overflow: hidden;
+  }
+
   .sun-page-padding-t {
     @apply pt-4 lg:pt-8 xl:pt-16;
   }

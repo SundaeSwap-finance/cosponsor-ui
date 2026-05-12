@@ -14,7 +14,7 @@ export const App = () => {
       <Providers>
         <div className={`flex min-h-screen w-full flex-col md:flex-row`}>
           {isMd ? <Sidebar /> : <Header />}
-          <div className="flex h-screen w-full overflow-y-auto">
+          <div data-app-scroll className="flex h-screen w-full overflow-y-auto">
             <div className="w-full">
               <div className="sun-page-padding-t sun-page-padding-b sun-page-padding-l flex w-full">
                 <ErrorBoundary>
