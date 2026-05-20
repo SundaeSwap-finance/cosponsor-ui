@@ -10,7 +10,10 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const env = process.env.ENV || process.env.COSPONSOR_APP_ENV || 'dev'
+// Note: not honoring $ENV here on purpose — under `bash -l` (which Nixpacks
+// uses for build steps), $ENV defaults to /etc/profile, which would resolve
+// to config//etc/profile.json. Use APP_ENV / COSPONSOR_APP_ENV instead.
+const env = process.env.APP_ENV || process.env.COSPONSOR_APP_ENV || 'dev'
 const version = process.env.VERSION || ''
 const indexFile = process.argv[2] || `${root}/dist/index.html`
 const archiveFile = process.argv[3] || (version ? `${root}/dist/${version}.html` : null)
