@@ -6,7 +6,7 @@
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "scripts": {
-    "build": "bun vite build",
+    "build": "bun vite build && bun scripts/interpolate-index.mjs",
     "dev": "bun vite dev",
     "dev:preview": "COSPONSOR_APP_ENV=preview bun dev",
     "preview": "bun vite preview",
