@@ -82,6 +82,11 @@
  */
 
 import { Blockfrost, Core } from '@blaze-cardano/sdk'
+// Direct import so we patch the exact function reference @blaze-cardano/tx
+// and @blaze-cardano/wallet import internally, not the re-exported namespace
+// binding from @blaze-cardano/sdk (which can be a separate reference under
+// Vite's bundling).
+import { Hash28ByteBase16 as Hash28ByteBase16Direct } from '@blaze-cardano/core'
 
 // ---------------------------------------------------------------------------
 // Bug 2 fallback: Address.prototype.toJSON
@@ -90,10 +95,11 @@ import { Blockfrost, Core } from '@blaze-cardano/sdk'
 // emits something useful instead of `{}`. The main fix is the explicit
 // .toBech32() call in the request body below.
 if (!('toJSON' in Core.Address.prototype)) {
-  ;(Core.Address.prototype as unknown as { toJSON: () => string }).toJSON =
-    function (this: Core.Address) {
-      return this.toBech32()
-    }
+  ;(Core.Address.prototype as unknown as { toJSON: () => string }).toJSON = function (
+    this: Core.Address
+  ) {
+    return this.toBech32()
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -114,13 +120,21 @@ if (!('toJSON' in Core.Address.prototype)) {
 // conversion is identity at runtime — just re-validate via the existing
 // callable. Same module instance is reached from tx/wallet thanks to the
 // `@blaze-cardano/core` override, so a single mutation suffices.
-const hashCallable = Core.Hash28ByteBase16 as unknown as {
+const hashCallable = Hash28ByteBase16Direct as unknown as {
   (value: string): string
   fromEd25519KeyHashHex?: (value: string) => string
 }
 if (!hashCallable.fromEd25519KeyHashHex) {
   hashCallable.fromEd25519KeyHashHex = (value: string) => hashCallable(value)
 }
+// Diagnostic: confirm at startup that the patch landed and that the
+// reference we patched matches what Core re-exports. If these diverge,
+// the patch was applied to the wrong binding.
+// eslint-disable-next-line no-console
+console.info('[blaze-patches] Hash28ByteBase16 shim installed', {
+  patched: typeof hashCallable.fromEd25519KeyHashHex === 'function',
+  sameAsCoreNamespace: hashCallable === (Core.Hash28ByteBase16 as unknown),
+})
 
 // ---------------------------------------------------------------------------
 // Script ref serializer for Ogmios v6.
@@ -130,9 +144,7 @@ if (!hashCallable.fromEd25519KeyHashHex) {
 // raw bytecode). Blaze's `script.asPlutusV3().rawBytes()` returns exactly
 // that single-wrapped form, so we pass it through unchanged. (Blaze's
 // `toCbor()` would double-wrap.)
-function serializeScriptRef(
-  script: Core.Script
-): { language: string; cbor: string } | undefined {
+function serializeScriptRef(script: Core.Script): { language: string; cbor: string } | undefined {
   const v3 = script.asPlutusV3()
   if (v3) return { language: 'plutus:v3', cbor: v3.rawBytes() }
   const v2 = script.asPlutusV2()
@@ -155,6 +167,17 @@ const purposeToTag: Record<string, number> = {
   withdraw: 3,
   vote: 4,
   propose: 5,
+}
+
+// /utils/txs/evaluate (v6) accepts raw CBOR bytes. Blaze's tx.toCbor() returns
+// a hex string; convert to a Uint8Array for the fetch body.
+function hexToBytes(hex: string): Uint8Array {
+  const clean = hex.startsWith('0x') ? hex.slice(2) : hex
+  const out = new Uint8Array(clean.length / 2)
+  for (let i = 0; i < out.length; i++) {
+    out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16)
+  }
+  return out
 }
 
 // ---------------------------------------------------------------------------
@@ -230,21 +253,44 @@ proto.evaluateTransaction = async function (
     additionalUtxoSet.push([txIn, txOut])
   }
 
-  const payload = {
-    cbor: tx.toCbor(),
-    // Bug 1 fix: capital 'S' per Blockfrost OpenAPI spec.
-    additionalUtxoSet,
+  // Bug 6 (Blockfrost-side): the /utils/txs/evaluate/utxos endpoint ignores
+  // ?version=6 and always responds with Ogmios v5 jsonwsp — which can't
+  // decode Conway-era CBOR (tag 258 in required_signers / set encodings),
+  // failing with "Invalid request: failed to decode payload from base64 or
+  // base16." Verified 2026-05-20 against cardano-preview.
+  //
+  // The simpler /utils/txs/evaluate endpoint DOES honor ?version=6 and
+  // returns proper JSON-RPC v6 responses. It accepts raw CBOR bytes
+  // (application/cbor) and has no additionalUtxoSet support.
+  //
+  // Trade-off: we always use /evaluate, dropping additionalUtxos entirely.
+  // Blaze tends to pass selected inputs as additionalUtxos defensively even
+  // when they're already on-chain. For all our flows the UTxOs are on-chain
+  // (deposits resolved minutes-old, script ref well-anchored), so Blockfrost's
+  // indexer should have them. If a flow ever needs to evaluate against
+  // unindexed UTxOs we'll need a different evaluator (Ogmios direct).
+  //
+  // Also: this.url may have a trailing slash. Normalize before concat to
+  // avoid the //utils path that Blockfrost sometimes redirects oddly.
+  const baseUrl = this.url.replace(/\/+$/, '')
+  const evalUrl = `${baseUrl}/utils/txs/evaluate?version=6`
+
+  if (additionalUtxoSet.length > 0) {
+    console.warn(
+      `[blaze-patches] evaluateTransaction: dropping ${additionalUtxoSet.length} ` +
+        'additionalUtxos. Tx chaining against unconfirmed outputs will fail until ' +
+        'they are indexed by Blockfrost.'
+    )
   }
 
-  // Bug 5 fix: ?version=6 routes to Ogmios v6, which understands Conway.
-  const response = await fetch(`${this.url}/utils/txs/evaluate/utxos?version=6`, {
+  const response = await fetch(evalUrl, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/cbor',
       Accept: 'application/json',
       ...this.headers(),
     },
-    body: JSON.stringify(payload),
+    body: hexToBytes(tx.toCbor()),
   })
 
   if (!response.ok) {
@@ -259,15 +305,17 @@ proto.evaluateTransaction = async function (
   // -----------------------------------------------------------------------
   const json = (await response.json()) as OgmiosV6Response
 
+  // eslint-disable-next-line no-console
+  console.info('[blaze-patches] evaluateTransaction raw response', json)
+
   if (json.error) {
     throw new Error(
       `evaluateTransaction: Ogmios v6 error ${json.error.code}: ${json.error.message}`
     )
   }
   if (!json.result || !Array.isArray(json.result)) {
-    throw new Error(
-      'evaluateTransaction: Blockfrost endpoint returned no EvaluationResult.'
-    )
+    console.error('[blaze-patches] unexpected response shape', JSON.stringify(json, null, 2))
+    throw new Error('evaluateTransaction: Blockfrost endpoint returned no EvaluationResult.')
   }
 
   const evaledRedeemers = new Set<Core.Redeemer>()
@@ -279,18 +327,12 @@ proto.evaluateTransaction = async function (
       // v6's redeemer budget uses `cpu`; Blaze's ExUnits.fromCore takes `steps`.
       steps: item.budget.cpu,
     })
-    const redeemer = currentRedeemers.find(
-      (x) => x.tag() === purpose && x.index() === index
-    )
+    const redeemer = currentRedeemers.find((x) => x.tag() === purpose && x.index() === index)
     if (!redeemer) {
-      throw new Error(
-        'evaluateTransaction: Blockfrost endpoint had extraneous redeemer data'
-      )
+      throw new Error('evaluateTransaction: Blockfrost endpoint had extraneous redeemer data')
     }
     redeemer.setExUnits(exUnits)
     evaledRedeemers.add(redeemer)
   }
-  return Core.Redeemers.fromCore(
-    Array.from(evaledRedeemers).map((x) => x.toCore())
-  )
+  return Core.Redeemers.fromCore(Array.from(evaledRedeemers).map((x) => x.toCore()))
 }
