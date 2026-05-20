@@ -35,7 +35,7 @@ export const CardUserPledgeSimple = ({
             ₳{formatNumber(userPledge ?? -1, maxDecimalsAda)}
           </div>
         </div>
-        <ButtonWithdraw proposal={proposal} content="Withdraw Pledge" classButton="" />
+        <ButtonWithdraw proposal={proposal} content="Withdraw Pledge" classButton="w-auto" />
       </div>
       <div className={'flex w-full flex-row items-center gap-2'}>
         <ProgressMulti
