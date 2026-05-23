@@ -1,6 +1,6 @@
 # Cosponsor UI - TODO & Issues
 
-Last updated: 2026-05-20
+Last updated: 2026-05-21
 
 ---
 
@@ -68,6 +68,116 @@ integration). Post-feedback engineering work also landed:
 - UI switched from local link to npm dependency
 - Aiken token-addition guard implemented; deployment deferred to M3 (see
   `aiken/token-guard-m3` branch in cosponsor-contracts)
+
+## 🧪 Open Feedback — Pi review 2026-05-20
+
+Captured from Discord thread with Pi after the deploy went live at
+https://cosponsor.preview.sundae.fi/all-proposals. Not blocking M2
+submission per agreement, but to address before/during M3.
+
+### Bugs
+
+- [ ] **Number input renders a leading `0`** when typing into the
+      amount field (screenshot in thread). Trim or use a controlled
+      input that normalises on change.
+- [ ] **"Your Pledges" → Sponsor button sponsors the wrong proposal.**
+      Clicking "Sponsor" on an already-sponsored card in the Your
+      Pledges tab ended up sponsoring a different proposal entirely.
+      Likely a key/index mix-up between the list and the click handler.
+- [ ] **Sponsor flow always creates a new proposal entry instead of
+      adding to the existing one.** Used to group by proposal hash and
+      bulk-withdraw — broke at some point, need to find when.
+- [ ] **Sponsor attempt returned a Blockfrost evaluate error** ("script
+      explicitly error'd" / unknown UTxOs). Same family as the withdraw
+      Conway-CBOR issue — see the Blockfrost v6-routing summary below.
+      Pi's read: the failure mode is "tx error'd" not "utxo missing",
+      so worth re-checking whether the v6/v5 mismatch is what's biting
+      this path too.
+- [ ] **Datum contains a hardcoded URL placeholder.** Pi's concern:
+      "why is there a URL in the datum at all" + suspects something
+      may be double-hashing. Current value is a placeholder because
+      GovTools BE isn't lined up yet — needs a real anchor source or
+      explicit nullable handling.
+
+### UX improvements
+
+- [ ] **"Your Pledges" cards should have an inline Withdraw button.**
+      Right now users have to click into the proposal first.
+- [ ] **Group deposits per proposal in the listing.** Used to work
+      (bulk-withdraw); regression.
+
+### Open questions
+
+- [ ] Are treasury withdrawals 50k ADA deposit on preview? (Pi asked,
+      not yet answered — confirm the on-chain parameter and reflect it
+      in the UI's min-pledge / suggested-amount copy if relevant.)
+- [ ] `NicePoll` label — Mark identified this as the Info Action
+      proposal-type from the GovTools mock data. Confirm the mapping
+      and either rename for users or surface the real type once the
+      GovTools BE is wired.
+- [ ] Governance-action submission flow — not part of M2 scope (Pi
+      confirmed) but flagged for M3.
+
+### Catalyst submission
+
+- [ ] Confirm with Jenisis whether processing the above is a blocker
+      for M2 submission (Mark's read: shouldn't be — feedback handling
+      is "process feedback and go make improvements", not part of M2
+      acceptance criteria). Awaiting answer.
+
+### SDK bug — NewConstitution datum serialization
+
+Report to Pi. `fetchUserDeposits` / `fetchWithdrawalPlan` throw when
+processing any UTxO with a `NewConstitution` governance action:
+
+```
+Failed to serialize: Invalid object at root.procedure.governanceAction.NewConstitution.constitution:
+Enum variant must have a constructor index
+```
+
+The SDK then falls back to the **first UTxO's anchor URL** when reading
+back the user's gADA tokens, so a NewConstitution deposit silently
+shows up labelled as some other proposal (whichever URL happened to be
+first in the list). On preview 2026-05-22 the user's 5,000 tADA NC
+deposit appeared as Info Action because of this.
+
+UI workaround in place (2026-05-22): grouping by `tokenAssetName`
+instead of recovered URL id so misattributed deposits stay separate.
+Once the SDK fixes the serializer the grouping can return to URL-based
+for cross-procedure aggregation if desired.
+
+### Cosponsor proposal identity (Stage 2)
+
+`ModalSponsor.tsx` Stage 1 fix (2026-05-22): `cosponsoredProposal.deposit` now uses the gov_action_deposit (constant per network) instead of the user's pledge. Result: multiple deposits on the same proposal hash to the same on-chain token / aggregate properly in Your Pledges.
+
+What's still broken: the URL id (`/proposal/<id>`) doesn't match the on-chain proposal hash, so navigating directly to a proposal page can't show the deposits.
+
+The on-chain hash = `cosponsoredProposalProcedureData.hash()` over a PlutusData structure containing `{deposit, returnAddress, action, anchor}`. To make URL ids match:
+
+- [ ] **Preferred**: ask Pi to expose `computeProposalHash(cosponsoredProposal): string` as public API from `@sundaeswap/cosponsor-sdk`. Then UI calls it at proposal-construction time (mock factory + GovTools transform) and uses the result as `proposal.id`.
+- [ ] **Fallback**: reimplement the construction in the UI using Blaze's PlutusData primitives (mirror `buildCosponsoredProposalProcedureAsPlutusData` plus the 7 `build*AsPlutusData` action serializers in `@sundaeswap/cosponsor-sdk/dist/GovernanceAction-*.mjs`). ~80 lines, must stay in sync with SDK.
+
+Once that lands: `getMockProposal` and `transformToProposalCard` both call the hash function and set `proposal.id = computedHash`; `/proposal/<id>` routes to a stable identity that matches what ends up on-chain.
+
+### SDK dependency bump (for `@sundaeswap/cosponsor-sdk`)
+
+Pi to update the SDK's `package.json` to the internally-consistent
+Blaze 0.8.0 stack so the UI can drop the override stack:
+
+```jsonc
+"dependencies": {
+  "@blaze-cardano/core": "^0.8.0",
+  "@blaze-cardano/data": "^0.6.6",
+  "@blaze-cardano/ogmios": "^0.0.7",
+  "@blaze-cardano/sdk": "^0.2.48",
+  "@blaze-cardano/uplc": "^0.4.3"
+}
+```
+
+Already messaged in the same thread; rationale lives in the Tech Debt
+section below.
+
+---
 
 ### Milestone 3: Public Launch & Open Testing (see milestones/m3.md)
 - Cosponsor validator redeploy (token-addition guard) + mainnet deployment
