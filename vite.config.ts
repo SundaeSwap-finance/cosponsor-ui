@@ -66,6 +66,15 @@ export default defineConfig({
       'node:stream/web': 'stream-browserify',
       'stream/web': 'stream-browserify',
       ws: path.resolve(__dirname, './src/shims/ws.ts'),
+      // The linked @sundaeswap/cosponsor-sdk imports
+      // `@scure/bip39/wordlists/english.js` with an explicit `.js` extension,
+      // but @scure/bip39@1.5.4 only exposes `./wordlists/english` in its
+      // exports map — so subpath resolution rejects the `.js` form. Map it
+      // directly to the ESM file on disk until the SDK drops the extension.
+      '@scure/bip39/wordlists/english.js': path.resolve(
+        __dirname,
+        'node_modules/@scure/bip39/esm/wordlists/english.js'
+      ),
       '@': path.resolve(__dirname, './src'),
       // "@emurgo/cardano-message-signing-nodejs":
       //   "@emurgo/cardano-message-signing-browser",
