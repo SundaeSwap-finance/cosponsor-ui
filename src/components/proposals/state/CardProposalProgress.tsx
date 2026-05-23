@@ -4,33 +4,33 @@ import { useNumberFormatter } from '@/composables/useNumberFormatter'
 
 export const CardProposalProgress = ({
   fundProgress,
-  reqBudget,
+  cosponsorTarget,
 }: {
   fundProgress: number | undefined
-  reqBudget: number | undefined
+  cosponsorTarget: number | undefined
 }) => {
   const { formatNumber } = useNumberFormatter()
 
   const calculatePercent = () => {
-    if (fundProgress && reqBudget) {
-      return Math.round((fundProgress / reqBudget) * 100)
+    if (fundProgress && cosponsorTarget) {
+      return Math.round((fundProgress / cosponsorTarget) * 100)
     }
-    return -1
+    return 0
   }
 
   return (
     <div className={'border-sun-border-primary flex w-full flex-col gap-2 rounded-lg border p-4'}>
       <div className={'flex w-full flex-row items-start justify-between'}>
         <div className={'flex w-full flex-col gap-0.5'}>
-          <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Funding Progress</div>
+          <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Cosponsored</div>
           <div className={'sun-text-20-sb text-sun-header text-nowrap'}>
-            ₳{formatNumber(fundProgress ?? -1, maxDecimalsAda)}
+            ₳{formatNumber(fundProgress ?? 0, maxDecimalsAda)}
           </div>
         </div>
         <div className={'flex w-full flex-col justify-end gap-0.5 text-right'}>
-          <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Requested Budget</div>
+          <div className={'sun-text-12-md text-sun-muted text-nowrap'}>Cosponsor Target</div>
           <div className={'sun-text-14-sb text-sun-header text-nowrap'}>
-            ₳{formatNumber(reqBudget ?? -1, maxDecimalsAda)}
+            ₳{formatNumber(cosponsorTarget ?? 0, maxDecimalsAda)}
           </div>
         </div>
       </div>

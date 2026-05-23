@@ -5,21 +5,21 @@ import { ButtonWithdraw } from '@/components/button/ButtonWithdraw'
 import { IProposalCardData } from '@/types/Proposal'
 
 export const CardUserPledgeSimple = ({
-  reqBudget,
+  cosponsorTarget,
   userPledge,
   proposal,
 }: {
-  reqBudget: number | undefined
+  cosponsorTarget: number | undefined
   userPledge: number | undefined
   proposal: IProposalCardData
 }) => {
   const { formatNumber } = useNumberFormatter()
 
   const calculatePercent = () => {
-    if (userPledge && reqBudget) {
-      return Math.round((userPledge / reqBudget) * 100)
+    if (userPledge && cosponsorTarget) {
+      return Math.round((userPledge / cosponsorTarget) * 100)
     }
-    return -1
+    return 0
   }
 
   return (
@@ -32,7 +32,7 @@ export const CardUserPledgeSimple = ({
               'sun-text-24-sb to-sun-highlight-secondary from-sun-highlight-primary bg-gradient-to-r bg-clip-text text-nowrap text-transparent'
             }
           >
-            ₳{formatNumber(userPledge ?? -1, maxDecimalsAda)}
+            ₳{formatNumber(userPledge ?? 0, maxDecimalsAda)}
           </div>
         </div>
         <ButtonWithdraw proposal={proposal} content="Withdraw Pledge" classButton="w-auto" />

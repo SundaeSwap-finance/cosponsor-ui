@@ -15,7 +15,7 @@ export const ProposalStatusCardBase = ({
   } else if (proposal && proposal?.userPledged) {
     return (
       <CardProposalUserPledged
-        reqBudget={proposal?.requestedBudget}
+        cosponsorTarget={proposal?.cosponsorTarget}
         userPledge={proposal?.userPledged}
       />
     )
@@ -23,7 +23,7 @@ export const ProposalStatusCardBase = ({
     return (
       <CardProposalProgress
         fundProgress={proposal?.pledgedAmount}
-        reqBudget={proposal?.requestedBudget}
+        cosponsorTarget={proposal?.cosponsorTarget}
       />
     )
   } else {

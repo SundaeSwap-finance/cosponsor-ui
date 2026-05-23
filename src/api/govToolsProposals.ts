@@ -8,6 +8,7 @@
 import { govToolsApi } from '@/api/govToolsApi'
 import { IGovToolsProposal, TGovToolsProposalsListResponse } from '@/types/GovToolsApi'
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
+import { getCachedGovActionDepositAda } from '@/composables/useGovActionDeposit'
 import { logger } from '@/lib/logger'
 
 // Import backup data as fallback
@@ -151,33 +152,26 @@ export const fetchProposalsPage = async (
 
 /**
  * Get proposals by category with client-side pagination
- * Fetches all proposals once (cached), then paginates the filtered results
- * Injects a mock proposal at the start for testing
+ * Fetches all proposals once (cached, mocks injected by getAllProposalsAsCards),
+ * then paginates the filtered results.
  */
 export const getProposalsByCategoryPaginated = async (
   categoryName: string,
   start: number = 0,
   limit: number = DEFAULT_PAGE_SIZE
 ): Promise<IPaginatedProposals> => {
-  // Get all proposals (uses cache after first call)
   const allProposals = await getAllProposalsAsCards()
 
-  // Filter by category
   const filtered = allProposals.filter(
     (p) => p.categoryName.toLowerCase() === categoryName.toLowerCase()
   )
 
-  // Inject mock proposal at the start for testing
-  const mockProposal = createMockProposal(categoryName)
-  const withMock = [mockProposal, ...filtered]
-
-  // Paginate the filtered results (including mock)
-  const paginatedProposals = withMock.slice(start, start + limit)
+  const paginatedProposals = filtered.slice(start, start + limit)
 
   return {
     proposals: paginatedProposals,
-    hasMore: start + limit < withMock.length,
-    total: withMock.length,
+    hasMore: start + limit < filtered.length,
+    total: filtered.length,
     nextStart: start + limit,
   }
 }
@@ -233,6 +227,10 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
     ownerName: attrs.user_govtool_username || 'Anonymous',
     // CoSponsor-specific fields (not in GovTools)
     requestedBudget: 0, // Will be populated from CoSponsor backend
+    // Live Conway gov_action_deposit (what cosponsors crowdfund toward).
+    // Filled in by useGetProposalData when the hook value lands; default
+    // here is undefined so the progress UI hides until it's known.
+    cosponsorTarget: getCachedGovActionDepositAda() ?? undefined,
     pledgedAmount: 0, // Will be populated from CoSponsor backend
     userPledged: 0, // Will be populated from wallet data
     initDate: createdDate,
@@ -272,19 +270,39 @@ export const transformToProposalDetails = (
 }
 
 /**
- * Get all proposals as CoSponsor card format
+ * Categories that get an injected mock proposal for testing. Pre-production
+ * scaffolding — remove `MOCK_CATEGORIES` and the spread in
+ * `getAllProposalsAsCards` once the GovTools BE is live and we no longer
+ * need synthetic proposals to exercise the deposit/withdraw flows.
+ */
+const MOCK_CATEGORIES = [
+  'Info Action',
+  'Treasury Withdrawal',
+  'Protocol Parameters',
+  'Hard Fork',
+  'No Confidence',
+  'Constitutional Committee',
+  'New Constitution',
+]
+
+/**
+ * Get all proposals as CoSponsor card format. This is the canonical list:
+ * any consumer that needs to look up a proposal by id (URL routing, on-chain
+ * deposit → proposal matching, etc.) should go through here so the lookup is
+ * sound and not duplicated across call sites.
  */
 export const getAllProposalsAsCards = async (): Promise<IProposalCardData[]> => {
+  const mockCards = MOCK_CATEGORIES.map((cat) => createMockProposal(cat))
+
   try {
     const govProposals = await fetchAllGovToolsProposals()
-
-    // Filter out drafts and transform
-    return govProposals
+    const realCards = govProposals
       .filter((p) => !p.attributes.content?.attributes?.is_draft)
       .map(transformToProposalCard)
+    return [...mockCards, ...realCards]
   } catch (error) {
     console.error('Failed to get proposals:', error)
-    return []
+    return mockCards
   }
 }
 
@@ -311,7 +329,7 @@ const getMockProposalId = (categoryName: string): string => {
  * Create a mock proposal for any category
  * Includes test data appropriate for each governance action type
  */
-const createMockProposal = (categoryName: string): IProposalCardData => {
+export const createMockProposal = (categoryName: string): IProposalCardData => {
   const normalizedCategory = categoryName.toLowerCase()
 
   // Check category types
@@ -330,6 +348,11 @@ const createMockProposal = (categoryName: string): IProposalCardData => {
     ownerId: 'test-owner-123',
     ownerName: 'Test User',
     requestedBudget: 50000,
+    // Surface the live Conway gov_action_deposit if it's been fetched. This
+    // is what cosponsors are crowdfunding toward; useGovActionDeposit loads it
+    // at app start. Falls back to undefined (UI will hide the progress bar)
+    // when the param hasn't resolved yet.
+    cosponsorTarget: getCachedGovActionDepositAda() ?? undefined,
     pledgedAmount: 0,
     userPledged: 0,
     initDate: new Date(),
@@ -375,14 +398,14 @@ const createMockProposal = (categoryName: string): IProposalCardData => {
 /**
  * Check if an ID is a mock proposal ID
  */
-const isMockProposalId = (id: string): boolean => {
+export const isMockProposalId = (id: string): boolean => {
   return id.startsWith(MOCK_PROPOSAL_ID_PREFIX)
 }
 
 /**
  * Extract category name from mock proposal ID (reverse lookup)
  */
-const getCategoryFromMockId = (id: string): string | null => {
+export const getCategoryFromMockId = (id: string): string | null => {
   // For known categories, check which one matches the ID
   const categories = [
     'Info Action',
@@ -402,23 +425,32 @@ const getCategoryFromMockId = (id: string): string | null => {
 }
 
 /**
- * Get proposal details by ID
+ * Get proposal details by ID. Looks up via the unified proposal list first
+ * (so mocks and GovTools entries go through the same code path); falls back
+ * to a fresh GovTools fetch if the id isn't in the list (e.g. very new
+ * proposal not yet in the cache).
  */
 export const getProposalDetailsById = async (id: string): Promise<IProposalDetailsData | null> => {
-  // Handle mock proposals (any category)
-  if (isMockProposalId(id)) {
-    const categoryName = getCategoryFromMockId(id)
-    const mockProposal = createMockProposal(categoryName || 'Info Action')
-    return {
-      ...mockProposal,
-      companyCountry: 'Testland',
-      motivation: `This mock ${categoryName} proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.`,
-      rationale:
-        'Testing is essential to ensure the platform works correctly before mainnet launch.',
-      govActionId: id,
-      cip129ActionId: id,
-      pledges: [], // On-chain pledges will be fetched separately
+  const allProposals = await getAllProposalsAsCards()
+  const card = allProposals.find((p) => p.id === id)
+
+  if (card) {
+    if (isMockProposalId(id)) {
+      const categoryName = getCategoryFromMockId(id)
+      return {
+        ...card,
+        companyCountry: 'Testland',
+        motivation: `This mock ${categoryName} proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.`,
+        rationale:
+          'Testing is essential to ensure the platform works correctly before mainnet launch.',
+        govActionId: id,
+        cip129ActionId: id,
+        pledges: [],
+      }
     }
+    // Real GovTools card: re-fetch full details for the rich fields.
+    const proposal = await fetchGovToolsProposalById(id)
+    return proposal ? transformToProposalDetails(proposal) : null
   }
 
   const proposal = await fetchGovToolsProposalById(id)
@@ -426,20 +458,14 @@ export const getProposalDetailsById = async (id: string): Promise<IProposalDetai
 }
 
 /**
- * Filter proposals by governance action type
- * Injects a mock proposal at the start for testing
+ * Filter proposals by governance action type.
+ * Mocks are already included via getAllProposalsAsCards.
  */
 export const getProposalsByCategory = async (
   categoryName: string
 ): Promise<IProposalCardData[]> => {
   const allProposals = await getAllProposalsAsCards()
-  const filtered = allProposals.filter(
-    (p) => p.categoryName.toLowerCase() === categoryName.toLowerCase()
-  )
-
-  // Inject mock proposal at the front for testing (all categories)
-  const mockProposal = createMockProposal(categoryName)
-  return [mockProposal, ...filtered]
+  return allProposals.filter((p) => p.categoryName.toLowerCase() === categoryName.toLowerCase())
 }
 
 /**

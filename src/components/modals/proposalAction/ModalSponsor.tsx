@@ -16,10 +16,7 @@ import { IconCardano } from '@/icons/IconCardano'
 import { InputCurrencyLarge } from '@/components/input/InputCurrencyLarge'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 
-import {
-  browserDeposit,
-  createOgmiosEvaluator,
-} from '@sundaeswap/cosponsor-sdk/browser'
+import { browserDeposit, createOgmiosEvaluator } from '@sundaeswap/cosponsor-sdk/browser'
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
@@ -35,9 +32,15 @@ import { logger } from '@/lib/logger'
 
 import { config } from '@/lib/config'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+import { useGovActionDeposit } from '@/composables/useGovActionDeposit'
+import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
 
 // Ogmios URL from runtime config for script evaluation
 const OGMIOS_URL = config.ogmiosUrl
+
+// Fallback used until useGovActionDeposit resolves (100,000 ADA in lovelace).
+// Matches the Conway protocol param on both preview and mainnet as of 2026-05-22.
+const FALLBACK_GOV_ACTION_DEPOSIT_LOVELACE = 100_000_000_000n
 
 export interface IModalSponsorProps {
   modalTrigger: ReactNode
@@ -53,21 +56,29 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
   const [userPledging, setUserPledging] = useState<number>(0.0)
   const [userReceive, setUserReceive] = useState<number>(0.0)
   const [fees, setFees] = useState<number>(0.0)
+  const { depositLovelace: govActionDepositLovelace } = useGovActionDeposit()
   const [isLoadingFees, setIsLoadingFees] = useState<boolean>(false)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Build cosponsored proposal from UI proposal data
-  const buildCosponsoredProposal = (depositAmount: bigint): ICosponsoredProposal => {
+  // Build cosponsored proposal from UI proposal data.
+  //
+  // IMPORTANT: `deposit` here is the gov_action_deposit (constant ~100k ADA),
+  // NOT the user's pledge amount. The SDK feeds this field into the PlutusData
+  // procedure that gets hashed to produce the gADA token asset name (the
+  // on-chain proposal identity). If we put the user's pledge here instead,
+  // every different pledge size produces a different proposal hash — which is
+  // exactly the bug that made multiple deposits look like "new proposals every
+  // time" and stopped pledges from aggregating.
+  const buildCosponsoredProposal = (_depositAmount: bigint): ICosponsoredProposal => {
+    const procedureDeposit = govActionDepositLovelace ?? FALLBACK_GOV_ACTION_DEPOSIT_LOVELACE
+
     if (proposal) {
-      // Use actual proposal data
-      // The proposal ID is the hash of the cosponsored proposal procedure
-      // For governance action kind, map from categoryName to valid Aiken type
       const actionKind = mapCategoryToActionKind(proposal.categoryName || 'NicePoll')
 
       return {
-        deposit: depositAmount,
+        deposit: procedureDeposit,
         anchor: {
           // Use proposal ID as a unique identifier in the URL
           url: Buffer.from(`https://cosponsor.app/proposal/${proposal.id}`).toString('hex'),
@@ -80,7 +91,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
 
     // Fallback to test data if no proposal provided
     return {
-      deposit: depositAmount,
+      deposit: procedureDeposit,
       anchor: {
         url: Buffer.from('https://governance.cardano.org/test-proposal.json').toString('hex'),
         hash: '0000000000000000000000000000000000000000000000000000000000000000',
@@ -261,6 +272,11 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         logger.debug('✅ Transaction submitted successfully!')
         logger.debug('Transaction hash:', submittedTxHash)
         logger.debug('View on explorer:', getExplorerTxUrl(submittedTxHash))
+
+        // The script-address state just changed — drop the cached chain plan
+        // so the next page load sees this deposit instead of the pre-submit
+        // snapshot still inside the TTL window.
+        invalidateChainPlanCache()
 
         setTxHash(submittedTxHash)
         setIsProcessing(false)

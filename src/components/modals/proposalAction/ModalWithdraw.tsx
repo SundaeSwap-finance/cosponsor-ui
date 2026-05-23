@@ -33,6 +33,7 @@ import { logger } from '@/lib/logger'
 
 import { config } from '@/lib/config'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
 
 // Get Ogmios URL from runtime config for script evaluation (has mempool access)
 const OGMIOS_URL = config.ogmiosUrl
@@ -192,6 +193,11 @@ export const ModalWithdraw = ({
       })
 
       logger.debug(`Withdrawal transaction submitted: ${submittedTxHash}`)
+
+      // The script-address state just changed — drop the cached chain plan
+      // so the next page load sees the post-withdraw state rather than the
+      // pre-withdraw snapshot still inside the TTL window.
+      invalidateChainPlanCache()
 
       setTxHash(submittedTxHash)
       setIsProcessing(false)

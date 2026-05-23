@@ -1,5 +1,6 @@
 {
   "appEnv": "preview",
   "blockfrostNetwork": "preview",
+  "blockfrostApiUrl": "https://cardano-preview.blockfrost.io/api/v0",
   "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH"
 }

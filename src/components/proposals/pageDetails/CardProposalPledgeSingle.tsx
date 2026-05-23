@@ -7,19 +7,19 @@ export const CardProposalPledgeSingle = ({
   pledgeAddr,
   handle,
   amount,
-  reqBudget,
+  cosponsorTarget,
 }: {
   pledgeAddr: string
   handle?: string
   amount: number
-  reqBudget: number
+  cosponsorTarget: number
 }) => {
   const { formatMidEllipsis } = useTextFormatter()
   const { formatNumber } = useNumberFormatter()
 
   const percentage = useMemo(() => {
-    return ((amount / reqBudget) * 100).toFixed(2)
-  }, [amount, reqBudget])
+    return ((amount / cosponsorTarget) * 100).toFixed(2)
+  }, [amount, cosponsorTarget])
 
   return (
     <div

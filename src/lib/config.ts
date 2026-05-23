@@ -9,6 +9,7 @@ export interface IAppConfig {
   appEnv: 'preview' | 'mainnet'
   blockfrostNetwork: CardanoNetwork
   blockfrostApiKey: string
+  blockfrostApiUrl: string
   ogmiosUrl?: string
 }
 

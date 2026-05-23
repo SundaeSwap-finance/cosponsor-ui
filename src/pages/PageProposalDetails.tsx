@@ -50,11 +50,11 @@ export const PageProposalDetails = () => {
   }, [proposal])
 
   const completionPercentage = useMemo((): number => {
-    if (totalPledged && proposal?.requestedBudget) {
-      return (totalPledged / proposal?.requestedBudget) * 100
+    if (totalPledged && proposal?.cosponsorTarget) {
+      return (totalPledged / proposal.cosponsorTarget) * 100
     }
-    return -1
-  }, [totalPledged, proposal?.requestedBudget])
+    return 0
+  }, [totalPledged, proposal?.cosponsorTarget])
 
   const expiryTitleTooltip = useMemo(() => {
     return `${(isExpired ? 'Expired on ' : 'Expires on ') + expiryDateTime} ${
@@ -201,7 +201,7 @@ export const PageProposalDetails = () => {
               <BannerProposalProgress
                 completionPercentage={completionPercentage}
                 totalPledged={totalPledged}
-                requestedBudget={proposal.requestedBudget}
+                cosponsorTarget={proposal.cosponsorTarget}
               />
             )}
           </>
@@ -225,7 +225,7 @@ export const PageProposalDetails = () => {
               </div>
               <LabeledTextProposal label={'Abstract'} value={proposal.abstract} />
               <LabeledTextProposal label={'Motivation'} value={proposal.motivation} />
-              <LabeledCopyId label="Government Action ID" id={proposal.govActionId} midEllips />
+              <LabeledCopyId label="Governance Action ID" id={proposal.govActionId} midEllips />
               <LabeledCopyId
                 label="(CIP-129) Governance Action ID"
                 id={proposal.cip129ActionId}
@@ -249,7 +249,7 @@ export const PageProposalDetails = () => {
           </div>
           {proposal.userPledged ? (
             <CardUserPledgeSimple
-              reqBudget={proposal.requestedBudget}
+              cosponsorTarget={proposal.cosponsorTarget}
               userPledge={proposal.userPledged}
               proposal={proposal}
             />
@@ -260,7 +260,7 @@ export const PageProposalDetails = () => {
                 key={pledge.id}
                 pledgeAddr={pledge.id}
                 handle={pledge.ownerName}
-                reqBudget={proposal.requestedBudget}
+                cosponsorTarget={proposal.cosponsorTarget ?? 0}
                 amount={pledge.amount}
               />
             ))}

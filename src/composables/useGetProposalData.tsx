@@ -1,14 +1,21 @@
-import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
-import { useCallback } from 'react'
+import { IPledgeData, IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
+import { useCallback, useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
+import type { IUserDeposit, IWithdrawalPlan } from '@sundaeswap/cosponsor-sdk/browser'
+import type { Blaze, Provider, Wallet } from '@blaze-cardano/sdk'
+import { createConfiguredBlaze, createReadOnlyBlaze } from '@/lib/cardano/blaze'
+import { ensureGovActionDepositAda, useGovActionDeposit } from '@/composables/useGovActionDeposit'
 import {
-  fetchUserDeposits,
-  IUserDeposit,
-} from '@sundaeswap/cosponsor-sdk/browser'
-import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+  aggregateProposalTotals,
+  deriveUserDeposits,
+  fetchCachedWithdrawalPlan,
+  invalidateChainPlanCache,
+  lovelaceToAda,
+  type IProposalTotals,
+} from '@/lib/cardano/proposalTotals'
 import {
   getAllProposalsAsCards,
   getProposalDetailsById as fetchProposalDetails,
@@ -18,9 +25,49 @@ import {
   IPaginatedProposals,
 } from '@/api/govToolsProposals'
 
+interface IChainContext {
+  plan: IWithdrawalPlan
+  totals: IProposalTotals
+  blaze: Blaze<Provider, Wallet>
+  walletConnected: boolean
+}
+
 export const useGetProposalData = () => {
   const walletHook = useWalletObserver()
   const walletObserver = walletHook.observer
+  const { depositAda: cosponsorTarget } = useGovActionDeposit()
+
+  // Drop the cached chain plan whenever the wallet API reference flips
+  // (connect / disconnect / wallet switch). Keeps the userTokens portion
+  // of the plan from going stale across wallet identity changes.
+  useEffect(() => {
+    invalidateChainPlanCache()
+  }, [walletObserver.api])
+
+  // Single chain-state load shared by every callback below: builds a
+  // wallet-bound Blaze if a wallet is connected, otherwise a read-only
+  // Blaze. Fetches the SDK withdrawal plan through the module cache so
+  // back-to-back page navigations don't re-scan the script address. The
+  // user-deposit derivation is a pure step on top of the same plan —
+  // see `proposalTotals.ts`.
+  const loadChainContext = useCallback(async (): Promise<IChainContext | undefined> => {
+    try {
+      const walletConnected = !!walletObserver.api
+      let blaze: Blaze<Provider, Wallet>
+      if (walletConnected) {
+        requireConnectedWallet(walletObserver)
+        blaze = await createConfiguredBlaze(walletObserver)
+      } else {
+        blaze = await createReadOnlyBlaze()
+      }
+      const plan = await fetchCachedWithdrawalPlan(blaze)
+      const totals = aggregateProposalTotals(plan)
+      return { plan, totals, blaze, walletConnected }
+    } catch (error) {
+      logger.warn('Failed to load cosponsor chain context:', error)
+      return undefined
+    }
+  }, [walletObserver])
 
   // Transform IUserDeposit to IProposalCardData
   // Optionally pass GovTools data to enrich the proposal with proper category info
@@ -29,9 +76,15 @@ export const useGetProposalData = () => {
       // Calculate amounts in ADA
       const userPledgedAmountAda = Number(deposit.tokenAmount) / 1_000_000
 
-      // For on-chain proposals, we use the token asset name (proposal hash) as the ID
-      // This uniquely identifies the proposal and allows the details page to work
       const proposalHash = deposit.proposalHash || deposit.tokenAssetName
+
+      // The deposit's own `proposalUrl` is no longer trustworthy — when the
+      // SDK can't decode a UTxO's datum (current NewConstitution bug) it
+      // fills the URL from an unrelated UTxO's anchor, so a recovered id
+      // from this field can misidentify the proposal. Callers resolve the
+      // canonical URL id via the chain-state map and pass the matched
+      // proposal in as `govToolsData`; without a match we fall back to the
+      // on-chain hash, which is always exact.
 
       // Use GovTools data if available, otherwise fallback to on-chain data
       // Replace "Unknown" or "Processed" with more user-friendly "On-chain Proposal"
@@ -48,6 +101,7 @@ export const useGetProposalData = () => {
         ownerId: govToolsData?.ownerId || proposalHash.slice(0, 16),
         ownerName: govToolsData?.ownerName || 'On-chain',
         requestedBudget: govToolsData?.requestedBudget || 0,
+        cosponsorTarget: govToolsData?.cosponsorTarget ?? cosponsorTarget ?? undefined,
         pledgedAmount: govToolsData?.pledgedAmount || userPledgedAmountAda,
         userPledged: userPledgedAmountAda,
         initDate: govToolsData?.initDate || new Date(),
@@ -60,7 +114,7 @@ export const useGetProposalData = () => {
         categoryName,
       }
     },
-    []
+    [cosponsorTarget]
   )
 
   // Transform IUserDeposit to IProposalDetailsData
@@ -91,64 +145,103 @@ export const useGetProposalData = () => {
   // Details page data - fetch from GovTools API or user deposits
   const getProposalDetailsById = useCallback(
     async (id: string): Promise<IProposalDetailsData | undefined> => {
-      // First try to fetch from GovTools API
+      // Look up via unified proposal list (mocks + GovTools).
       const govToolsProposal = await fetchProposalDetails(id)
-      if (govToolsProposal) {
-        return govToolsProposal
-      }
 
-      // If not found in GovTools, check if it's a blockchain proposal
-      // Fetch deposits and look for matching proposal hash
-      if (walletObserver.api) {
-        try {
-          requireConnectedWallet(walletObserver)
-          const blaze = await createConfiguredBlaze(walletObserver)
-          const deposits = await fetchUserDeposits(blaze)
-
-          // Find ALL deposits with matching proposal hash (user may have deposited multiple times)
-          const matchingDeposits = deposits.filter((d) => d.proposalHash === id)
-
-          if (matchingDeposits.length > 0) {
-            logger.debug(
-              `Found blockchain proposal with hash: ${id} (${matchingDeposits.length} deposit(s))`
-            )
-
-            // Aggregate all deposits for this proposal
-            const totalDepositAmount = matchingDeposits.reduce(
-              (sum, d) => sum + d.depositAmount,
-              0n
-            )
-            const totalTokenAmount = matchingDeposits.reduce((sum, d) => sum + d.tokenAmount, 0n)
-
-            // Use first deposit as base, but with aggregated amounts
-            const aggregatedDeposit: IUserDeposit = {
-              ...matchingDeposits[0],
-              depositAmount: totalDepositAmount,
-              tokenAmount: totalTokenAmount,
-            }
-
-            return transformDepositToProposalDetails(aggregatedDeposit)
+      // Merge on-chain data so the detail page reflects reality:
+      // - userPledged comes from the connected wallet's gADA holdings
+      // - pledgedAmount is chain-state total across ALL cosponsors
+      // Both come out of one chain plan (see `loadChainContext`).
+      let userPledgedAda = 0
+      let depositOverlay:
+        | { totalTokenAmount: bigint; totalDepositAmount: bigint; sample: IUserDeposit }
+        | undefined
+      let chainPledgedAda: number | undefined
+      let chainPledges: IPledgeData[] = []
+      // Live gov_action_deposit — the synchronous cache reader used inside
+      // `govToolsProposals.ts` returns null on the very first call, so we
+      // re-await here to backfill cosponsorTarget when it landed late.
+      const targetAda = await ensureGovActionDepositAda()
+      const ctx = await loadChainContext()
+      if (ctx) {
+        const { plan, totals, walletConnected } = ctx
+        const deposits = walletConnected ? deriveUserDeposits(plan) : []
+        const matchingDeposits = deposits.filter((d) => {
+          if (d.proposalHash === id) {
+            return true
           }
-
-          // Only warn if wallet IS connected but proposal not found
-          logger.warn(
-            `Proposal not found with id: ${id} (checked ${deposits.length} user deposits)`
-          )
-        } catch (error) {
-          console.error('Failed to fetch blockchain proposal:', error)
+          const canonicalUrlId = totals.urlIdByProposalHash.get(d.proposalHash)
+          return canonicalUrlId === id
+        })
+        if (matchingDeposits.length > 0) {
+          depositOverlay = {
+            totalDepositAmount: matchingDeposits.reduce((s, d) => s + d.depositAmount, 0n),
+            totalTokenAmount: matchingDeposits.reduce((s, d) => s + d.tokenAmount, 0n),
+            sample: matchingDeposits[0],
+          }
+          userPledgedAda = Number(depositOverlay.totalTokenAmount) / 1_000_000
         }
-      } else {
-        // Wallet not connected yet - silently return undefined
-        // This is expected on initial page load before wallet connects
-        logger.debug(
-          `Wallet not connected yet, cannot fetch blockchain proposal with id: ${id.slice(0, 16)}...`
-        )
+        const lovelace = totals.byUrlId.get(id) ?? totals.byProposalHash.get(id) ?? 0n
+        if (lovelace > 0n) {
+          chainPledgedAda = lovelaceToAda(lovelace)
+        }
+        // Surface every on-chain pledge as a row in Proposal Sponsors.
+        // The wallet/owner behind each UTxO isn't recoverable from the
+        // script datum alone (would need to walk back to the mint tx),
+        // so we label them generically until the BE indexer can resolve
+        // payer addresses.
+        const breakdowns =
+          totals.pledgesByUrlId.get(id) ?? totals.pledgesByProposalHash.get(id) ?? []
+        chainPledges = breakdowns.map((b) => ({
+          id: `${b.txHash}#${b.outputIndex}`,
+          ownerName: 'On-chain',
+          amount: lovelaceToAda(b.lockedAmount),
+        }))
       }
 
-      // Return undefined
+      if (govToolsProposal) {
+        const cosponsorTargetAda = govToolsProposal.cosponsorTarget ?? targetAda ?? undefined
+        if (
+          !depositOverlay &&
+          chainPledgedAda === undefined &&
+          cosponsorTargetAda === govToolsProposal.cosponsorTarget
+        ) {
+          return govToolsProposal
+        }
+        return {
+          ...govToolsProposal,
+          cosponsorTarget: cosponsorTargetAda,
+          userPledged: userPledgedAda || govToolsProposal.userPledged,
+          pledgedAmount:
+            chainPledgedAda ?? Math.max(govToolsProposal.pledgedAmount ?? 0, userPledgedAda),
+          pledges: chainPledges.length > 0 ? chainPledges : govToolsProposal.pledges,
+        }
+      }
+
+      // No mock/GovTools entry — surface the on-chain deposit alone if we have one.
+      if (depositOverlay) {
+        const base = transformDepositToProposalDetails({
+          ...depositOverlay.sample,
+          depositAmount: depositOverlay.totalDepositAmount,
+          tokenAmount: depositOverlay.totalTokenAmount,
+        })
+        const withTarget =
+          base.cosponsorTarget === undefined && targetAda !== null
+            ? { ...base, cosponsorTarget: targetAda }
+            : base
+        const withChainTotal =
+          chainPledgedAda !== undefined
+            ? { ...withTarget, pledgedAmount: chainPledgedAda }
+            : withTarget
+        return chainPledges.length > 0
+          ? { ...withChainTotal, pledges: chainPledges }
+          : withChainTotal
+      }
+
+      logger.warn(`Proposal not found with id: ${id}`)
       return undefined
     },
-    [walletObserver, transformDepositToProposalDetails]
+    [loadChainContext, transformDepositToProposalDetails]
   )
 
   // Check if category has any proposals
@@ -178,15 +271,21 @@ export const useGetProposalData = () => {
     try {
       logger.debug('Fetching user pledges from blockchain...')
 
-      // Create Blaze instance with browser wallet
-      requireConnectedWallet(walletObserver)
-      const blaze = await createConfiguredBlaze(walletObserver)
-
-      // Fetch user's deposits from blockchain and GovTools proposals in parallel
-      const [deposits, govToolsProposals] = await Promise.all([
-        fetchUserDeposits(blaze),
+      // One chain plan, both views: `deriveUserDeposits` correlates the
+      // wallet's gADA tokens with the script UTxO list, `totals` aggregates
+      // every UTxO at the script address. The shared `loadChainContext`
+      // de-dupes the underlying `fetchWithdrawalPlan` call across this
+      // hook's other callbacks.
+      const [ctx, govToolsProposals] = await Promise.all([
+        loadChainContext(),
         getAllProposalsAsCards().catch(() => [] as IProposalCardData[]),
       ])
+      if (!ctx) {
+        logger.warn('Chain context unavailable, returning empty user pledges')
+        return []
+      }
+      const { plan, totals } = ctx
+      const deposits = deriveUserDeposits(plan)
 
       logger.debug(`Found ${deposits.length} user deposits:`)
       deposits.forEach((d, i) => {
@@ -197,20 +296,31 @@ export const useGetProposalData = () => {
         logger.debug(`      Token: ${d.tokenAssetName.slice(0, 20)}...`)
       })
 
-      // Create a map of GovTools proposals by ID for quick lookup
-      const govToolsById = new Map<string, IProposalCardData>()
+      // Unified id → proposal lookup (mocks + GovTools). Used to enrich each
+      // deposit with the original proposal's metadata once we recover the
+      // URL-space id from the deposit's anchor URL.
+      const proposalById = new Map<string, IProposalCardData>()
       for (const proposal of govToolsProposals) {
-        govToolsById.set(proposal.id, proposal)
+        proposalById.set(proposal.id, proposal)
       }
-      logger.debug(`Loaded ${govToolsById.size} GovTools proposals for enrichment`)
+      logger.debug(`Loaded ${proposalById.size} proposals (mocks + GovTools) for enrichment`)
 
-      // Group deposits by proposal hash and aggregate amounts
+      // Group deposits by on-chain proposalHash (= gADA tokenAssetName).
+      // Cross-procedure aggregation via the recovered URL id used to live
+      // here, but the SDK's fetchUserDeposits falls back to "first UTxO's
+      // anchor URL" whenever it can't decode a datum (e.g. the current
+      // NewConstitution serialization bug — see TODO.md). That fallback
+      // makes URL recovery unsafe: a misdecoded deposit ends up sharing a
+      // URL with an unrelated proposal and the two get merged. Grouping by
+      // tokenAssetName is always exact; URL recovery still drives the
+      // name/category enrichment below.
       const depositsByProposal = new Map<string, IUserDeposit[]>()
 
       for (const deposit of deposits) {
-        const existing = depositsByProposal.get(deposit.proposalHash) || []
+        const groupKey = deposit.proposalHash
+        const existing = depositsByProposal.get(groupKey) || []
         existing.push(deposit)
-        depositsByProposal.set(deposit.proposalHash, existing)
+        depositsByProposal.set(groupKey, existing)
       }
 
       logger.debug(`Deposits grouped into ${depositsByProposal.size} unique proposal(s)`)
@@ -218,31 +328,51 @@ export const useGetProposalData = () => {
       // Transform to proposal cards, combining amounts for same proposal
       const proposalCards: IProposalCardData[] = []
 
-      for (const [proposalHash, proposalDeposits] of depositsByProposal.entries()) {
-        // Use the first deposit as the base
+      for (const [groupKey, proposalDeposits] of depositsByProposal.entries()) {
         const firstDeposit = proposalDeposits[0]
 
-        // Calculate total amounts across all deposits for this proposal
         const totalDepositAmount = proposalDeposits.reduce((sum, d) => sum + d.depositAmount, 0n)
         const totalTokenAmount = proposalDeposits.reduce((sum, d) => sum + d.tokenAmount, 0n)
 
-        // Create a combined deposit with aggregated amounts
         const aggregatedDeposit: IUserDeposit = {
           ...firstDeposit,
           depositAmount: totalDepositAmount,
           tokenAmount: totalTokenAmount,
         }
 
-        // Try to find matching GovTools proposal by ID
-        const govToolsMatch = govToolsById.get(proposalHash)
-        if (govToolsMatch) {
-          logger.debug(`  Found GovTools match for ${proposalHash.slice(0, 16)}...`)
+        // Enrich with mock/GovTools metadata. Resolve URL id from the chain
+        // scan's canonical `proposalHash → urlId` map rather than the deposit's
+        // own `proposalUrl` — the SDK's per-token URL field falls back to
+        // an unrelated UTxO's anchor when a datum fails to decode (current
+        // NewConstitution bug), so trusting it relabels distinct deposits as
+        // the same proposal. The chain map only contains entries whose datum
+        // decoded cleanly, so a miss here means "stay generic" instead of
+        // "guess".
+        const canonicalUrlId = totals.urlIdByProposalHash.get(groupKey)
+        const proposalMatch =
+          (canonicalUrlId && proposalById.get(canonicalUrlId)) || proposalById.get(groupKey)
+        if (proposalMatch) {
+          logger.debug(
+            `  Matched ${groupKey.slice(0, 16)}... to "${proposalMatch.name}" via ${canonicalUrlId ? 'chain URL id' : 'on-chain hash'}`
+          )
         }
 
-        proposalCards.push(transformDepositToProposal(aggregatedDeposit, govToolsMatch))
+        const card = transformDepositToProposal(aggregatedDeposit, proposalMatch)
+
+        // Overlay chain-state total across all cosponsors. Prefer the
+        // canonical URL id (matches the listings) and fall back to the
+        // on-chain hash for proposals whose anchor URL never decoded.
+        const lovelace =
+          (canonicalUrlId ? totals.byUrlId.get(canonicalUrlId) : undefined) ??
+          totals.byProposalHash.get(groupKey) ??
+          0n
+        if (lovelace > 0n) {
+          card.pledgedAmount = lovelaceToAda(lovelace)
+        }
+        proposalCards.push(card)
 
         logger.debug(
-          `  Proposal ${proposalHash.slice(0, 16)}...: ${proposalDeposits.length} deposit(s) = ${Number(totalDepositAmount) / 1_000_000} ADA total`
+          `  ${groupKey.slice(0, 16)}...: ${proposalDeposits.length} deposit(s) = ${Number(totalDepositAmount) / 1_000_000} ADA total`
         )
       }
 
@@ -255,7 +385,7 @@ export const useGetProposalData = () => {
       // Fall back to empty array on error
       return []
     }
-  }, [walletObserver, transformDepositToProposal])
+  }, [walletObserver.api, loadChainContext, transformDepositToProposal])
 
   // Get random proposals (for "similar proposals" section etc.)
   const getRandomProposals = useCallback(
@@ -271,12 +401,44 @@ export const useGetProposalData = () => {
     [getAllProposalCards]
   )
 
+  // Overlay both the live cosponsor target (gov_action_deposit) and the
+  // chain-state pledge totals onto a page of proposals. Both fetches are
+  // wallet-independent: the deposit is a protocol parameter, and the
+  // script-address scan uses a read-only Blaze when no wallet is connected
+  // so progress bars light up pre-connect. The data layer in
+  // `govToolsProposals.ts` reads the deposit synchronously from cache; on
+  // first paint that cache is empty, which is why the overlay here also
+  // fills `cosponsorTarget` instead of relying on the synchronous read.
+  const applyChainTotals = useCallback(
+    async (page: IPaginatedProposals): Promise<IPaginatedProposals> => {
+      const [ctx, targetAda] = await Promise.all([loadChainContext(), ensureGovActionDepositAda()])
+      const totals = ctx?.totals
+      if (!totals && targetAda === null) {
+        return page
+      }
+      return {
+        ...page,
+        proposals: page.proposals.map((p) => {
+          const lovelace = totals?.byUrlId.get(p.id) ?? totals?.byProposalHash.get(p.id) ?? 0n
+          const pledgedAmount = lovelace > 0n ? lovelaceToAda(lovelace) : p.pledgedAmount
+          const cosponsorTargetAda = p.cosponsorTarget ?? targetAda ?? undefined
+          if (pledgedAmount === p.pledgedAmount && cosponsorTargetAda === p.cosponsorTarget) {
+            return p
+          }
+          return { ...p, pledgedAmount, cosponsorTarget: cosponsorTargetAda }
+        }),
+      }
+    },
+    [loadChainContext]
+  )
+
   // Lazy load proposals with pagination (no category filter)
   const getProposalsPage = useCallback(
     async (start: number = 0, limit: number = 20): Promise<IPaginatedProposals> => {
-      return fetchProposalsPage(start, limit)
+      const page = await fetchProposalsPage(start, limit)
+      return applyChainTotals(page)
     },
-    []
+    [applyChainTotals]
   )
 
   // Lazy load proposals by category with client-side pagination
@@ -286,9 +448,10 @@ export const useGetProposalData = () => {
       start: number = 0,
       limit: number = 20
     ): Promise<IPaginatedProposals> => {
-      return getProposalsByCategoryPaginated(categoryName, start, limit)
+      const page = await getProposalsByCategoryPaginated(categoryName, start, limit)
+      return applyChainTotals(page)
     },
-    []
+    [applyChainTotals]
   )
 
   return {

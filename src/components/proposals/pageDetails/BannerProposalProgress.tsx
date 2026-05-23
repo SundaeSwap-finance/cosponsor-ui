@@ -5,35 +5,38 @@ import { maxDecimalsAda } from '@/config/config'
 export const BannerProposalProgress = ({
   completionPercentage,
   totalPledged,
-  requestedBudget,
+  cosponsorTarget,
 }: {
   completionPercentage: number
   totalPledged: number
-  requestedBudget: number
+  cosponsorTarget: number | undefined
 }) => {
   const { formatNumber } = useNumberFormatter()
 
-  // If requestedBudget is 0 or invalid, we don't have budget data (on-chain only)
-  const hasBudgetData = requestedBudget > 0 && completionPercentage >= 0
+  // cosponsorTarget comes from the live gov_action_deposit param; only
+  // missing during the initial fetch. Once we know it (even if no one has
+  // pledged yet), show the empty 0% bar instead of falling back to a
+  // "Your Pledge" headline.
+  const hasTarget = cosponsorTarget !== undefined && cosponsorTarget > 0
 
   return (
     <div className={'flex flex-col gap-4'}>
       <div className={'flex flex-col justify-between md:flex-row md:items-center'}>
         <div className={'sun-text-22-md text-sun-header'}>
-          {hasBudgetData ? `${completionPercentage.toPrecision(4)}% sponsored` : 'Your Pledge'}
+          {hasTarget ? `${completionPercentage.toPrecision(4)}% sponsored` : 'Your Pledge'}
         </div>
         <div className={'flex flex-row items-end'}>
           <div className={'sun-text-22-md text-sun-header'}>
             ₳{formatNumber(totalPledged, maxDecimalsAda)}
           </div>
-          {hasBudgetData && (
+          {hasTarget && (
             <div className={'sun-text-18-md text-sun-muted'}>
-              /₳{formatNumber(requestedBudget, maxDecimalsAda)}
+              /₳{formatNumber(cosponsorTarget, maxDecimalsAda)}
             </div>
           )}
         </div>
       </div>
-      {hasBudgetData && (
+      {hasTarget && (
         <ProgressMilestones value={completionPercentage} milestones={[0, 25, 50, 75, 100]} />
       )}
     </div>

@@ -34,9 +34,11 @@ export const SearchResultProposal = ({ proposal }: { proposal: IProposalCardData
           <div className={'flex flex-col gap-0.5'}>
             <BadgeProposalCategory category={proposal.categoryName} />
             <BadgeProposalPercent
-              percentage={((proposal.pledgedAmount / proposal.requestedBudget) * 100).toPrecision(
-                4
-              )}
+              percentage={
+                proposal.cosponsorTarget
+                  ? ((proposal.pledgedAmount / proposal.cosponsorTarget) * 100).toPrecision(4)
+                  : 'n/a'
+              }
               className={'flex transition-transform duration-600 md:hidden'}
             />
           </div>
@@ -45,7 +47,11 @@ export const SearchResultProposal = ({ proposal }: { proposal: IProposalCardData
 
       <div className={'hidden h-full flex-row items-center gap-3 md:flex'}>
         <BadgeProposalPercent
-          percentage={((proposal.pledgedAmount / proposal.requestedBudget) * 100).toPrecision(4)}
+          percentage={
+            proposal.cosponsorTarget
+              ? ((proposal.pledgedAmount / proposal.cosponsorTarget) * 100).toPrecision(4)
+              : 'n/a'
+          }
           className={'transition-transform duration-600'}
         />
         <Button

@@ -17,6 +17,11 @@ export interface IProposalCardData {
   ownerId: string
   ownerName: string
   requestedBudget: number
+  // The lovelace amount cosponsors are crowdfunding toward — i.e. the live
+  // Conway gov_action_deposit protocol parameter (100,000 ADA on preview as
+  // of 2026-05-21, fetched via useGovActionDeposit). Stored in ADA. Optional
+  // so the data layer can render before the value loads.
+  cosponsorTarget?: number
   pledgedAmount: number
   userPledged: number
   initDate: Date
