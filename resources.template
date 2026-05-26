@@ -18,12 +18,18 @@ Mappings:
   Env:
     preview:
       Domains: ["cosponsor.preview.sundae.fi"]
+      ApiDomain: "api.cosponsor.preview.sundae.fi"
       DistributionCertificate: "arn:aws:acm:us-east-1:529991308818:certificate/4a27f695-dd6f-48d2-b132-89553d419c3c"
+      ApiCertificate: "arn:aws:acm:us-east-2:529991308818:certificate/d3f3d9c6-b9df-456d-98f0-7ad4fc663b0b"
       HostedZoneId: "Z0609244DFBX99Y22ZA3"
+      KinesisSyncV2StreamArn: "arn:aws:kinesis:us-east-2:529991308818:stream/preview-sundae-sync-v2--all"
     mainnet:
       Domains: ["cosponsor.sundae.fi"]
+      ApiDomain: "api.cosponsor.sundae.fi"
       DistributionCertificate: "arn:aws:acm:us-east-1:705895683800:certificate/ee0e9ded-dfcc-46d8-b01a-0a9faf9609e8"
+      ApiCertificate: "arn:aws:acm:us-east-2:705895683800:certificate/b06b3a84-c67f-4c32-bb26-ca421274bcab"
       HostedZoneId: "Z0595022N0R5T7A526YD"
+      KinesisSyncV2StreamArn: "arn:aws:kinesis:us-east-2:705895683800:stream/mainnet-sundae-sync-v2--all"
 
 Resources:
   UIBucket:
@@ -131,3 +137,243 @@ Resources:
             HostedZoneId: "Z2FDTNDATAQYW2"
           Name: !Select [0, !FindInMap [Env, !Ref Env, Domains]]
           Type: A
+
+  # ============================================================
+  # Backend: cosponsor-api (REST server + on-chain CIP-184 indexer)
+  # ============================================================
+
+  ProposalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Env}-cosponsor--proposals"
+      AttributeDefinitions:
+        - AttributeName: "proposal_id"
+          AttributeType: "S"
+        - AttributeName: "user_id"
+          AttributeType: "S"
+        - AttributeName: "gov_action_type"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "proposal_id"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: ByUser
+          KeySchema:
+            - AttributeName: "user_id"
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ByActionType
+          KeySchema:
+            - AttributeName: "gov_action_type"
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  OnchainDocsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Env}-cosponsor--onchain-docs"
+      AttributeDefinitions:
+        - AttributeName: "anchor_ref"
+          AttributeType: "S"
+        - AttributeName: "subject_key"
+          AttributeType: "S"
+        - AttributeName: "doc_type"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "anchor_ref"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: BySubject
+          KeySchema:
+            - AttributeName: "subject_key"
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ByDocType
+          KeySchema:
+            - AttributeName: "doc_type"
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ApiLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Tags:
+        - Key: sundae-labs:cost-allocation:Service
+          Value: cosponsor-api
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole"
+        - "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy"
+      Policies:
+        - PolicyName: custom
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:BatchWriteItem"
+                  - "dynamodb:ConditionCheckItem"
+                Resource:
+                  - !GetAtt ProposalsTable.Arn
+                  - !Sub "${ProposalsTable.Arn}/index/*"
+                  - !GetAtt OnchainDocsTable.Arn
+                  - !Sub "${OnchainDocsTable.Arn}/index/*"
+              - Effect: Allow
+                Action:
+                  - "cloudwatch:PutMetricData"
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                Resource: "*"
+
+  ServerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Sub "codebuild-artifacts-${AWS::Region}-113073460856"
+        S3Key: !Sub "cosponsor-ui/${Version}/server.zip"
+      Description: "cosponsor-api REST server"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures: ["arm64"]
+      MemorySize: 256
+      Role: !GetAtt ApiLambdaRole.Arn
+      Environment:
+        Variables:
+          ENV: !Ref Env
+      Tags:
+        - Key: Version
+          Value: !Ref Version
+        - Key: sundae-labs:cost-allocation:Service
+          Value: cosponsor-api
+      Timeout: 30
+      TracingConfig:
+        Mode: Active
+
+  ApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${Env}-cosponsor-api"
+      Description: !Sub "${Env} cosponsor-api HTTP gateway"
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowHeaders: ["*"]
+        AllowOrigins: ["*"]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+
+  ApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGateway
+      ConnectionType: INTERNET
+      Description: Proxy to the cosponsor-api server Lambda
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ServerFunction.Arn}/invocations"
+      PayloadFormatVersion: "2.0"
+
+  ApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: "$default"
+      Target: !Sub "integrations/${ApiIntegration}"
+
+  ApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ApiGateway
+      StageName: !Ref Env
+      AutoDeploy: true
+
+  ApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ServerFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/$default"
+
+  ApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !FindInMap [Env, !Ref Env, ApiDomain]
+      DomainNameConfigurations:
+        - CertificateArn: !FindInMap [Env, !Ref Env, ApiCertificate]
+          EndpointType: REGIONAL
+
+  ApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn: ApiStage
+    Properties:
+      ApiId: !Ref ApiGateway
+      DomainName: !Ref ApiDomainName
+      Stage: !Ref Env
+
+  ApiRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !FindInMap [Env, !Ref Env, HostedZoneId]
+      Name: !FindInMap [Env, !Ref Env, ApiDomain]
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiDomainName.RegionalDomainName
+        HostedZoneId: !GetAtt ApiDomainName.RegionalHostedZoneId
+
+  IndexerOnchainFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Sub "codebuild-artifacts-${AWS::Region}-113073460856"
+        S3Key: !Sub "cosponsor-ui/${Version}/indexer-onchain.zip"
+      Description: "Reads sundae-sync-v2 kinesis stream and writes CIP-184 docs to onchain-docs"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures: ["arm64"]
+      MemorySize: 256
+      Role: !GetAtt ApiLambdaRole.Arn
+      Environment:
+        Variables:
+          ENV: !Ref Env
+      Tags:
+        - Key: Version
+          Value: !Ref Version
+        - Key: sundae-labs:cost-allocation:Service
+          Value: cosponsor-api
+      Timeout: 300
+      TracingConfig:
+        Mode: Active
+
+  IndexerOnchainEventSource:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 100
+      BisectBatchOnFunctionError: true
+      Enabled: true
+      EventSourceArn: !FindInMap [Env, !Ref Env, KinesisSyncV2StreamArn]
+      FunctionName: !GetAtt IndexerOnchainFunction.Arn
+      MaximumRetryAttempts: -1
+      StartingPosition: LATEST

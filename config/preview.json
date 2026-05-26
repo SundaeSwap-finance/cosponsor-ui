@@ -2,5 +2,6 @@
   "appEnv": "preview",
   "blockfrostNetwork": "preview",
   "blockfrostApiUrl": "https://cardano-preview.blockfrost.io/api/v0",
-  "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH"
+  "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH",
+  "cosponsorApiUrl": "https://api.cosponsor.preview.sundae.fi"
 }
