@@ -10,6 +10,10 @@ export interface IAppConfig {
   blockfrostNetwork: CardanoNetwork
   blockfrostApiKey: string
   ogmiosUrl?: string
+  // Base URL of cosponsor-api. The build derives a sensible default
+  // from appEnv when this is missing, so existing deploy configs
+  // keep working without an update.
+  cosponsorApiUrl?: string
 }
 
 declare global {

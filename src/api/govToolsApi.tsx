@@ -1,10 +1,14 @@
 import { config } from '@/lib/config'
 
-// https://docs.gov.tools/participate-in-development/govtool-apis/proposal-pillar-api/access
-const API_BASE_URL_MAINNET = 'https://be.pdf.gov.tools/api/'
-const API_BASE_URL_PREVIEW = 'https://p1337-zdae9891f-zf09d11da-gtw.z937eb260.rustrocks.fr/api/'
+// cosponsor-api replaced the GovTools Proposal Pillar API. The response
+// shape is preserved (see backend/functions/server/govtools_shape.go),
+// so the only change at this layer is the base URL.
+const DEFAULT_API_BASE_URL_PREVIEW = 'https://api.cosponsor.preview.sundae.fi'
+const DEFAULT_API_BASE_URL_MAINNET = 'https://api.cosponsor.sundae.fi'
 
-const API_BASE_URL = config.appEnv === 'preview' ? API_BASE_URL_PREVIEW : API_BASE_URL_MAINNET
+const API_BASE_URL =
+  config.cosponsorApiUrl ??
+  (config.appEnv === 'preview' ? DEFAULT_API_BASE_URL_PREVIEW : DEFAULT_API_BASE_URL_MAINNET)
 
 /**
  * Lightweight fetch wrapper replacing axios. Supports GET requests with

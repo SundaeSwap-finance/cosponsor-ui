@@ -1,5 +1,6 @@
 {
   "appEnv": "preview",
   "blockfrostNetwork": "preview",
-  "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH"
+  "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH",
+  "cosponsorApiUrl": "http://localhost:5301"
 }

@@ -30,5 +30,23 @@ DIST="${ROOT}/dist"
 
 aws s3 cp "${TGZ}" "s3://${S3_BUCKET}/${S3_PREFIX}/${VERSION}/cosponsor-ui.tar.gz"
 
+# ---- Backend Lambdas ----------------------------------------------------
+# Build every Go function under backend/functions/* into its own zip and
+# upload it under the same versioned prefix as the frontend, so CloudFormation
+# can pick them up via S3Key cosponsor-ui/${Version}/<lambda>.zip.
+if [ -d "${ROOT}/backend/functions" ]; then
+  BACKEND_TARGET="${TARGET}/backend"
+  mkdir -p "${BACKEND_TARGET}"
+  (cd "${ROOT}/backend" && GOPRIVATE="github.com/SundaeSwap-finance" go get -t ./...)
+  for dir in "${ROOT}/backend/functions"/*; do
+    lambda="$(basename "${dir}")"
+    echo "building backend lambda ${lambda}"
+    mkdir -p "${BACKEND_TARGET}/${lambda}"
+    (cd "${dir}" && CGO_ENABLED=0 GOARCH=arm64 GOOS=linux go build -tags lambda.norpc -o "${BACKEND_TARGET}/${lambda}/bootstrap" *.go)
+    (cd "${BACKEND_TARGET}/${lambda}" && zip -r "${BACKEND_TARGET}/${lambda}.zip" *)
+    aws s3 cp "${BACKEND_TARGET}/${lambda}.zip" "s3://${S3_BUCKET}/${S3_PREFIX}/${VERSION}/${lambda}.zip"
+  done
+fi
+
 mkdir -p "${TARGET}"
 sed "s/latest/${VERSION}/g" "${ROOT}/resources.template" > "${TARGET}/resources.template"
