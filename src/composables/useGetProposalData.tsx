@@ -5,6 +5,7 @@ import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
 
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import type { IUserDeposit, IWithdrawalPlan } from '@sundaeswap/cosponsor-sdk/browser'
+import { ACTION_TYPE_DISPLAY_NAMES } from '@/lib/cardano/governanceActions'
 import type { Blaze, Provider, Wallet } from '@blaze-cardano/sdk'
 import { createConfiguredBlaze, createReadOnlyBlaze } from '@/lib/cardano/blaze'
 import { ensureGovActionDepositAda, useGovActionDeposit } from '@/composables/useGovActionDeposit'
@@ -56,7 +57,11 @@ export const useGetProposalData = () => {
       let blaze: Blaze<Provider, Wallet>
       if (walletConnected) {
         requireConnectedWallet(walletObserver)
-        blaze = await createConfiguredBlaze(walletObserver)
+        // SDK's `createBlazeWithBrowserWallet` returns Blaze<Provider, Wallet>
+        // from the SDK's nested @blaze-cardano/sdk; the UI's Blaze type comes
+        // from its own 0.8.0 pin. Same shape at runtime — version-skew is
+        // TODO.md "Tech Debt: Blaze Override Stack" (task #8).
+        blaze = (await createConfiguredBlaze(walletObserver)) as unknown as Blaze<Provider, Wallet>
       } else {
         blaze = await createReadOnlyBlaze()
       }
@@ -87,13 +92,16 @@ export const useGetProposalData = () => {
       // on-chain hash, which is always exact.
 
       // Use GovTools data if available, otherwise fallback to on-chain data
-      // Replace "Unknown" or "Processed" with more user-friendly "On-chain Proposal"
-      const actionKind = deposit.cosponsoredProposal.action.kind
+      // Replace "Unknown" or "Processed" with more user-friendly "On-chain Proposal".
+      // For valid action kinds, prefer the user-facing display name
+      // (`NicePoll → "Info Action"`, etc.) over the raw on-chain enum.
+      const actionKind = deposit.actionSummary.action.kind
       const needsFallback = actionKind === 'Unknown' || actionKind === 'Processed'
+      const actionDisplay = ACTION_TYPE_DISPLAY_NAMES[actionKind] ?? actionKind
       const categoryName =
-        govToolsData?.categoryName || (needsFallback ? 'On-chain Proposal' : actionKind)
+        govToolsData?.categoryName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
       const companyName =
-        govToolsData?.companyName || (needsFallback ? 'On-chain Proposal' : actionKind)
+        govToolsData?.companyName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
 
       return {
         id: govToolsData?.id || proposalHash,
@@ -112,6 +120,27 @@ export const useGetProposalData = () => {
           govToolsData?.abstract ||
           `You have ${userPledgedAmountAda} ADA pledged to this on-chain proposal. Withdraw anytime before expiry.`,
         categoryName,
+        // Re-use the on-chain procedure verbatim when the SDK could recover
+        // it (and round-trip-verify its hash matches the on-chain gADA
+        // token). Without this, ModalSponsor rebuilds the procedure from
+        // card-level fields and ends up with slightly different
+        // action/anchor data, hashing to a different proposal token —
+        // that's the "Sponsor sponsored a different proposal" / "always
+        // creates a new entry" bug from the Pi review.
+        existingCosponsoredProposal: deposit.cosponsoredProposal ?? undefined,
+        // Carry the action-specific fields through from the GovTools/mock
+        // listing so the rebuild path in ModalSponsor has enough data to
+        // reconstruct the procedure when the SDK can't (e.g. variants the
+        // datum decoder hasn't been taught yet). ModalSponsor verifies the
+        // rebuilt hash matches `proposalHash` before pledging, so dropping
+        // these would block legitimate pledges on those variants without
+        // adding any safety the hash check doesn't already provide.
+        withdrawals: govToolsData?.withdrawals,
+        hardForkVersion: govToolsData?.hardForkVersion,
+        constitutionHash: govToolsData?.constitutionHash,
+        constitutionUrl: govToolsData?.constitutionUrl,
+        sourceUrlId: govToolsData?.sourceUrlId,
+        proposalHash,
       }
     },
     [cosponsorTarget]
@@ -125,7 +154,7 @@ export const useGetProposalData = () => {
       const userPledgedAmountAda = Number(deposit.tokenAmount) / 1_000_000
 
       // Use user-friendly name for Unknown action kinds
-      const actionKind = deposit.cosponsoredProposal.action.kind
+      const actionKind = deposit.actionSummary.action.kind
       const actionDisplay = actionKind === 'Unknown' ? 'on-chain' : actionKind
 
       // Add details-specific fields
@@ -181,22 +210,52 @@ export const useGetProposalData = () => {
           }
           userPledgedAda = Number(depositOverlay.totalTokenAmount) / 1_000_000
         }
-        const lovelace = totals.byUrlId.get(id) ?? totals.byProposalHash.get(id) ?? 0n
-        if (lovelace > 0n) {
-          chainPledgedAda = lovelaceToAda(lovelace)
-        }
         // Surface every on-chain pledge as a row in Proposal Sponsors.
         // The wallet/owner behind each UTxO isn't recoverable from the
         // script datum alone (would need to walk back to the mint tx),
         // so we label them generically until the BE indexer can resolve
         // payer addresses.
-        const breakdowns =
-          totals.pledgesByUrlId.get(id) ?? totals.pledgesByProposalHash.get(id) ?? []
-        chainPledges = breakdowns.map((b) => ({
-          id: `${b.txHash}#${b.outputIndex}`,
-          ownerName: 'On-chain',
-          amount: lovelaceToAda(b.lockedAmount),
-        }))
+        //
+        // Union three buckets so we don't miss deposits that drifted across
+        // identity variants (e.g. a pre-identity-work deposit with a
+        // different proposalHash but the same anchor URL, or vice versa):
+        //  1. UTxOs whose anchor URL decodes to this route id
+        //  2. UTxOs whose gADA hash equals this route id
+        //  3. UTxOs whose gADA hash maps via the chain map to this URL id
+        // Dedupe by (txHash, outputIndex).
+        const pledgeBuckets = [
+          totals.pledgesByUrlId.get(id) ?? [],
+          totals.pledgesByProposalHash.get(id) ?? [],
+        ]
+        for (const [hash, urlId] of totals.urlIdByProposalHash) {
+          if (urlId === id && hash !== id) {
+            const extras = totals.pledgesByProposalHash.get(hash)
+            if (extras) {
+              pledgeBuckets.push(extras)
+            }
+          }
+        }
+        const seen = new Set<string>()
+        let chainLovelace = 0n
+        chainPledges = []
+        for (const bucket of pledgeBuckets) {
+          for (const b of bucket) {
+            const key = `${b.txHash}#${b.outputIndex}`
+            if (seen.has(key)) {
+              continue
+            }
+            seen.add(key)
+            chainLovelace += b.lockedAmount
+            chainPledges.push({
+              id: key,
+              ownerName: 'On-chain',
+              amount: lovelaceToAda(b.lockedAmount),
+            })
+          }
+        }
+        if (chainLovelace > 0n) {
+          chainPledgedAda = lovelaceToAda(chainLovelace)
+        }
       }
 
       if (govToolsProposal) {

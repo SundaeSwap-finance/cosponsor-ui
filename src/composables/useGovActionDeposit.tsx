@@ -51,6 +51,11 @@ async function fetchGovActionDeposit(): Promise<bigint> {
 export const getCachedGovActionDepositAda = (): number | null =>
   cachedLovelace === null ? null : Number(cachedLovelace) / 1_000_000
 
+// Lovelace flavour for callers that feed the deposit directly into PlutusData
+// (`browserDeposit` / `computeProposalAssetName`). Avoids the round-trip to ADA
+// and back, and the precision loss that comes with it.
+export const getCachedGovActionDepositLovelace = (): bigint | null => cachedLovelace
+
 // Async equivalent of `getCachedGovActionDepositAda` that triggers the fetch
 // if the cache hasn't been populated yet (e.g. when the data layer runs
 // before any React component has mounted `useGovActionDeposit`). Returns

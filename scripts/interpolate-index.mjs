@@ -28,7 +28,25 @@ if (!commitHash) {
 }
 
 const configPath = `${root}/config/${env}.json`
-const configJson = JSON.stringify(JSON.parse(readFileSync(configPath, 'utf8')))
+const baseConfig = JSON.parse(readFileSync(configPath, 'utf8'))
+
+// Layer env-var overrides on top of the JSON. Lets CI/CD (e.g. AWS
+// CloudFormation parameter store) swap endpoints per-deployment without
+// editing committed JSON. Only known keys are overridden; unknown env vars
+// are ignored. Mapping mirrors the IAppConfig shape in src/lib/config.ts.
+const envOverrides = {
+  appEnv: process.env.COSPONSOR_APP_ENV,
+  blockfrostNetwork: process.env.COSPONSOR_BLOCKFROST_NETWORK,
+  blockfrostApiKey: process.env.COSPONSOR_BLOCKFROST_API_KEY,
+  blockfrostApiUrl: process.env.COSPONSOR_BLOCKFROST_API_URL,
+  ogmiosUrl: process.env.COSPONSOR_OGMIOS_URL,
+}
+for (const [key, value] of Object.entries(envOverrides)) {
+  if (value !== undefined && value !== '') {
+    baseConfig[key] = value
+  }
+}
+const configJson = JSON.stringify(baseConfig)
 
 // eslint-disable-next-line no-console
 console.log(`Interpolating ${indexFile} with config/${env}.json`)

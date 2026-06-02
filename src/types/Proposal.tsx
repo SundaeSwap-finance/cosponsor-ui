@@ -1,3 +1,5 @@
+import type { ICosponsoredProposal } from '@sundaeswap/cosponsor-sdk/validators'
+
 // Treasury withdrawal beneficiary data
 export interface IProposalWithdrawal {
   receivingAddress: string
@@ -37,6 +39,25 @@ export interface IProposalCardData {
   // Optional: Constitution data (for NewConstitution proposals)
   constitutionHash?: string
   constitutionUrl?: string
+  // Optional: SDK procedure recovered from an existing on-chain deposit for
+  // this proposal. When set, the Sponsor flow re-uses it verbatim so the new
+  // deposit produces the SAME on-chain procedure hash (= same gADA token)
+  // and aggregates into the existing pledge instead of minting a new token
+  // under a slightly-different procedure. Only set for cards built from
+  // on-chain deposits (Your Pledges).
+  existingCosponsoredProposal?: ICosponsoredProposal
+  // Optional: on-chain proposal hash (= gADA token asset name) for cards
+  // built from on-chain deposits. Used as a stable React key to prevent
+  // collisions when two deposits resolve to the same display id.
+  proposalHash?: string
+  // The original source-side id (mock category id, GovTools numeric id, …)
+  // used to build the on-chain anchor URL when this card was first
+  // constructed. Threaded so ModalSponsor can produce the exact same
+  // procedure (and therefore the same gADA token) when no
+  // `existingCosponsoredProposal` is set. Without it the anchor URL would
+  // depend on `id`, which becomes the computed hash post Stage-2 — a
+  // circular dependency.
+  sourceUrlId?: string
 }
 
 // Data for the individual Proposal page to view details.

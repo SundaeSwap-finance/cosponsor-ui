@@ -124,7 +124,25 @@ function injectConfig() {
     transformIndexHtml(html: string) {
       const appEnv = process.env.APP_ENV || 'dev'
       const configPath = path.resolve(__dirname, `./config/${appEnv}.json`)
-      const config = fs.readFileSync(configPath, { encoding: 'utf8' })
+      const baseConfig = JSON.parse(fs.readFileSync(configPath, { encoding: 'utf8' }))
+
+      // Mirror the env-var override layering done by
+      // `scripts/interpolate-index.mjs` so the dev server picks up the
+      // same overrides a deploy would. Keep this list in sync with both
+      // files and with `IAppConfig` in `src/lib/config.ts`.
+      const envOverrides: Record<string, string | undefined> = {
+        appEnv: process.env.COSPONSOR_APP_ENV,
+        blockfrostNetwork: process.env.COSPONSOR_BLOCKFROST_NETWORK,
+        blockfrostApiKey: process.env.COSPONSOR_BLOCKFROST_API_KEY,
+        blockfrostApiUrl: process.env.COSPONSOR_BLOCKFROST_API_URL,
+        ogmiosUrl: process.env.COSPONSOR_OGMIOS_URL,
+      }
+      for (const [key, value] of Object.entries(envOverrides)) {
+        if (value !== undefined && value !== '') {
+          baseConfig[key] = value
+        }
+      }
+      const config = JSON.stringify(baseConfig)
 
       return html.replace(
         '<head>',

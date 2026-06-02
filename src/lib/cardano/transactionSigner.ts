@@ -66,8 +66,15 @@ export const signAndSubmitTransaction = async ({
   const txHash = await walletApi.submitTx(signedTxCbor)
 
   // Track effects so subsequent transactions can chain off this one before it
-  // is confirmed on-chain
-  const { spentInputs, createdOutputs } = extractTransactionEffects(completedTx, txHash)
+  // is confirmed on-chain. `extractTransactionEffects` is from the SDK and
+  // expects its own nested `@cardano-sdk/core` Transaction shape; the
+  // `completedTx` param is typed against the UI's pinned 0.46.12 copy.
+  // Same runtime class — version-skew per TODO.md "Tech Debt: Blaze
+  // Override Stack" (task #8).
+  const { spentInputs, createdOutputs } = extractTransactionEffects(
+    completedTx as unknown as Parameters<typeof extractTransactionEffects>[0],
+    txHash
+  )
   pendingUtxoTracker.recordTransaction(txHash, spentInputs, createdOutputs)
 
   return { txHash, signedTxCbor }

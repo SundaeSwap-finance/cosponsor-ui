@@ -53,5 +53,9 @@ export const createReadOnlyBlaze = async (): Promise<Blaze<Provider, Wallet>> =>
     blockfrostApiKey: config.blockfrostApiKey,
     network: config.blockfrostNetwork,
   })
-  return Blaze.from(provider, createReadOnlyWallet())
+  // `createProvider` returns the SDK's `Provider` (sourced from the SDK's
+  // own nested @blaze-cardano/query); `Blaze.from` is the UI's pinned
+  // 0.8.0 version. Same runtime class — see TODO.md "Tech Debt: Blaze
+  // Override Stack" (task #8) for why the type identity diverges.
+  return Blaze.from(provider as unknown as Provider, createReadOnlyWallet())
 }

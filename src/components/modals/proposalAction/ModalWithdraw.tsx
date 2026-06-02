@@ -20,7 +20,6 @@ import { maxDecimalsAda } from '@/config/config'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 import {
   fetchWithdrawalPlan,
-  IWithdrawalPlan,
   browserWithdraw,
   createOgmiosEvaluator,
 } from '@sundaeswap/cosponsor-sdk/browser'
@@ -32,6 +31,7 @@ import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { logger } from '@/lib/logger'
 
 import { config } from '@/lib/config'
+import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/cardano/blaze-patches'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
 
@@ -56,7 +56,6 @@ export const ModalWithdraw = ({
   const [error, setError] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false)
   const [previewTx, setPreviewTx] = useState<Core.Transaction | null>(null)
-  const [withdrawalPlan, setWithdrawalPlan] = useState<IWithdrawalPlan | null>(null)
   const [fees, setFees] = useState<number>(0)
 
   // Load transaction preview to calculate accurate fees
@@ -79,8 +78,6 @@ export const ModalWithdraw = ({
           return
         }
 
-        setWithdrawalPlan(plan)
-
         // Build preview transaction with full available amount
         let tx = await browserWithdraw({
           blaze,
@@ -88,11 +85,26 @@ export const ModalWithdraw = ({
           withdrawAmount: lovelaceToRetrieve,
         })
 
-        // Use Ogmios evaluator if available (has mempool access), otherwise fall back to Blockfrost
+        // Wrap whichever underlying evaluator is in use with wallet-UTxO
+        // injection so chained txs resolve before Blockfrost indexes them.
+        // See `blaze-patches.ts` `wrapEvaluatorWithWalletUtxos`.
+        type UseEvaluatorArg = Parameters<typeof tx.useEvaluator>[0]
         if (OGMIOS_URL) {
-          tx = tx.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+          tx = tx.useEvaluator(
+            wrapEvaluatorWithWalletUtxos(
+              blaze,
+              createOgmiosEvaluator(OGMIOS_URL)
+            ) as unknown as UseEvaluatorArg
+          )
+        } else {
+          tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg)
         }
-        const completedTx = await tx.complete()
+        // SDK returns a Transaction class from its own nested
+        // `@cardano-sdk/core` (0.45) tree; the UI's `Core.Transaction` is
+        // pinned to 0.46.12. Structurally identical at runtime — the
+        // private-field nominal mismatch is the version-skew documented in
+        // TODO.md "Tech Debt: Blaze Override Stack" (task #8).
+        const completedTx = (await tx.complete()) as unknown as Core.Transaction
 
         // Calculate fees
         const txFee = completedTx.body().fee()
@@ -139,49 +151,43 @@ export const ModalWithdraw = ({
     try {
       logger.debug('Starting withdrawal process...')
 
-      // Use preview transaction if available, otherwise build new one
-      let completedTx = previewTx
+      // Always rebuild fresh on click. The preview tx is built on mount and
+      // its inputs may have been spent by a prior tx in the same session —
+      // submitting the stale preview fails with "All inputs are spent". The
+      // preview is for fee display only.
+      requireConnectedWallet(walletObserver)
+      const blaze = await createConfiguredBlaze(walletObserver)
 
-      if (!completedTx) {
-        logger.warn('No preview transaction available, building fresh transaction...')
+      const plan = await fetchWithdrawalPlan(blaze)
 
-        // Create Blaze instance
-        requireConnectedWallet(walletObserver)
-        const blaze = await createConfiguredBlaze(walletObserver)
+      if (plan.availableToWithdraw <= 0n) {
+        throw new Error('No gADA tokens available to withdraw')
+      }
 
-        // Fetch withdrawal plan
-        const plan = withdrawalPlan ?? (await fetchWithdrawalPlan(blaze))
+      logger.debug(`Withdrawing ${lovelaceToRetrieve / 1_000_000n} ADA`)
 
-        if (plan.availableToWithdraw <= 0n) {
-          throw new Error('No gADA tokens available to withdraw')
-        }
+      let tx = await browserWithdraw({
+        blaze,
+        withdrawalPlan: plan,
+        withdrawAmount: lovelaceToRetrieve,
+      })
 
-        logger.debug(`Withdrawing ${lovelaceToRetrieve / 1_000_000n} ADA`)
+      logger.debug('Withdrawal transaction built, completing...')
 
-        // Build withdrawal transaction
-        let tx = await browserWithdraw({
-          blaze,
-          withdrawalPlan: plan,
-          withdrawAmount: lovelaceToRetrieve,
-        })
-
-        logger.debug('Withdrawal transaction built, completing...')
-
-        // Complete the transaction (adds change, balances, etc.)
-        // Use Ogmios evaluator if available (has mempool access), otherwise fall back to Blockfrost
-        logger.debug('Completing transaction (evaluating scripts via Ogmios)...')
-        if (OGMIOS_URL) {
-          tx = tx.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
-        }
-        completedTx = await tx.complete()
+      type UseEvaluatorArg2 = Parameters<typeof tx.useEvaluator>[0]
+      if (OGMIOS_URL) {
+        tx = tx.useEvaluator(
+          wrapEvaluatorWithWalletUtxos(
+            blaze,
+            createOgmiosEvaluator(OGMIOS_URL)
+          ) as unknown as UseEvaluatorArg2
+        )
       } else {
-        logger.debug('Using pre-built transaction from preview')
+        tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg2)
       }
-
-      // Ensure we have a completed transaction
-      if (!completedTx) {
-        throw new Error('Failed to build transaction')
-      }
+      // Same `@cardano-sdk/core` version-skew cast as the preview path
+      // above — see TODO.md "Tech Debt: Blaze Override Stack" (task #8).
+      const completedTx = (await tx.complete()) as unknown as Core.Transaction
 
       logger.debug('Transaction evaluated, requesting signature from wallet...')
 

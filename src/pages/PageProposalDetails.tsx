@@ -38,15 +38,16 @@ export const PageProposalDetails = () => {
     [proposal?.expiryDate]
   )
   const totalPledged: number = useMemo(() => {
-    if (proposal?.pledges && proposal?.pledges.length > 0) {
-      let countAmount = 0
-      for (const pledge of proposal.pledges) {
-        countAmount += pledge?.amount
-      }
-      return countAmount + proposal.userPledged
-    } else {
-      return proposal?.pledgedAmount ?? 0
+    // `pledgedAmount` is the chain-state aggregate across every UTxO at the
+    // script address for this proposal — including the user's own deposits.
+    // Don't add `userPledged` on top: that double-counts the user.
+    if (proposal?.pledgedAmount) {
+      return proposal.pledgedAmount
     }
+    if (proposal?.pledges && proposal.pledges.length > 0) {
+      return proposal.pledges.reduce((sum, p) => sum + (p?.amount ?? 0), 0)
+    }
+    return 0
   }, [proposal])
 
   const completionPercentage = useMemo((): number => {

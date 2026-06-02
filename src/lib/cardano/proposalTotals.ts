@@ -131,7 +131,11 @@ export const fetchCachedWithdrawalPlan = (
   if (inFlight) {
     return inFlight
   }
-  inFlight = fetchWithdrawalPlan(blaze)
+  // `fetchWithdrawalPlan` is from the SDK and expects the SDK's
+  // `Blaze<Provider, Wallet>`; the `blaze` parameter is typed against the
+  // UI's pinned 0.8.0 copy. Same shape at runtime — version-skew per
+  // TODO.md "Tech Debt: Blaze Override Stack" (task #8).
+  inFlight = fetchWithdrawalPlan(blaze as unknown as Parameters<typeof fetchWithdrawalPlan>[0])
     .then((plan) => {
       cachedPlan = { plan, expiresAt: Date.now() + PLAN_TTL_MS }
       return plan
@@ -263,7 +267,7 @@ export const deriveUserDeposits = (plan: IWithdrawalPlan): IUserDeposit[] => {
     }
   }
 
-  return plan.userTokens.map((token) => {
+  return plan.userTokens.map((token): IUserDeposit => {
     const matched = utxoByProposalHash.get(token.tokenAssetName)
     if (matched) {
       return {
@@ -272,7 +276,11 @@ export const deriveUserDeposits = (plan: IWithdrawalPlan): IUserDeposit[] => {
         depositTxHash: matched.txHash,
         depositOutputIndex: matched.outputIndex,
         depositAmount: token.tokenAmount,
-        cosponsoredProposal: {
+        // Full typed procedure (post-SDK-widening). `null` when the SDK
+        // couldn't losslessly reconstruct the action — Sponsor flow falls
+        // back to building from card fields in that case.
+        cosponsoredProposal: matched.cosponsoredProposal,
+        actionSummary: {
           deposit: token.tokenAmount,
           anchor: matched.anchor,
           action: { kind: matched.actionKind },
@@ -281,6 +289,7 @@ export const deriveUserDeposits = (plan: IWithdrawalPlan): IUserDeposit[] => {
           ? Buffer.from(matched.anchor.url, 'hex').toString()
           : 'On-chain proposal',
         proposalHash: token.tokenAssetName,
+        unmatched: false,
       }
     }
     return {
@@ -289,13 +298,15 @@ export const deriveUserDeposits = (plan: IWithdrawalPlan): IUserDeposit[] => {
       depositTxHash: '',
       depositOutputIndex: 0,
       depositAmount: token.tokenAmount,
-      cosponsoredProposal: {
+      cosponsoredProposal: null,
+      actionSummary: {
         deposit: token.tokenAmount,
         anchor: { url: '', hash: '' },
         action: { kind: 'Unknown' },
       },
       proposalUrl: 'On-chain proposal',
       proposalHash: token.tokenAssetName,
+      unmatched: true,
     }
   })
 }

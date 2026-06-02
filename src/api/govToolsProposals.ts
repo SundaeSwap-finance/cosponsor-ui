@@ -9,6 +9,7 @@ import { govToolsApi } from '@/api/govToolsApi'
 import { IGovToolsProposal, TGovToolsProposalsListResponse } from '@/types/GovToolsApi'
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { getCachedGovActionDepositAda } from '@/composables/useGovActionDeposit'
+import { computeProposalIdentity } from '@/lib/cardano/proposalIdentity'
 import { logger } from '@/lib/logger'
 
 // Import backup data as fallback
@@ -220,8 +221,25 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
   const constitutionHash = constitutionContent?.constitution_hash || undefined
   const constitutionUrl = constitutionContent?.constitution_url || undefined
 
+  const sourceUrlId = String(govProposal.id)
+  const categoryName = content?.gov_action_type?.attributes?.gov_action_type_name || 'Info Action'
+
+  // Identity = on-chain gADA token hash (same as what ModalSponsor would
+  // mint). Falls back to `sourceUrlId` when the action data is incomplete
+  // — the card is still routable, just without on-chain hash alignment.
+  const identity = computeProposalIdentity({
+    sourceUrlId,
+    categoryName,
+    card: {
+      withdrawals: withdrawals?.length ? withdrawals : undefined,
+      hardForkVersion,
+      constitutionHash,
+      constitutionUrl,
+    },
+  })
+
   return {
-    id: String(govProposal.id),
+    id: identity?.proposalHash ?? sourceUrlId,
     name: content?.prop_name || `Proposal #${govProposal.id}`,
     ownerId: attrs.user_id,
     ownerName: attrs.user_govtool_username || 'Anonymous',
@@ -238,7 +256,7 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
     companyName: content?.gov_action_type?.attributes?.gov_action_type_name || 'Unknown',
     companyDomain: '', // Not available from GovTools
     abstract: content?.prop_abstract || 'No abstract available.',
-    categoryName: content?.gov_action_type?.attributes?.gov_action_type_name || 'Info Action',
+    categoryName,
     // Treasury withdrawal beneficiaries (for TreasuryWithdrawal proposals)
     withdrawals: withdrawals?.length ? withdrawals : undefined,
     // Hard fork version (for HardFork proposals)
@@ -246,6 +264,8 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
     // Constitution data (for NewConstitution proposals)
     constitutionHash,
     constitutionUrl,
+    sourceUrlId,
+    existingCosponsoredProposal: identity?.cosponsoredProposal,
   }
 }
 
@@ -341,9 +361,14 @@ export const createMockProposal = (categoryName: string): IProposalCardData => {
     normalizedCategory.includes('constitution') && !normalizedCategory.includes('committee')
   const isNoConfidence = normalizedCategory.includes('no confidence')
 
-  // Base mock proposal
+  const sourceUrlId = getMockProposalId(categoryName)
+
+  // Base mock proposal — `id` is filled in below after computing the
+  // on-chain hash from the full procedure data. We thread `sourceUrlId`
+  // separately so ModalSponsor can rebuild the same anchor URL.
   const baseProposal: IProposalCardData = {
-    id: getMockProposalId(categoryName),
+    id: sourceUrlId,
+    sourceUrlId,
     name: `[TEST] Sample ${categoryName} Proposal`,
     ownerId: 'test-owner-123',
     ownerName: 'Test User',
@@ -392,36 +417,43 @@ export const createMockProposal = (categoryName: string): IProposalCardData => {
   // Note: ProtocolParameters and ConstitutionalCommittee don't need extra data
   // as they use empty/default test values (no parameter changes, no member changes)
 
+  const identity = computeProposalIdentity({
+    sourceUrlId,
+    categoryName,
+    card: baseProposal,
+  })
+  if (identity) {
+    baseProposal.id = identity.proposalHash
+    baseProposal.existingCosponsoredProposal = identity.cosponsoredProposal
+  }
+
   return baseProposal
 }
 
 /**
- * Check if an ID is a mock proposal ID
+ * Check if a card was built from the mock factory.
+ *
+ * Post Stage-2 the routable `proposal.id` is the on-chain gADA token hash,
+ * which carries no "mock" marker. The original mock-prefixed id lives on
+ * the card as `sourceUrlId` — that's what we check here.
  */
-export const isMockProposalId = (id: string): boolean => {
-  return id.startsWith(MOCK_PROPOSAL_ID_PREFIX)
+export const isMockProposalCard = (card: IProposalCardData): boolean => {
+  return !!card.sourceUrlId?.startsWith(MOCK_PROPOSAL_ID_PREFIX)
 }
 
 /**
- * Extract category name from mock proposal ID (reverse lookup)
+ * Extract category name from a mock proposal's `sourceUrlId`. Returns null
+ * when the id doesn't belong to any of the known mock categories — caller
+ * decides on a fallback (the previous default of "Info Action" silently
+ * hid bugs in lookups).
  */
-export const getCategoryFromMockId = (id: string): string | null => {
-  // For known categories, check which one matches the ID
-  const categories = [
-    'Info Action',
-    'Treasury Withdrawal',
-    'Protocol Parameters',
-    'Hard Fork',
-    'No Confidence',
-    'Constitutional Committee',
-    'New Constitution',
-  ]
-  for (const cat of categories) {
-    if (getMockProposalId(cat) === id) {
+export const getCategoryFromMockSourceUrlId = (sourceUrlId: string): string | null => {
+  for (const cat of MOCK_CATEGORIES) {
+    if (getMockProposalId(cat) === sourceUrlId) {
       return cat
     }
   }
-  return 'Info Action' // Default fallback
+  return null
 }
 
 /**
@@ -432,24 +464,29 @@ export const getCategoryFromMockId = (id: string): string | null => {
  */
 export const getProposalDetailsById = async (id: string): Promise<IProposalDetailsData | null> => {
   const allProposals = await getAllProposalsAsCards()
-  const card = allProposals.find((p) => p.id === id)
+  // Routes use the on-chain proposal hash post Stage-2, but legacy routes
+  // pointing at the pre-Stage-2 source id should still resolve to the same
+  // card — match against either.
+  const card = allProposals.find((p) => p.id === id || p.sourceUrlId === id)
 
   if (card) {
-    if (isMockProposalId(id)) {
-      const categoryName = getCategoryFromMockId(id)
+    if (isMockProposalCard(card)) {
+      const categoryName =
+        getCategoryFromMockSourceUrlId(card.sourceUrlId ?? '') ?? card.categoryName
       return {
         ...card,
         companyCountry: 'Testland',
         motivation: `This mock ${categoryName} proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.`,
         rationale:
           'Testing is essential to ensure the platform works correctly before mainnet launch.',
-        govActionId: id,
-        cip129ActionId: id,
+        govActionId: card.id,
+        cip129ActionId: card.id,
         pledges: [],
       }
     }
-    // Real GovTools card: re-fetch full details for the rich fields.
-    const proposal = await fetchGovToolsProposalById(id)
+    // Real GovTools card: re-fetch full details by the source id.
+    const lookupId = card.sourceUrlId ?? card.id
+    const proposal = await fetchGovToolsProposalById(lookupId)
     return proposal ? transformToProposalDetails(proposal) : null
   }
 

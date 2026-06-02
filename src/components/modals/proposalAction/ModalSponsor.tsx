@@ -16,7 +16,12 @@ import { IconCardano } from '@/icons/IconCardano'
 import { InputCurrencyLarge } from '@/components/input/InputCurrencyLarge'
 import { useWalletObserver } from '@sundaeswap/wallet-lite'
 
-import { browserDeposit, createOgmiosEvaluator } from '@sundaeswap/cosponsor-sdk/browser'
+import {
+  browserDeposit,
+  createOgmiosEvaluator,
+  computeProposalAssetName,
+  BROWSER_CONFIG,
+} from '@sundaeswap/cosponsor-sdk/browser'
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
@@ -32,6 +37,7 @@ import { logger } from '@/lib/logger'
 
 import { config } from '@/lib/config'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/cardano/blaze-patches'
 import { useGovActionDeposit } from '@/composables/useGovActionDeposit'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
 
@@ -74,19 +80,78 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
   const buildCosponsoredProposal = (_depositAmount: bigint): ICosponsoredProposal => {
     const procedureDeposit = govActionDepositLovelace ?? FALLBACK_GOV_ACTION_DEPOSIT_LOVELACE
 
+    // Adding to an existing pledge: re-use the on-chain procedure verbatim
+    // (recovered by getProposalCardsUserPledge). Rebuilding from card-level
+    // fields drops action-specific data (TreasuryWithdrawal.withdrawals,
+    // HardFork.version, NewConstitution.hash/url), which hashes to a
+    // different proposal token and surfaces as "Sponsor sponsored the wrong
+    // proposal" / "created a new proposal entry."
+    if (proposal?.existingCosponsoredProposal) {
+      return proposal.existingCosponsoredProposal
+    }
+
     if (proposal) {
       const actionKind = mapCategoryToActionKind(proposal.categoryName || 'NicePoll')
 
-      return {
+      // Anchor URL uses `sourceUrlId` (mock id / GovTools id), NOT `id` —
+      // post-Stage-2 the latter IS the on-chain hash of the procedure
+      // we're constructing here. Using it in the anchor would make the
+      // hash depend on itself. `proposalIdentity.ts` documents the
+      // convention; we mirror it on every mint path so the procedure is
+      // byte-identical to what the listing factory already hashed.
+      const urlIdForAnchor = proposal.sourceUrlId ?? proposal.id
+
+      const rebuilt: ICosponsoredProposal = {
         deposit: procedureDeposit,
         anchor: {
-          // Use proposal ID as a unique identifier in the URL
-          url: Buffer.from(`https://cosponsor.app/proposal/${proposal.id}`).toString('hex'),
-          // Use proposal ID as the anchor hash (it's already a hash)
-          hash: proposal.id.padEnd(64, '0').slice(0, 64),
+          url: Buffer.from(`https://cosponsor.app/proposal/${urlIdForAnchor}`).toString('hex'),
+          hash: urlIdForAnchor.padEnd(64, '0').slice(0, 64),
         },
         action: buildGovernanceAction(actionKind, proposal),
       }
+
+      // Funds-at-stake guard: if the proposal has an on-chain identity
+      // (proposalHash present, meaning the card came from chain state OR
+      // computeProposalIdentity stamped it), verify the rebuilt procedure
+      // hashes to the SAME asset name. A mismatch means we'd mint a
+      // different gADA token than the user's existing position — the
+      // Pi-review fragmentation bug. Refuse rather than fragment.
+      if (proposal.proposalHash) {
+        let rebuiltHash: string
+        try {
+          rebuiltHash = computeProposalAssetName(rebuilt, BROWSER_CONFIG.scripts.cosponsor.hash)
+        } catch (error) {
+          console.error('[ModalSponsor] hash verification threw', error, {
+            id: proposal.id,
+            proposalHash: proposal.proposalHash,
+          })
+          throw new Error(
+            "Couldn't verify the rebuilt procedure matches the on-chain proposal. " +
+              'Refresh and try again; if the issue persists, please report it.'
+          )
+        }
+        if (rebuiltHash !== proposal.proposalHash) {
+          console.error('[ModalSponsor] rebuilt hash differs from on-chain hash', {
+            rebuiltHash,
+            onChainHash: proposal.proposalHash,
+            id: proposal.id,
+            sourceUrlId: proposal.sourceUrlId,
+            categoryName: proposal.categoryName,
+            hasWithdrawals: !!proposal.withdrawals?.length,
+            hasHardForkVersion: !!proposal.hardForkVersion,
+            hasConstitutionData: !!(proposal.constitutionHash || proposal.constitutionUrl),
+          })
+          throw new Error(
+            "Couldn't rebuild this proposal's on-chain procedure exactly. Pledging " +
+              'now would mint a different gADA token than your existing position. ' +
+              "Refresh the page and try again — if the issue persists, the SDK can't " +
+              'reconstruct this action variant and we need to fix that before you ' +
+              'can pledge more.'
+          )
+        }
+      }
+
+      return rebuilt
     }
 
     // Fallback to test data if no proposal provided
@@ -145,9 +210,23 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
         let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
-        // Use Ogmios evaluator if available (has mempool access)
+        // Same wallet-aware evaluator as the real-sponsor path below — see
+        // `blaze-patches.ts` `wrapEvaluatorWithWalletUtxos` for the chained-
+        // tx rationale. The `as never` cast bridges the @cardano-sdk/core
+        // version-skew between the UI tree and the SDK-linked tree (same
+        // tech-debt as `useGetProposalData`'s blaze cast).
+        type UseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
         if (OGMIOS_URL) {
-          txBuilder = txBuilder.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+          txBuilder = txBuilder.useEvaluator(
+            wrapEvaluatorWithWalletUtxos(
+              blaze,
+              createOgmiosEvaluator(OGMIOS_URL)
+            ) as unknown as UseEvaluatorArg
+          )
+        } else {
+          txBuilder = txBuilder.useEvaluator(
+            buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg
+          )
         }
         const completedTx = await txBuilder.complete()
 
@@ -215,29 +294,76 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       logger.debug('Building deposit transaction...')
       let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
 
-      // Use Ogmios evaluator if available (has mempool access for pending UTxOs)
+      // Inject wallet UTxOs into the evaluator's additionalUtxos so chained
+      // transactions resolve even when Blockfrost hasn't indexed the
+      // previous tx's change output yet. See `blaze-patches.ts` for the
+      // chained-tx wrapper rationale.
+      type UseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
       if (OGMIOS_URL) {
-        txBuilder = txBuilder.useEvaluator(createOgmiosEvaluator(OGMIOS_URL))
+        txBuilder = txBuilder.useEvaluator(
+          wrapEvaluatorWithWalletUtxos(
+            blaze,
+            createOgmiosEvaluator(OGMIOS_URL)
+          ) as unknown as UseEvaluatorArg
+        )
+      } else {
+        txBuilder = txBuilder.useEvaluator(
+          buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg
+        )
       }
 
       // Complete the transaction
       logger.debug('Completing transaction...')
       let completedTx: Core.Transaction | null = null
       try {
-        completedTx = await txBuilder.complete()
+        // `txBuilder.complete()` returns a Transaction class instance from
+        // the SDK's nested `@cardano-sdk/core` (0.45) tree; this file's
+        // `Core.Transaction` is the UI's pinned 0.46.12. Structurally
+        // identical at runtime — TS rejects only on the `#private` field
+        // identity check. See TODO.md "Tech Debt: Blaze Override Stack".
+        completedTx = (await txBuilder.complete()) as unknown as Core.Transaction
         logger.debug('✅ Transaction completed successfully!')
       } catch (evalError) {
         console.error('Transaction evaluation failed:', evalError)
 
-        // Detect stale UTxO errors and provide a clearer message
+        // Branch on the structured Ogmios v5 error surfaced by
+        // `blaze-patches.ts`. The patch emits a single-line message in the
+        // form:
+        //   "evaluateTransaction: Ogmios v5 EvaluationFailure | validator=<purpose>#<i> | reason: <json> | MissingInputs: <json> | Unknown transaction input (missing from UTxO set)"
+        // and reuses the legacy "missing from UTxO set" / "Unknown
+        // transaction input" tokens so the matching below stays robust if
+        // the patch is ever flipped back to v6.
         const errMsg = evalError instanceof Error ? evalError.message : String(evalError)
+
+        // Stale-UTxO family: tx references an input the evaluator can't
+        // find in the on-chain set or the additionalUtxoset we passed.
         if (
           errMsg.includes('missing from UTxO set') ||
-          errMsg.includes('Unknown transaction input')
+          errMsg.includes('Unknown transaction input') ||
+          errMsg.includes('MissingInputs') ||
+          errMsg.includes('AdditionalUtxoOverlap') ||
+          errMsg.includes('IncompleteUtxoSet')
         ) {
           throw new Error(
             'A referenced UTxO is no longer available on-chain. ' +
-              'This can happen if your wallet state is stale. Please refresh the page and try again.'
+              'This can happen if your wallet state is stale, or if the cosponsor ' +
+              'script reference UTxO was spent. Please refresh the page and try again.'
+          )
+        }
+
+        // Script-rejection family: validator ran on-chain and returned
+        // `error`. v5 reports this as `ScriptFailures` containing
+        // `validatorFailed`; the patch lifts that into the message
+        // alongside a `validator=<purpose>#<i>` tag.
+        if (
+          errMsg.includes('Ogmios v5 EvaluationFailure') &&
+          (errMsg.includes('validatorFailed') || errMsg.includes('ScriptFailures'))
+        ) {
+          throw new Error(
+            'The cosponsor script rejected this transaction. This usually means ' +
+              "the procedure data we're minting doesn't exactly match the existing " +
+              "proposal's on-chain procedure. Try refreshing the page; if it " +
+              `persists, capture the full error and report it. (Raw: ${errMsg})`
           )
         }
 
