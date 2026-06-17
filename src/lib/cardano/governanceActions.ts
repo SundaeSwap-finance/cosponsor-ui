@@ -147,19 +147,19 @@ export const buildGovernanceAction = (
 
     case 'NewConstitution': {
       // Constructor 5: New Constitution
-      // Requires constitution hash and URL from proposal
-      if (!proposal?.constitutionHash || !proposal?.constitutionUrl) {
-        throw new Error(
-          'New Constitution proposals require constitution data. ' +
-            'No constitution hash or URL found for this proposal.'
-        )
-      }
-
+      // The on-chain Constitution carries only `guardrails: Option<ScriptHash>`
+      // (SDK audit H2) — constitutionHash/constitutionUrl are deprecated,
+      // have no on-chain slot, and were always ignored by the SDK builder.
+      // Requiring them here blocked pledges on GovTools proposals that lack
+      // `proposal_constitution_content` for no on-chain reason, so they are
+      // no longer required or passed. Omitting `guardrails` encodes
+      // Option::None, byte-identical to the previous output — token hashes
+      // for existing NewConstitution proposals are unaffected. If GovTools
+      // ever exposes a guardrails script hash, thread it through
+      // IProposalCardData and set it here.
       return {
         kind: 'NewConstitution',
         ancestor: null, // No ancestor for new proposals
-        constitutionHash: proposal.constitutionHash,
-        constitutionUrl: proposal.constitutionUrl,
       } as GovernanceAction.INewConstitution
     }
 

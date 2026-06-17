@@ -3,17 +3,18 @@
 // contents of config/${ENV}.json). In dev mode, vite's injectConfig() plugin
 // inlines config/${APP_ENV}.json directly.
 
-export type CardanoNetwork = 'preview' | 'preprod' | 'mainnet' | 'sanchonet'
+export type TCardanoNetwork = 'preview' | 'preprod' | 'mainnet' | 'sanchonet'
 
 export interface IAppConfig {
   appEnv: 'preview' | 'mainnet'
-  blockfrostNetwork: CardanoNetwork
+  blockfrostNetwork: TCardanoNetwork
   blockfrostApiKey: string
   blockfrostApiUrl: string
   ogmiosUrl?: string
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- augmenting the DOM `Window` global; the name is fixed by the lib.
   interface Window {
     __APP_CONFIG?: IAppConfig
   }

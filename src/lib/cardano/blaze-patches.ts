@@ -237,15 +237,15 @@ const purposeToTag: Record<string, number> = {
 // for the duration of that incident and accept the no-additionalUtxoset
 // limitation. The probe script tells you which way to go.
 
-type EvaluateTxFn = (
+type TEvaluateTxFn = (
   tx: Core.Transaction,
   additionalUtxos?: Core.TransactionUnspentOutput[]
 ) => Promise<Core.Redeemers>
 
-interface BlockfrostInternals {
+interface IBlockfrostInternals {
   url: string
   headers: () => Record<string, string>
-  evaluateTransaction: EvaluateTxFn
+  evaluateTransaction: TEvaluateTxFn
 }
 
 // Ogmios v5 jsonwsp response shapes.
@@ -256,22 +256,22 @@ interface BlockfrostInternals {
 // `ScriptFailures` (one or more validators returned error) or specific
 // failure variants like `AdditionalUtxoOverlap` / `IncompleteUtxoSet`.
 // Protocol fault (malformed CBOR, auth, etc.): type === "jsonwsp/fault".
-interface OgmiosV5Budget {
+interface IOgmiosV5Budget {
   memory: number
   steps: number
 }
-interface OgmiosV5SuccessResult {
-  EvaluationResult: Record<string, OgmiosV5Budget>
+interface IOgmiosV5SuccessResult {
+  EvaluationResult: Record<string, IOgmiosV5Budget>
 }
-interface OgmiosV5FailureResult {
+interface IOgmiosV5FailureResult {
   EvaluationFailure: Record<string, unknown>
 }
-interface OgmiosV5Response {
+interface IOgmiosV5Response {
   type: 'jsonwsp/response' | 'jsonwsp/fault'
   version?: string
   servicename?: string
   methodname?: string
-  result?: OgmiosV5SuccessResult | OgmiosV5FailureResult
+  result?: IOgmiosV5SuccessResult | IOgmiosV5FailureResult
   fault?: { code: string; string: string }
   reflection?: unknown
 }
@@ -281,9 +281,9 @@ interface OgmiosV5Response {
 // `Blockfrost`) and the SDK-tree's copy (`BlockfrostFromSdkTree`) — the
 // latter is the one `createProvider` actually instantiates, so without it
 // the patch is a no-op for our flows.
-const uiTreeProto = Blockfrost.prototype as unknown as BlockfrostInternals
-const sdkTreeProto = BlockfrostFromSdkTree.prototype as unknown as BlockfrostInternals
-const prototypesToPatch = new Set<BlockfrostInternals>([uiTreeProto, sdkTreeProto])
+const uiTreeProto = Blockfrost.prototype as unknown as IBlockfrostInternals
+const sdkTreeProto = BlockfrostFromSdkTree.prototype as unknown as IBlockfrostInternals
+const prototypesToPatch = new Set<IBlockfrostInternals>([uiTreeProto, sdkTreeProto])
 
 // eslint-disable-next-line no-console
 console.info('[blaze-patches] patching evaluateTransaction prototypes', {
@@ -291,8 +291,8 @@ console.info('[blaze-patches] patching evaluateTransaction prototypes', {
   sameIdentity: uiTreeProto === sdkTreeProto,
 })
 
-const patchedEvaluateTransaction: BlockfrostInternals['evaluateTransaction'] = async function (
-  this: BlockfrostInternals,
+const patchedEvaluateTransaction: IBlockfrostInternals['evaluateTransaction'] = async function (
+  this: IBlockfrostInternals,
   tx: Core.Transaction,
   additionalUtxos?: Core.TransactionUnspentOutput[]
 ): Promise<Core.Redeemers> {
@@ -470,7 +470,7 @@ const patchedEvaluateTransaction: BlockfrostInternals['evaluateTransaction'] = a
   // -----------------------------------------------------------------------
   // Response handling — Ogmios v5 jsonwsp.
   // -----------------------------------------------------------------------
-  const json = (await response.json()) as OgmiosV5Response
+  const json = (await response.json()) as IOgmiosV5Response
 
   // eslint-disable-next-line no-console
   console.info('[blaze-patches] evaluateTransaction raw response', json)
@@ -650,14 +650,14 @@ for (const proto of prototypesToPatch) {
 // returned function shadow the SDK's analog interfaces structurally, so
 // `txBuilder.useEvaluator(...)` accepts the return without further
 // casting at call sites.
-type ChainedEvaluator = (
+type TChainedEvaluator = (
   tx: Core.Transaction,
   additionalUtxos?: Core.TransactionUnspentOutput[]
 ) => Promise<Core.Redeemers>
 
-interface BlazeLike {
+interface IBlazeLike {
   wallet: { getUnspentOutputs: () => Promise<Core.TransactionUnspentOutput[]> }
-  provider: { evaluateTransaction: ChainedEvaluator }
+  provider: { evaluateTransaction: TChainedEvaluator }
 }
 
 const utxoId = (utxo: Core.TransactionUnspentOutput): string => {
@@ -665,12 +665,25 @@ const utxoId = (utxo: Core.TransactionUnspentOutput): string => {
   return `${input.transactionId().toString()}#${input.index().toString()}`
 }
 
+export interface IEvaluatorGuardOptions {
+  /**
+   * Cosponsor script hash. When set, the evaluator refuses (throws) if the tx
+   * spends any input that resolves to that script address. A deposit/mint must
+   * spend ZERO cosponsor UTxOs (the on-chain validator enforces
+   * `cosponsor_inputs == 0`); a stray script input — e.g. blaze chaining onto a
+   * pending deposit's script output — would otherwise fail opaquely on-chain.
+   * Leave unset for withdrawals, which legitimately spend script UTxOs.
+   */
+  rejectCosponsorInputHash?: string
+}
+
 export const wrapEvaluatorWithWalletUtxos = (
   blaze: unknown,
-  baseEvaluator: unknown
-): ChainedEvaluator => {
-  const b = blaze as BlazeLike
-  const underlying = baseEvaluator as ChainedEvaluator
+  baseEvaluator: unknown,
+  opts?: IEvaluatorGuardOptions
+): TChainedEvaluator => {
+  const b = blaze as IBlazeLike
+  const underlying = baseEvaluator as TChainedEvaluator
   return async (tx, additionalUtxos) => {
     let walletUtxos: Core.TransactionUnspentOutput[] = []
     try {
@@ -699,17 +712,44 @@ export const wrapEvaluatorWithWalletUtxos = (
       mergedIds: merged.map(utxoId),
     })
 
+    // Deposit guard: a mint tx must spend ZERO cosponsor script UTxOs. If one
+    // resolves into the spend set (e.g. blaze chaining onto a pending deposit's
+    // script output), refuse here — before submit — with an actionable message,
+    // instead of letting it fail opaquely on-chain with `cosponsor_inputs != 0`.
+    if (opts?.rejectCosponsorInputHash) {
+      for (const input of tx.body().inputs().values()) {
+        const resolved = byId.get(`${String(input.transactionId())}#${input.index()}`)
+        const paymentPart = resolved?.output().address().getProps().paymentPart
+        if (
+          paymentPart?.type === Core.CredentialType.ScriptHash &&
+          paymentPart.hash === opts.rejectCosponsorInputHash
+        ) {
+          const ref = `${String(input.transactionId())}#${input.index()}`
+          console.warn(`[blaze-patches] deposit guard: cosponsor script input ${ref} in spend set`)
+          throw new Error(
+            'This deposit ended up selecting a Cosponsor script UTxO as an input, ' +
+              'which the on-chain validator rejects. This is a transient wallet/chain ' +
+              'state — please refresh the page and try the pledge again.'
+          )
+        }
+      }
+    }
+
     return underlying(tx, merged)
   }
 }
 
 // Convenience for the common case: wrap the Blaze provider's own evaluator
 // (which is our patched v5 jsonwsp one if Blockfrost; else upstream).
-export const buildChainedTxEvaluator = (blaze: unknown): ChainedEvaluator => {
-  const b = blaze as BlazeLike
+export const buildChainedTxEvaluator = (
+  blaze: unknown,
+  opts?: IEvaluatorGuardOptions
+): TChainedEvaluator => {
+  const b = blaze as IBlazeLike
   return wrapEvaluatorWithWalletUtxos(
     b,
     (tx: Core.Transaction, extra?: Core.TransactionUnspentOutput[]) =>
-      b.provider.evaluateTransaction(tx, extra)
+      b.provider.evaluateTransaction(tx, extra),
+    opts
   )
 }

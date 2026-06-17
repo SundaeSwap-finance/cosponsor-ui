@@ -48,6 +48,13 @@ const OGMIOS_URL = config.ogmiosUrl
 // Matches the Conway protocol param on both preview and mainnet as of 2026-05-22.
 const FALLBACK_GOV_ACTION_DEPOSIT_LOVELACE = 100_000_000_000n
 
+// Deposit guard: refuse a mint tx that selected a Cosponsor script UTxO as an
+// input (the validator enforces `cosponsor_inputs == 0`). Passed to the evaluator
+// so it fails before submit with an actionable message. See blaze-patches.ts.
+const DEPOSIT_EVALUATOR_GUARD = {
+  rejectCosponsorInputHash: BROWSER_CONFIG.scripts.cosponsor.hash,
+}
+
 export interface IModalSponsorProps {
   modalTrigger: ReactNode
   /** The proposal to sponsor. If not provided, uses test data. */
@@ -149,6 +156,22 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
               'can pledge more.'
           )
         }
+      } else if (proposal.userPledged > 0) {
+        // The user holds an on-chain position on this proposal, the verbatim
+        // on-chain procedure wasn't recovered (no existingCosponsoredProposal),
+        // AND there's no proposalHash to verify the rebuild against. Minting
+        // unverified here is exactly the duplicate-token window the guard
+        // above closes — refuse instead of risking position fragmentation.
+        console.error('[ModalSponsor] refusing unverifiable rebuild with existing pledge', {
+          id: proposal.id,
+          sourceUrlId: proposal.sourceUrlId,
+          userPledged: proposal.userPledged,
+        })
+        throw new Error(
+          'This proposal has an existing pledge from you, but its on-chain identity ' +
+            "couldn't be verified. Refresh the page and try again — pledging now " +
+            'could split your position across two proposal tokens.'
+        )
       }
 
       return rebuilt
@@ -215,17 +238,18 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         // tx rationale. The `as never` cast bridges the @cardano-sdk/core
         // version-skew between the UI tree and the SDK-linked tree (same
         // tech-debt as `useGetProposalData`'s blaze cast).
-        type UseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
+        type TUseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
         if (OGMIOS_URL) {
           txBuilder = txBuilder.useEvaluator(
             wrapEvaluatorWithWalletUtxos(
               blaze,
-              createOgmiosEvaluator(OGMIOS_URL)
-            ) as unknown as UseEvaluatorArg
+              createOgmiosEvaluator(OGMIOS_URL),
+              DEPOSIT_EVALUATOR_GUARD
+            ) as unknown as TUseEvaluatorArg
           )
         } else {
           txBuilder = txBuilder.useEvaluator(
-            buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg
+            buildChainedTxEvaluator(blaze, DEPOSIT_EVALUATOR_GUARD) as unknown as TUseEvaluatorArg
           )
         }
         const completedTx = await txBuilder.complete()
@@ -298,17 +322,18 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       // transactions resolve even when Blockfrost hasn't indexed the
       // previous tx's change output yet. See `blaze-patches.ts` for the
       // chained-tx wrapper rationale.
-      type UseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
+      type TUseEvaluatorArg = Parameters<typeof txBuilder.useEvaluator>[0]
       if (OGMIOS_URL) {
         txBuilder = txBuilder.useEvaluator(
           wrapEvaluatorWithWalletUtxos(
             blaze,
-            createOgmiosEvaluator(OGMIOS_URL)
-          ) as unknown as UseEvaluatorArg
+            createOgmiosEvaluator(OGMIOS_URL),
+            DEPOSIT_EVALUATOR_GUARD
+          ) as unknown as TUseEvaluatorArg
         )
       } else {
         txBuilder = txBuilder.useEvaluator(
-          buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg
+          buildChainedTxEvaluator(blaze, DEPOSIT_EVALUATOR_GUARD) as unknown as TUseEvaluatorArg
         )
       }
 
@@ -564,7 +589,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
             variant="default"
             className={'sun-text-14-rg h-12 grow'}
             onClick={() => handleSponsor()}
-            disabled={isProcessing || !!txHash}
+            // Block until the amount is a positive number — `!(x > 0)` also
+            // catches 0, empty (NaN), and negative inputs.
+            disabled={isProcessing || !!txHash || !(userPledging > 0)}
           >
             {isProcessing ? (
               <>

@@ -88,16 +88,16 @@ export const ModalWithdraw = ({
         // Wrap whichever underlying evaluator is in use with wallet-UTxO
         // injection so chained txs resolve before Blockfrost indexes them.
         // See `blaze-patches.ts` `wrapEvaluatorWithWalletUtxos`.
-        type UseEvaluatorArg = Parameters<typeof tx.useEvaluator>[0]
+        type TUseEvaluatorArg = Parameters<typeof tx.useEvaluator>[0]
         if (OGMIOS_URL) {
           tx = tx.useEvaluator(
             wrapEvaluatorWithWalletUtxos(
               blaze,
               createOgmiosEvaluator(OGMIOS_URL)
-            ) as unknown as UseEvaluatorArg
+            ) as unknown as TUseEvaluatorArg
           )
         } else {
-          tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg)
+          tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as TUseEvaluatorArg)
         }
         // SDK returns a Transaction class from its own nested
         // `@cardano-sdk/core` (0.45) tree; the UI's `Core.Transaction` is
@@ -174,16 +174,16 @@ export const ModalWithdraw = ({
 
       logger.debug('Withdrawal transaction built, completing...')
 
-      type UseEvaluatorArg2 = Parameters<typeof tx.useEvaluator>[0]
+      type TUseEvaluatorArg2 = Parameters<typeof tx.useEvaluator>[0]
       if (OGMIOS_URL) {
         tx = tx.useEvaluator(
           wrapEvaluatorWithWalletUtxos(
             blaze,
             createOgmiosEvaluator(OGMIOS_URL)
-          ) as unknown as UseEvaluatorArg2
+          ) as unknown as TUseEvaluatorArg2
         )
       } else {
-        tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as UseEvaluatorArg2)
+        tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as TUseEvaluatorArg2)
       }
       // Same `@cardano-sdk/core` version-skew cast as the preview path
       // above — see TODO.md "Tech Debt: Blaze Override Stack" (task #8).

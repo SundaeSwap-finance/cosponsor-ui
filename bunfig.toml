@@ -4,6 +4,10 @@
 # blast radius if a maintainer account is briefly compromised and a malicious
 # release is yanked within the typical detection window.
 minimumReleaseAge = 604800
+# Exempt our own first-party SDK: the age window guards against a compromised
+# third-party maintainer, which doesn't apply to a package we publish and
+# control. Lets the UI track a freshly-released cosponsor-sdk without waiting.
+minimumReleaseAgeExcludes = ["@sundaeswap/cosponsor-sdk"]
 
 [serve.static]
 plugins = ["bun-plugin-tailwind"]
