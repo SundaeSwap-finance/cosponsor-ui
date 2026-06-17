@@ -226,12 +226,16 @@ export const PageProposalDetails = () => {
               </div>
               <LabeledTextProposal label={'Abstract'} value={proposal.abstract} />
               <LabeledTextProposal label={'Motivation'} value={proposal.motivation} />
-              <LabeledCopyId label="Governance Action ID" id={proposal.govActionId} midEllips />
-              <LabeledCopyId
-                label="(CIP-129) Governance Action ID"
-                id={proposal.cip129ActionId}
-                midEllips
-              />
+              {proposal.govActionId && (
+                <LabeledCopyId label="Governance Action ID" id={proposal.govActionId} midEllips />
+              )}
+              {proposal.cip129ActionId && (
+                <LabeledCopyId
+                  label="(CIP-129) Governance Action ID"
+                  id={proposal.cip129ActionId}
+                  midEllips
+                />
+              )}
               <LabeledTextProposal label={'Rationale'} value={proposal.rationale} />
             </div>
           </div>

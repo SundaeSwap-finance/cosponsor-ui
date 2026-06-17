@@ -164,7 +164,10 @@ export const useGetProposalData = () => {
         motivation: `This is an ${actionDisplay} proposal. You have pledged ${userPledgedAmountAda} ADA.`,
         rationale: `Your gADA tokens represent your pledge. You can withdraw your ADA anytime before the proposal expires.`,
         govActionId: proposalHash,
-        cip129ActionId: proposalHash,
+        // The on-chain gADA token hash isn't a governance action id, so there's
+        // no valid CIP-129 value to show here — leave empty (the detail page
+        // hides the row).
+        cip129ActionId: '',
         pledges: [], // Individual pledge data not available from on-chain
       }
     },

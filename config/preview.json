@@ -3,5 +3,5 @@
   "blockfrostNetwork": "preview",
   "blockfrostApiUrl": "https://cardano-preview.blockfrost.io/api/v0",
   "blockfrostApiKey": "previewUJJvqX2v9TOOAis8dZWiuyTPfJxJIKgH",
-  "ogmiosUrl": "http://185.232.68.219:7502/"
+  "ogmiosUrl": "wss://og1.preview.cardano.dezons.com/"
 }

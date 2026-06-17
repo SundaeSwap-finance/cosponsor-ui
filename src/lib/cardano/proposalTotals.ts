@@ -14,6 +14,9 @@
  * the same shape the BE should expose via API — so this doubles as the
  * reference implementation.
  *
+ * TODO(BE): move this aggregation to Pi's backend indexer once it's live;
+ * accepted as known client-side debt for the preview/public-testing release.
+ *
  * ---------------------------------------------------------------------------
  * Algorithm (mirror in BE indexer)
  * ---------------------------------------------------------------------------

@@ -10,6 +10,8 @@ import { IGovToolsProposal, TGovToolsProposalsListResponse } from '@/types/GovTo
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { getCachedGovActionDepositAda } from '@/composables/useGovActionDeposit'
 import { computeProposalIdentity } from '@/lib/cardano/proposalIdentity'
+import { encodeCip129GovActionId } from '@/lib/cardano/cip129'
+import { setUsingBackupData } from '@/lib/dataSourceStatus'
 import { logger } from '@/lib/logger'
 
 // Import backup data as fallback
@@ -79,6 +81,9 @@ export const fetchAllGovToolsProposals = async (
     logger.warn('Using local backup data for proposals')
     const backup = backupData as TGovToolsProposalsListResponse
     allProposals.push(...backup.data)
+    setUsingBackupData(true)
+  } else {
+    setUsingBackupData(false)
   }
 
   // Update cache
@@ -118,6 +123,7 @@ export const fetchProposalsPage = async (
     const totalFetched = start + data.length
     const hasMore = totalFetched < meta.pagination.total && data.length === limit
 
+    setUsingBackupData(false)
     return {
       proposals,
       hasMore,
@@ -129,6 +135,7 @@ export const fetchProposalsPage = async (
 
     // Fallback to backup data for first page
     if (start === 0) {
+      setUsingBackupData(true)
       const backup = backupData as TGovToolsProposalsListResponse
       const backupProposals = backup.data.filter((p) => !p.attributes.content?.attributes?.is_draft)
 
@@ -278,13 +285,18 @@ export const transformToProposalDetails = (
   const baseCard = transformToProposalCard(govProposal)
   const content = govProposal.attributes.content?.attributes
 
+  const submissionTxHash = content?.prop_submission_tx_hash || ''
+
   return {
     ...baseCard,
     companyCountry: '', // Not available from GovTools
     motivation: content?.prop_motivation || 'No motivation provided.',
     rationale: content?.prop_rationale || 'No rationale provided.',
-    govActionId: content?.prop_submission_tx_hash || '',
-    cip129ActionId: '', // Would need CIP-129 encoding
+    govActionId: submissionTxHash,
+    // CIP-129 bech32 id, derived from the submission tx hash. Empty (and the
+    // detail page hides the row) until the proposal has actually been
+    // submitted on-chain. See encodeCip129GovActionId for the index-0 note.
+    cip129ActionId: encodeCip129GovActionId(submissionTxHash),
     pledges: [], // Would come from CoSponsor backend
   }
 }
@@ -480,7 +492,10 @@ export const getProposalDetailsById = async (id: string): Promise<IProposalDetai
         rationale:
           'Testing is essential to ensure the platform works correctly before mainnet launch.',
         govActionId: card.id,
-        cip129ActionId: card.id,
+        // Mock proposals have no real on-chain submission tx, so there's no
+        // valid CIP-129 id to show — leave empty (row hides) rather than
+        // echoing the gADA hash, which isn't a governance action id.
+        cip129ActionId: '',
         pledges: [],
       }
     }

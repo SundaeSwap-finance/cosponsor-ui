@@ -76,10 +76,14 @@ export const ModalWalletConnect = ({
         <WalletConnectFlow
           i18n={i18nData}
           isLoading={walletObserver.observer.isSyncing()}
+          // TODO(mainnet): replace this preview notice with the real,
+          // legal-approved disclaimer (terms of use / risk disclosure, links)
+          // before any mainnet release.
           legalDisclaimer={
             <>
-              TODO: This is a sample legal disclaimer. You can provide links, descriptions or
-              anything you want. In case you want to provide links etc.
+              Cosponsor is in public testing on the Cardano preview testnet. No mainnet ADA is
+              involved and the platform is provided as-is, without warranty. You stay in control of
+              your wallet and keys at all times.
             </>
           }
           onConnectWallet={(key, wallet) => onConnect(key, wallet)}

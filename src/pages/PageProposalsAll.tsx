@@ -47,7 +47,7 @@ export const PageProposalsAll: FC = () => {
       <SectionTitleProposalsView
         title="All Proposals"
         backButton={false}
-        subtitle="Lorem ipsum"
+        subtitle="Browse governance proposals and pledge ADA toward their on-chain deposit."
         breadcrumbs={breadcrumbs}
         onTypeFilter={setTypeFilters}
         onFiltersChange={setIProposalFilters}

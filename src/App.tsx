@@ -5,6 +5,7 @@ import { Outlet } from 'react-router-dom'
 import { useScreenSize } from '@/composables/useScreenSize'
 import { Header } from '@/components/header/Header'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { DataSourceBanner } from '@/components/DataSourceBanner'
 
 export const App = () => {
   const { isMd } = useScreenSize()
@@ -16,6 +17,7 @@ export const App = () => {
           {isMd ? <Sidebar /> : <Header />}
           <div data-app-scroll className="flex h-screen w-full overflow-y-auto">
             <div className="w-full">
+              <DataSourceBanner />
               <div className="sun-page-padding-t sun-page-padding-b sun-page-padding-l flex w-full">
                 <ErrorBoundary>
                   <Outlet />
