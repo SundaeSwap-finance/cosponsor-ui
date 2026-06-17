@@ -52,7 +52,9 @@ export const PageProposalDetails = () => {
 
   const completionPercentage = useMemo((): number => {
     if (totalPledged && proposal?.cosponsorTarget) {
-      return (totalPledged / proposal.cosponsorTarget) * 100
+      // Clamp at 100%: pools can exceed the deposit target (e.g. after a
+      // gov_action_deposit param drop); the progress UI shouldn't overflow.
+      return Math.min(100, (totalPledged / proposal.cosponsorTarget) * 100)
     }
     return 0
   }, [totalPledged, proposal?.cosponsorTarget])

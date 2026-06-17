@@ -13,7 +13,9 @@ export const CardProposalProgress = ({
 
   const calculatePercent = () => {
     if (fundProgress && cosponsorTarget) {
-      return Math.round((fundProgress / cosponsorTarget) * 100)
+      // Clamp at 100%: an over-funded pool (e.g. after the gov_action_deposit
+      // target drops) would otherwise overflow the bar past full.
+      return Math.min(100, Math.round((fundProgress / cosponsorTarget) * 100))
     }
     return 0
   }

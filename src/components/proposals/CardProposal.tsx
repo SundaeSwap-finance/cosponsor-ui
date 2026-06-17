@@ -74,7 +74,11 @@ export const CardProposal = ({
   const expiryDate = useMemo(() => getShortDate(proposal.expiryDate), [proposal.expiryDate])
   const completionPercentage = useMemo(() => {
     if (proposal.pledgedAmount && proposal.cosponsorTarget) {
-      return ((proposal.pledgedAmount / proposal.cosponsorTarget) * 100).toPrecision(4)
+      const pct = (proposal.pledgedAmount / proposal.cosponsorTarget) * 100
+      // Clamp the badge at 100%: a pool can hold more than the deposit target
+      // (e.g. after a gov_action_deposit param drop), but ">100% Funded" reads
+      // as broken.
+      return pct >= 100 ? '100' : pct.toPrecision(4)
     }
     return 'n/a'
   }, [proposal.pledgedAmount, proposal.cosponsorTarget])

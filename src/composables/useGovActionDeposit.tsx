@@ -4,8 +4,10 @@ import { logger } from '@/lib/logger'
 
 // Live value of the Conway gov_action_deposit protocol parameter. This is the
 // lovelace amount someone has to lock when submitting a governance action — i.e.
-// the target a cosponsor pool is trying to crowdfund. Verified on preview
-// 2026-05-21: 100_000_000_000 lovelace (100,000 ADA).
+// the target a cosponsor pool is trying to crowdfund. Network-dependent and
+// changes via an enacted parameter-change governance action: on preview it was
+// 100,000 ADA, then lowered to 1,000 ADA (gov action
+// 2a2dc37b…39ba#0, enacted epoch 1330). Always read it live — never assume.
 //
 // Module-level cache + in-flight promise so concurrent hook subscribers share
 // one network request and consumers outside React (mock factories, etc.) can
