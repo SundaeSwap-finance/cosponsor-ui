@@ -37,6 +37,7 @@ import { logger } from '@/lib/logger'
 
 import { config } from '@/lib/config'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+import { applyPureAdaCollateral } from '@/lib/cardano/collateral'
 import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/cardano/blaze-patches'
 import { useGovActionDeposit } from '@/composables/useGovActionDeposit'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
@@ -252,6 +253,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
             buildChainedTxEvaluator(blaze, DEPOSIT_EVALUATOR_GUARD) as unknown as TUseEvaluatorArg
           )
         }
+        txBuilder = await applyPureAdaCollateral(txBuilder, blaze)
         const completedTx = await txBuilder.complete()
 
         // Calculate fees
@@ -336,6 +338,8 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
           buildChainedTxEvaluator(blaze, DEPOSIT_EVALUATOR_GUARD) as unknown as TUseEvaluatorArg
         )
       }
+
+      txBuilder = await applyPureAdaCollateral(txBuilder, blaze)
 
       // Complete the transaction
       logger.debug('Completing transaction...')

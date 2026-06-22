@@ -33,6 +33,7 @@ import { logger } from '@/lib/logger'
 import { config } from '@/lib/config'
 import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/cardano/blaze-patches'
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
+import { applyPureAdaCollateral } from '@/lib/cardano/collateral'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
 
 // Get Ogmios URL from runtime config for script evaluation (has mempool access)
@@ -99,6 +100,9 @@ export const ModalWithdraw = ({
         } else {
           tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as TUseEvaluatorArg)
         }
+        // Pin pure-ADA collateral (+ collateral-return safety net) so tokens
+        // never sit on the collateral input — see collateral.ts (error 3133).
+        tx = await applyPureAdaCollateral(tx, blaze)
         // SDK returns a Transaction class from its own nested
         // `@cardano-sdk/core` (0.45) tree; the UI's `Core.Transaction` is
         // pinned to 0.46.12. Structurally identical at runtime — the
@@ -185,6 +189,7 @@ export const ModalWithdraw = ({
       } else {
         tx = tx.useEvaluator(buildChainedTxEvaluator(blaze) as unknown as TUseEvaluatorArg2)
       }
+      tx = await applyPureAdaCollateral(tx, blaze)
       // Same `@cardano-sdk/core` version-skew cast as the preview path
       // above — see TODO.md "Tech Debt: Blaze Override Stack" (task #8).
       const completedTx = (await tx.complete()) as unknown as Core.Transaction

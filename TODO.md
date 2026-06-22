@@ -1,6 +1,26 @@
 # Cosponsor UI - TODO & Issues
 
-Last updated: 2026-05-21
+Last updated: 2026-06-22
+
+---
+
+## Design decision: transaction collateral is pure ADA (2026-06-22)
+
+Agreed with Pi + Mark. Tx collateral must be ADA-only. Collateral is consumed
+only on a phase-2 (script) validation failure; we set a collateral-return
+address as a safety net (the ledger then returns surplus ADA **and all tokens**
+to the user even if collateral is consumed — tokens are never lost), and prefer
+pinning a pure-ADA wallet UTxO so tokens never sit on collateral in the first
+place. Implemented in `src/lib/cardano/collateral.ts` (`applyPureAdaCollateral`),
+called before `complete()` in ModalSponsor/ModalWithdraw. Fixes Ogmios error
+3133 ("collateral carries something else than Ada tokens").
+
+UTxO freshness (the related #2): no change needed — deposit/withdraw already
+rebuild fresh on click (fresh `createConfiguredBlaze` + fresh
+`fetchWithdrawalPlan`), and the SDK wallet wrapper re-reads `getUtxos` per build
+and excludes pending-spent inputs via `pendingUtxoTracker`. The `3997`
+("all inputs spent") seen 2026-06-22 was most likely the soak-harness spending
+the same script UTxOs concurrently (shared-wallet race), not a stale cache.
 
 ---
 
