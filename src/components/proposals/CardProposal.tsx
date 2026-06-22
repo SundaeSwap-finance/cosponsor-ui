@@ -125,9 +125,12 @@ export const CardProposal = ({
         <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
       </div>
 
-      <div className={'flex min-h-25 w-full grow flex-col gap-4 px-6 py-4'}>
+      <div className={'flex min-h-25 w-full grow flex-col gap-4 overflow-hidden px-6 py-4'}>
         <div className={'flex flex-col gap-2'}>
-          <h2 className={'text-sun-header sun-text-18-sb'}> {proposal?.name}</h2>
+          <h2 className={'text-sun-header sun-text-18-sb line-clamp-2 break-words'}>
+            {' '}
+            {proposal?.name}
+          </h2>
           {/* Dates stay on one row, nowrapped. Category badge wraps to its
               own line when the dates row + a long category name (e.g.
               "No Confidence", "Constitutional Committee") would otherwise
@@ -165,7 +168,12 @@ export const CardProposal = ({
         {!(proposal?.userPledged && !isExpired) && (
           <div className={'flex w-full flex-col gap-1.5'}>
             <div className={'text-sun-muted sun-text-12-md'}>Abstract</div>
-            <div className={cn('line-clamp-3 xl:line-clamp-4', 'sun-text-14-md text-sun-header')}>
+            <div
+              className={cn(
+                'line-clamp-3 break-words xl:line-clamp-4',
+                'sun-text-14-md text-sun-header'
+              )}
+            >
               {proposal?.abstract}
             </div>
           </div>
