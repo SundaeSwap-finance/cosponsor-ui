@@ -42,4 +42,4 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-replace github.com/SundaeSwap-finance/sundae-go-utils => ../../sundae-go-utils
+// replace github.com/SundaeSwap-finance/sundae-go-utils => ../../sundae-go-utils
