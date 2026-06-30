@@ -10,6 +10,7 @@ import (
 	"github.com/SundaeSwap-finance/cosponsor-ui/backend/shared/cip184"
 	sundaecli "github.com/SundaeSwap-finance/sundae-go-utils/sundae-cli"
 	"github.com/blinklabs-io/gouroboros/ledger"
+	"github.com/blinklabs-io/gouroboros/ledger/common"
 	"github.com/rs/zerolog"
 )
 
@@ -84,11 +85,11 @@ func (h *Handler) rollBack(ctx context.Context, tx ledger.Transaction, _ uint64)
 // reading these rows can identify the two cases by inspecting
 // `external` and `raw_document`.
 func extractCIP184Documents(tx ledger.Transaction) []onchaindao.AnchoredDocument {
-	metaLazy := tx.Metadata()
-	if metaLazy == nil {
+	meta := tx.Metadata()
+	if meta == nil {
 		return nil
 	}
-	raw, ok := metadataValueForLabel(metaLazy.Value(), cip184.MetadataLabel1694)
+	raw, ok := metadatumForLabel(meta, cip184.MetadataLabel1694)
 	if !ok {
 		return nil
 	}
@@ -203,24 +204,81 @@ func subjectKey(s cip184.Subject) string {
 	return s.URI
 }
 
-// metadataValueForLabel returns the raw decoded metadatum at the
-// given CIP-100 label, abstracting over the ogmigo / gouroboros
-// API drift. Returns ok=false when the label is absent.
-func metadataValueForLabel(metadata any, label uint64) (any, bool) {
-	switch m := metadata.(type) {
-	case map[uint64]any:
-		v, ok := m[label]
-		return v, ok
-	case map[string]any:
-		v, ok := m[strconv.FormatUint(label, 10)]
-		return v, ok
+// metadatumForLabel returns the metadatum stored at the given
+// CIP-100 label within a transaction's top-level metadata map.
+// Returns ok=false when the metadata isn't a map or the label is
+// absent.
+func metadatumForLabel(metadata common.TransactionMetadatum, label uint64) (common.TransactionMetadatum, bool) {
+	m, ok := metadata.(common.MetaMap)
+	if !ok {
+		return nil, false
+	}
+	for _, pair := range m.Pairs {
+		key, ok := pair.Key.(common.MetaInt)
+		if !ok || key.Value == nil || !key.Value.IsUint64() {
+			continue
+		}
+		if key.Value.Uint64() == label {
+			return pair.Value, true
+		}
 	}
 	return nil, false
 }
 
 // metadatumToJSON renders a decoded CBOR metadatum back as JSON.
 // CIP-100 already constrains the metadatum to a JSON-encodable
-// shape, so a plain Marshal of the parsed value is sufficient.
-func metadatumToJSON(v any) ([]byte, error) {
-	return json.Marshal(v)
+// shape, so projecting it onto plain Go values and marshaling is
+// sufficient.
+func metadatumToJSON(m common.TransactionMetadatum) ([]byte, error) {
+	return json.Marshal(metadatumToValue(m))
+}
+
+// metadatumToValue projects gouroboros' structured metadatum tree
+// onto the plain map/slice/scalar values that encoding/json knows
+// how to render.
+func metadatumToValue(m common.TransactionMetadatum) any {
+	switch v := m.(type) {
+	case common.MetaInt:
+		if v.Value == nil {
+			return nil
+		}
+		if v.Value.IsInt64() {
+			return v.Value.Int64()
+		}
+		return v.Value
+	case common.MetaText:
+		return v.Value
+	case common.MetaBytes:
+		return v.Value
+	case common.MetaList:
+		out := make([]any, len(v.Items))
+		for i, item := range v.Items {
+			out[i] = metadatumToValue(item)
+		}
+		return out
+	case common.MetaMap:
+		out := make(map[string]any, len(v.Pairs))
+		for _, pair := range v.Pairs {
+			out[metadatumKeyString(pair.Key)] = metadatumToValue(pair.Value)
+		}
+		return out
+	}
+	return nil
+}
+
+// metadatumKeyString renders a metadatum used as a map key into the
+// string key a JSON object requires. CIP-184 documents key on text,
+// but we handle int and byte keys defensively.
+func metadatumKeyString(k common.TransactionMetadatum) string {
+	switch v := k.(type) {
+	case common.MetaText:
+		return v.Value
+	case common.MetaInt:
+		if v.Value != nil {
+			return v.Value.String()
+		}
+	case common.MetaBytes:
+		return string(v.Value)
+	}
+	return ""
 }
