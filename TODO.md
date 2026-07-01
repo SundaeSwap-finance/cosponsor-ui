@@ -1,6 +1,44 @@
 # Cosponsor UI - TODO & Issues
 
-Last updated: 2026-06-22
+Last updated: 2026-07-01
+
+---
+
+## ✅ Completed: Migrate off GovTools to in-house cosponsor-api (2026-07-01)
+
+The UI no longer depends on the external GovTools Proposal Pillar API. All
+proposal reads now go through the in-house `cosponsor-api` Go backend
+(`backend/`, deployed at `api.cosponsor.preview.sundae.fi` /
+`api.cosponsor.sundae.fi`), whose response envelope mirrors the old GovTools
+shape so the frontend transform logic didn't need to change.
+
+- `src/api/govToolsApi.tsx` → `src/api/cosponsorApi.ts` (new base URLs)
+- `src/api/govToolsProposals.ts` → `src/api/proposalsApi.ts`
+- `src/types/GovToolsApi.ts` → `src/types/ProposalApi.ts`
+- Removed the `govtools-proposals-backup.json` static fallback, the
+  `DataSourceBanner`, and `src/lib/dataSourceStatus.ts` — no longer needed
+  now that we control backend uptime. The per-category mock proposal
+  injection (`MOCK_CATEGORIES` in `proposalsApi.ts`) is intentionally kept
+  so every category always has a browsable example.
+- `requestedBudget` / `pledgedAmount` / `userPledged` / `pledges` are still
+  sourced from on-chain data, not from cosponsor-api yet — the backend's
+  `POST/PUT/DELETE /proposals` endpoints exist but aren't wired to the UI.
+
+### Now unblocked by the cosponsor-api backend
+
+These TODOs were written when there was no in-house backend to move work to.
+That's no longer true — worth scoping as real follow-up work:
+
+- [ ] **`src/lib/cardano/proposalTotals.ts:17`** — `TODO(BE): move this
+      aggregation to Pi's backend indexer once it's live`. `backend/dao/
+      onchaindao/` (the CIP-184 indexer) exists now; move deposit/pledge
+      aggregation server-side instead of scanning script UTxOs client-side
+      on every page load.
+- [ ] **`src/components/proposals/filters/FilterPropCreator.tsx:17`** —
+      creator/dRep filter still uses hardcoded test user data
+      (`tempUserList`). `proposaldao.Proposal` already has a `UserID` field,
+      so a creator-lookup endpoint may be closer to feasible than it looked
+      pre-migration.
 
 ---
 

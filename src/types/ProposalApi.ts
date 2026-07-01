@@ -1,18 +1,16 @@
 /**
- * GovTools Proposal Pillar API Types
+ * cosponsor-api Proposal Response Types
  *
- * These types represent the response structure from the GovTools API:
- * - Mainnet: https://be.pdf.gov.tools/api/
- * - Preview: https://p1337-zdae9891f-zf09d11da-gtw.z937eb260.rustrocks.fr/api/
- *
- * Documentation: https://docs.gov.tools/participate-in-development/govtool-apis/proposal-pillar-api/access
+ * These types represent the response structure from the cosponsor-api
+ * backend's `/proposals` endpoints. The envelope shape mirrors
+ * `backend/functions/server/govtools_shape.go` byte-for-byte.
  */
 
 // ============================================================================
 // API Response Wrapper Types
 // ============================================================================
 
-export interface IGovToolsPaginatedResponse<T> {
+export interface IPaginatedResponse<T> {
   data: T[]
   meta: {
     pagination: {
@@ -23,7 +21,7 @@ export interface IGovToolsPaginatedResponse<T> {
   }
 }
 
-export interface IGovToolsSingleResponse<T> {
+export interface ISingleResponse<T> {
   data: T
 }
 
@@ -31,7 +29,7 @@ export interface IGovToolsSingleResponse<T> {
 // Core Entity Types
 // ============================================================================
 
-export interface IGovToolsGovActionType {
+export interface IGovActionType {
   id: number
   attributes: {
     gov_action_type_name: string
@@ -41,25 +39,25 @@ export interface IGovToolsGovActionType {
   }
 }
 
-export interface IGovToolsProposalLink {
+export interface IProposalLink {
   id: number
   prop_link: string
   prop_link_text: string
 }
 
-export interface IGovToolsProposalWithdrawal {
+export interface IProposalWithdrawalRecord {
   id: number
   withdrawal_amount: number
   receiving_address: string
 }
 
-export interface IGovToolsConstitutionContent {
+export interface IConstitutionContent {
   id: number
   constitution_url: string
   constitution_hash: string
 }
 
-export interface IGovToolsHardForkContent {
+export interface IHardForkContent {
   id: number
   major: number
   minor: number
@@ -69,7 +67,7 @@ export interface IGovToolsHardForkContent {
 // Proposal Content Types
 // ============================================================================
 
-export interface IGovToolsProposalContentAttributes {
+export interface IProposalContentAttributes {
   proposal_id: string
   prop_rev_active: boolean
   prop_abstract: string
@@ -85,23 +83,23 @@ export interface IGovToolsProposalContentAttributes {
   createdAt: string
   updatedAt: string
   is_locked: boolean | null
-  proposal_links: IGovToolsProposalLink[]
-  proposal_withdrawals: IGovToolsProposalWithdrawal[]
-  proposal_constitution_content: IGovToolsConstitutionContent | null
-  proposal_hard_fork_content: IGovToolsHardForkContent | null
-  gov_action_type: IGovToolsGovActionType
+  proposal_links: IProposalLink[]
+  proposal_withdrawals: IProposalWithdrawalRecord[]
+  proposal_constitution_content: IConstitutionContent | null
+  proposal_hard_fork_content: IHardForkContent | null
+  gov_action_type: IGovActionType
 }
 
-export interface IGovToolsProposalContent {
+export interface IProposalContent {
   id: number
-  attributes: IGovToolsProposalContentAttributes
+  attributes: IProposalContentAttributes
 }
 
 // ============================================================================
 // Full Proposal Types
 // ============================================================================
 
-export interface IGovToolsProposalAttributes {
+export interface IProposalAttributes {
   prop_likes: number
   prop_dislikes: number
   prop_comments_number: number
@@ -109,26 +107,26 @@ export interface IGovToolsProposalAttributes {
   createdAt: string
   updatedAt: string
   user_govtool_username: string
-  content: IGovToolsProposalContent
+  content: IProposalContent
 }
 
-export interface IGovToolsProposal {
+export interface IProposalEnvelope {
   id: number
-  attributes: IGovToolsProposalAttributes
+  attributes: IProposalAttributes
 }
 
 // ============================================================================
 // API Response Aliases (for convenience)
 // ============================================================================
 
-export type TGovToolsProposalsListResponse = IGovToolsPaginatedResponse<IGovToolsProposal>
-export type TGovToolsProposalResponse = IGovToolsSingleResponse<IGovToolsProposal>
+export type TProposalsListResponse = IPaginatedResponse<IProposalEnvelope>
+export type TProposalResponse = ISingleResponse<IProposalEnvelope>
 
 // ============================================================================
 // Query Parameter Types
 // ============================================================================
 
-export interface IGovToolsListParams {
+export interface IProposalListParams {
   'pagination[limit]'?: number
   'pagination[start]'?: number
   'pagination[page]'?: number

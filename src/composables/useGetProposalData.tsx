@@ -24,7 +24,7 @@ import {
   fetchProposalsPage,
   getProposalsByCategoryPaginated,
   IPaginatedProposals,
-} from '@/api/govToolsProposals'
+} from '@/api/proposalsApi'
 
 interface IChainContext {
   plan: IWithdrawalPlan
@@ -75,9 +75,9 @@ export const useGetProposalData = () => {
   }, [walletObserver])
 
   // Transform IUserDeposit to IProposalCardData
-  // Optionally pass GovTools data to enrich the proposal with proper category info
+  // Optionally pass API proposal data to enrich the proposal with proper category info
   const transformDepositToProposal = useCallback(
-    (deposit: IUserDeposit, govToolsData?: IProposalCardData): IProposalCardData => {
+    (deposit: IUserDeposit, proposalData?: IProposalCardData): IProposalCardData => {
       // Calculate amounts in ADA
       const userPledgedAmountAda = Number(deposit.tokenAmount) / 1_000_000
 
@@ -88,10 +88,10 @@ export const useGetProposalData = () => {
       // fills the URL from an unrelated UTxO's anchor, so a recovered id
       // from this field can misidentify the proposal. Callers resolve the
       // canonical URL id via the chain-state map and pass the matched
-      // proposal in as `govToolsData`; without a match we fall back to the
+      // proposal in as `proposalData`; without a match we fall back to the
       // on-chain hash, which is always exact.
 
-      // Use GovTools data if available, otherwise fallback to on-chain data
+      // Use the API's proposal data if available, otherwise fallback to on-chain data
       // Replace "Unknown" or "Processed" with more user-friendly "On-chain Proposal".
       // For valid action kinds, prefer the user-facing display name
       // (`NicePoll → "Info Action"`, etc.) over the raw on-chain enum.
@@ -99,25 +99,25 @@ export const useGetProposalData = () => {
       const needsFallback = actionKind === 'Unknown' || actionKind === 'Processed'
       const actionDisplay = ACTION_TYPE_DISPLAY_NAMES[actionKind] ?? actionKind
       const categoryName =
-        govToolsData?.categoryName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
+        proposalData?.categoryName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
       const companyName =
-        govToolsData?.companyName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
+        proposalData?.companyName || (needsFallback ? 'On-chain Proposal' : actionDisplay)
 
       return {
-        id: govToolsData?.id || proposalHash,
-        name: govToolsData?.name || `Proposal ${proposalHash.slice(0, 8)}...`,
-        ownerId: govToolsData?.ownerId || proposalHash.slice(0, 16),
-        ownerName: govToolsData?.ownerName || 'On-chain',
-        requestedBudget: govToolsData?.requestedBudget || 0,
-        cosponsorTarget: govToolsData?.cosponsorTarget ?? cosponsorTarget ?? undefined,
-        pledgedAmount: govToolsData?.pledgedAmount || userPledgedAmountAda,
+        id: proposalData?.id || proposalHash,
+        name: proposalData?.name || `Proposal ${proposalHash.slice(0, 8)}...`,
+        ownerId: proposalData?.ownerId || proposalHash.slice(0, 16),
+        ownerName: proposalData?.ownerName || 'On-chain',
+        requestedBudget: proposalData?.requestedBudget || 0,
+        cosponsorTarget: proposalData?.cosponsorTarget ?? cosponsorTarget ?? undefined,
+        pledgedAmount: proposalData?.pledgedAmount || userPledgedAmountAda,
         userPledged: userPledgedAmountAda,
-        initDate: govToolsData?.initDate || new Date(),
-        expiryDate: govToolsData?.expiryDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        initDate: proposalData?.initDate || new Date(),
+        expiryDate: proposalData?.expiryDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         companyName,
-        companyDomain: govToolsData?.companyDomain || 'On-chain',
+        companyDomain: proposalData?.companyDomain || 'On-chain',
         abstract:
-          govToolsData?.abstract ||
+          proposalData?.abstract ||
           `You have ${userPledgedAmountAda} ADA pledged to this on-chain proposal. Withdraw anytime before expiry.`,
         categoryName,
         // Re-use the on-chain procedure verbatim when the SDK could recover
@@ -128,18 +128,18 @@ export const useGetProposalData = () => {
         // that's the "Sponsor sponsored a different proposal" / "always
         // creates a new entry" bug from the Pi review.
         existingCosponsoredProposal: deposit.cosponsoredProposal ?? undefined,
-        // Carry the action-specific fields through from the GovTools/mock
+        // Carry the action-specific fields through from the API/mock
         // listing so the rebuild path in ModalSponsor has enough data to
         // reconstruct the procedure when the SDK can't (e.g. variants the
         // datum decoder hasn't been taught yet). ModalSponsor verifies the
         // rebuilt hash matches `proposalHash` before pledging, so dropping
         // these would block legitimate pledges on those variants without
         // adding any safety the hash check doesn't already provide.
-        withdrawals: govToolsData?.withdrawals,
-        hardForkVersion: govToolsData?.hardForkVersion,
-        constitutionHash: govToolsData?.constitutionHash,
-        constitutionUrl: govToolsData?.constitutionUrl,
-        sourceUrlId: govToolsData?.sourceUrlId,
+        withdrawals: proposalData?.withdrawals,
+        hardForkVersion: proposalData?.hardForkVersion,
+        constitutionHash: proposalData?.constitutionHash,
+        constitutionUrl: proposalData?.constitutionUrl,
+        sourceUrlId: proposalData?.sourceUrlId,
         proposalHash,
       }
     },
@@ -174,11 +174,11 @@ export const useGetProposalData = () => {
     [transformDepositToProposal]
   )
 
-  // Details page data - fetch from GovTools API or user deposits
+  // Details page data - fetch from the proposals API or user deposits
   const getProposalDetailsById = useCallback(
     async (id: string): Promise<IProposalDetailsData | undefined> => {
-      // Look up via unified proposal list (mocks + GovTools).
-      const govToolsProposal = await fetchProposalDetails(id)
+      // Look up via unified proposal list (mocks + API).
+      const apiProposal = await fetchProposalDetails(id)
 
       // Merge on-chain data so the detail page reflects reality:
       // - userPledged comes from the connected wallet's gADA holdings
@@ -191,7 +191,7 @@ export const useGetProposalData = () => {
       let chainPledgedAda: number | undefined
       let chainPledges: IPledgeData[] = []
       // Live gov_action_deposit — the synchronous cache reader used inside
-      // `govToolsProposals.ts` returns null on the very first call, so we
+      // `proposalsApi.ts` returns null on the very first call, so we
       // re-await here to backfill cosponsorTarget when it landed late.
       const targetAda = await ensureGovActionDepositAda()
       const ctx = await loadChainContext()
@@ -261,26 +261,26 @@ export const useGetProposalData = () => {
         }
       }
 
-      if (govToolsProposal) {
-        const cosponsorTargetAda = govToolsProposal.cosponsorTarget ?? targetAda ?? undefined
+      if (apiProposal) {
+        const cosponsorTargetAda = apiProposal.cosponsorTarget ?? targetAda ?? undefined
         if (
           !depositOverlay &&
           chainPledgedAda === undefined &&
-          cosponsorTargetAda === govToolsProposal.cosponsorTarget
+          cosponsorTargetAda === apiProposal.cosponsorTarget
         ) {
-          return govToolsProposal
+          return apiProposal
         }
         return {
-          ...govToolsProposal,
+          ...apiProposal,
           cosponsorTarget: cosponsorTargetAda,
-          userPledged: userPledgedAda || govToolsProposal.userPledged,
+          userPledged: userPledgedAda || apiProposal.userPledged,
           pledgedAmount:
-            chainPledgedAda ?? Math.max(govToolsProposal.pledgedAmount ?? 0, userPledgedAda),
-          pledges: chainPledges.length > 0 ? chainPledges : govToolsProposal.pledges,
+            chainPledgedAda ?? Math.max(apiProposal.pledgedAmount ?? 0, userPledgedAda),
+          pledges: chainPledges.length > 0 ? chainPledges : apiProposal.pledges,
         }
       }
 
-      // No mock/GovTools entry — surface the on-chain deposit alone if we have one.
+      // No mock/API entry — surface the on-chain deposit alone if we have one.
       if (depositOverlay) {
         const base = transformDepositToProposalDetails({
           ...depositOverlay.sample,
@@ -317,7 +317,7 @@ export const useGetProposalData = () => {
     return getProposalsByCategory(categoryName)
   }, [])
 
-  // Get all proposals from GovTools API
+  // Get all proposals from the proposals API
   const getAllProposalCards = useCallback(async (): Promise<IProposalCardData[]> => {
     return getAllProposalsAsCards()
   }, [])
@@ -338,7 +338,7 @@ export const useGetProposalData = () => {
       // every UTxO at the script address. The shared `loadChainContext`
       // de-dupes the underlying `fetchWithdrawalPlan` call across this
       // hook's other callbacks.
-      const [ctx, govToolsProposals] = await Promise.all([
+      const [ctx, allProposals] = await Promise.all([
         loadChainContext(),
         getAllProposalsAsCards().catch(() => [] as IProposalCardData[]),
       ])
@@ -358,14 +358,14 @@ export const useGetProposalData = () => {
         logger.debug(`      Token: ${d.tokenAssetName.slice(0, 20)}...`)
       })
 
-      // Unified id → proposal lookup (mocks + GovTools). Used to enrich each
+      // Unified id → proposal lookup (mocks + API). Used to enrich each
       // deposit with the original proposal's metadata once we recover the
       // URL-space id from the deposit's anchor URL.
       const proposalById = new Map<string, IProposalCardData>()
-      for (const proposal of govToolsProposals) {
+      for (const proposal of allProposals) {
         proposalById.set(proposal.id, proposal)
       }
-      logger.debug(`Loaded ${proposalById.size} proposals (mocks + GovTools) for enrichment`)
+      logger.debug(`Loaded ${proposalById.size} proposals (mocks + API) for enrichment`)
 
       // Group deposits by on-chain proposalHash (= gADA tokenAssetName).
       // Cross-procedure aggregation via the recovered URL id used to live
@@ -402,7 +402,7 @@ export const useGetProposalData = () => {
           tokenAmount: totalTokenAmount,
         }
 
-        // Enrich with mock/GovTools metadata. Resolve URL id from the chain
+        // Enrich with mock/API metadata. Resolve URL id from the chain
         // scan's canonical `proposalHash → urlId` map rather than the deposit's
         // own `proposalUrl` — the SDK's per-token URL field falls back to
         // an unrelated UTxO's anchor when a datum fails to decode (current
@@ -468,7 +468,7 @@ export const useGetProposalData = () => {
   // wallet-independent: the deposit is a protocol parameter, and the
   // script-address scan uses a read-only Blaze when no wallet is connected
   // so progress bars light up pre-connect. The data layer in
-  // `govToolsProposals.ts` reads the deposit synchronously from cache; on
+  // `proposalsApi.ts` reads the deposit synchronously from cache; on
   // first paint that cache is empty, which is why the overlay here also
   // fills `cosponsorTarget` instead of relying on the synchronous read.
   const applyChainTotals = useCallback(

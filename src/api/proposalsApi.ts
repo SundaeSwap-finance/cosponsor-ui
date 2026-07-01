@@ -1,21 +1,17 @@
 /**
- * GovTools Proposals API Service
+ * Proposals API Service
  *
- * Fetches proposals from the GovTools Proposal Pillar API with lazy loading
+ * Fetches proposals from the cosponsor-api backend with lazy loading
  * and local caching for reliability and performance.
  */
 
-import { govToolsApi } from '@/api/govToolsApi'
-import { IGovToolsProposal, TGovToolsProposalsListResponse } from '@/types/GovToolsApi'
+import { cosponsorApi } from '@/api/cosponsorApi'
+import { IProposalEnvelope, TProposalsListResponse } from '@/types/ProposalApi'
 import { IProposalCardData, IProposalDetailsData } from '@/types/Proposal'
 import { getCachedGovActionDepositAda } from '@/composables/useGovActionDeposit'
 import { computeProposalIdentity } from '@/lib/cardano/proposalIdentity'
 import { encodeCip129GovActionId } from '@/lib/cardano/cip129'
-import { setUsingBackupData } from '@/lib/dataSourceStatus'
 import { logger } from '@/lib/logger'
-
-// Import backup data as fallback
-import backupData from '@/data/govtools-proposals-backup.json'
 
 // Pagination result type for lazy loading
 export interface IPaginatedProposals {
@@ -26,31 +22,27 @@ export interface IPaginatedProposals {
 }
 
 // In-memory cache
-let cachedProposals: IGovToolsProposal[] | null = null
+let cachedProposals: IProposalEnvelope[] | null = null
 let cacheTimestamp: number = 0
 const CACHE_DURATION_MS = 5 * 60 * 1000 // 5 minutes
 const DEFAULT_PAGE_SIZE = 20
 
 /**
- * Fetch all proposals from GovTools API with pagination
- * Falls back to local backup data if API is unavailable
+ * Fetch all proposals from the API with pagination
  */
-export const fetchAllGovToolsProposals = async (
-  limit: number = 100
-): Promise<IGovToolsProposal[]> => {
+export const fetchAllProposals = async (limit: number = 100): Promise<IProposalEnvelope[]> => {
   // Check cache
   if (cachedProposals && Date.now() - cacheTimestamp < CACHE_DURATION_MS) {
     return cachedProposals
   }
 
-  const allProposals: IGovToolsProposal[] = []
+  const allProposals: IProposalEnvelope[] = []
   let start = 0
   let hasMore = true
-  let apiAvailable = true
 
-  while (hasMore && apiAvailable) {
+  while (hasMore) {
     try {
-      const response = await govToolsApi.get<TGovToolsProposalsListResponse>('/proposals', {
+      const response = await cosponsorApi.get<TProposalsListResponse>('/proposals', {
         params: {
           'pagination[start]': start,
           'pagination[limit]': limit,
@@ -71,19 +63,9 @@ export const fetchAllGovToolsProposals = async (
         hasMore = false
       }
     } catch (error) {
-      logger.warn('Failed to fetch proposals from GovTools API, using backup data:', error)
-      apiAvailable = false
+      logger.warn('Failed to fetch proposals from the API:', error)
+      hasMore = false
     }
-  }
-
-  // If API failed or returned no data, use backup
-  if (allProposals.length === 0) {
-    logger.warn('Using local backup data for proposals')
-    const backup = backupData as TGovToolsProposalsListResponse
-    allProposals.push(...backup.data)
-    setUsingBackupData(true)
-  } else {
-    setUsingBackupData(false)
   }
 
   // Update cache
@@ -94,7 +76,7 @@ export const fetchAllGovToolsProposals = async (
 }
 
 /**
- * Fetch a single page of proposals from GovTools API (for lazy loading)
+ * Fetch a single page of proposals from the API (for lazy loading)
  * Returns transformed IProposalCardData with pagination info
  *
  * NOTE: This does NOT support category filtering - use getProposalsByCategory for that
@@ -104,7 +86,7 @@ export const fetchProposalsPage = async (
   limit: number = DEFAULT_PAGE_SIZE
 ): Promise<IPaginatedProposals> => {
   try {
-    const response = await govToolsApi.get<TGovToolsProposalsListResponse>('/proposals', {
+    const response = await cosponsorApi.get<TProposalsListResponse>('/proposals', {
       params: {
         'pagination[start]': start,
         'pagination[limit]': limit,
@@ -123,7 +105,6 @@ export const fetchProposalsPage = async (
     const totalFetched = start + data.length
     const hasMore = totalFetched < meta.pagination.total && data.length === limit
 
-    setUsingBackupData(false)
     return {
       proposals,
       hasMore,
@@ -131,24 +112,8 @@ export const fetchProposalsPage = async (
       nextStart: totalFetched,
     }
   } catch (error) {
-    logger.warn('Failed to fetch proposals page from GovTools API:', error)
+    logger.warn('Failed to fetch proposals page from the API:', error)
 
-    // Fallback to backup data for first page
-    if (start === 0) {
-      setUsingBackupData(true)
-      const backup = backupData as TGovToolsProposalsListResponse
-      const backupProposals = backup.data.filter((p) => !p.attributes.content?.attributes?.is_draft)
-
-      const proposals = backupProposals.slice(0, limit).map(transformToProposalCard)
-      return {
-        proposals,
-        hasMore: backupProposals.length > limit,
-        total: backupProposals.length,
-        nextStart: limit,
-      }
-    }
-
-    // No data for subsequent pages on error
     return {
       proposals: [],
       hasMore: false,
@@ -185,25 +150,23 @@ export const getProposalsByCategoryPaginated = async (
 }
 
 /**
- * Fetch a single proposal by ID from GovTools API
+ * Fetch a single proposal by ID from the API
  */
-export const fetchGovToolsProposalById = async (
-  id: string | number
-): Promise<IGovToolsProposal | null> => {
+export const fetchProposalById = async (id: string | number): Promise<IProposalEnvelope | null> => {
   try {
-    const response = await govToolsApi.get<{ data: IGovToolsProposal }>(`/proposals/${id}`)
+    const response = await cosponsorApi.get<{ data: IProposalEnvelope }>(`/proposals/${id}`)
     return response.data.data
   } catch (error) {
-    logger.warn(`Failed to fetch proposal ${id} from GovTools API:`, error)
+    logger.warn(`Failed to fetch proposal ${id} from the API:`, error)
     return null
   }
 }
 
 /**
- * Transform GovTools proposal to CoSponsor card format
+ * Transform an API proposal envelope to CoSponsor card format
  */
-export const transformToProposalCard = (govProposal: IGovToolsProposal): IProposalCardData => {
-  const attrs = govProposal.attributes
+export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalCardData => {
+  const attrs = proposal.attributes
   const content = attrs.content?.attributes
 
   // Calculate a reasonable expiry date (90 days from creation for non-submitted proposals)
@@ -228,7 +191,7 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
   const constitutionHash = constitutionContent?.constitution_hash || undefined
   const constitutionUrl = constitutionContent?.constitution_url || undefined
 
-  const sourceUrlId = String(govProposal.id)
+  const sourceUrlId = String(proposal.id)
   const categoryName = content?.gov_action_type?.attributes?.gov_action_type_name || 'Info Action'
 
   // Identity = on-chain gADA token hash (same as what ModalSponsor would
@@ -247,10 +210,10 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
 
   return {
     id: identity?.proposalHash ?? sourceUrlId,
-    name: content?.prop_name || `Proposal #${govProposal.id}`,
+    name: content?.prop_name || `Proposal #${proposal.id}`,
     ownerId: attrs.user_id,
     ownerName: attrs.user_govtool_username || 'Anonymous',
-    // CoSponsor-specific fields (not in GovTools)
+    // CoSponsor-specific fields (not from the API)
     requestedBudget: 0, // Will be populated from CoSponsor backend
     // Live Conway gov_action_deposit (what cosponsors crowdfund toward).
     // Filled in by useGetProposalData when the hook value lands; default
@@ -261,7 +224,7 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
     initDate: createdDate,
     expiryDate: expiryDate,
     companyName: content?.gov_action_type?.attributes?.gov_action_type_name || 'Unknown',
-    companyDomain: '', // Not available from GovTools
+    companyDomain: '', // Not available from the API
     abstract: content?.prop_abstract || 'No abstract available.',
     categoryName,
     // Treasury withdrawal beneficiaries (for TreasuryWithdrawal proposals)
@@ -277,19 +240,17 @@ export const transformToProposalCard = (govProposal: IGovToolsProposal): IPropos
 }
 
 /**
- * Transform GovTools proposal to CoSponsor details format
+ * Transform an API proposal envelope to CoSponsor details format
  */
-export const transformToProposalDetails = (
-  govProposal: IGovToolsProposal
-): IProposalDetailsData => {
-  const baseCard = transformToProposalCard(govProposal)
-  const content = govProposal.attributes.content?.attributes
+export const transformToProposalDetails = (proposal: IProposalEnvelope): IProposalDetailsData => {
+  const baseCard = transformToProposalCard(proposal)
+  const content = proposal.attributes.content?.attributes
 
   const submissionTxHash = content?.prop_submission_tx_hash || ''
 
   return {
     ...baseCard,
-    companyCountry: '', // Not available from GovTools
+    companyCountry: '', // Not available from the API
     motivation: content?.prop_motivation || 'No motivation provided.',
     rationale: content?.prop_rationale || 'No rationale provided.',
     govActionId: submissionTxHash,
@@ -302,10 +263,9 @@ export const transformToProposalDetails = (
 }
 
 /**
- * Categories that get an injected mock proposal for testing. Pre-production
- * scaffolding — remove `MOCK_CATEGORIES` and the spread in
- * `getAllProposalsAsCards` once the GovTools BE is live and we no longer
- * need synthetic proposals to exercise the deposit/withdraw flows.
+ * Categories that get an injected mock proposal. Ensures every category
+ * always has at least one browsable/testable example proposal, even when
+ * the API has nothing indexed for it yet.
  */
 const MOCK_CATEGORIES = [
   'Info Action',
@@ -327,8 +287,8 @@ export const getAllProposalsAsCards = async (): Promise<IProposalCardData[]> => 
   const mockCards = MOCK_CATEGORIES.map((cat) => createMockProposal(cat))
 
   try {
-    const govProposals = await fetchAllGovToolsProposals()
-    const realCards = govProposals
+    const proposals = await fetchAllProposals()
+    const realCards = proposals
       .filter((p) => !p.attributes.content?.attributes?.is_draft)
       .map(transformToProposalCard)
     return [...mockCards, ...realCards]
@@ -470,8 +430,8 @@ export const getCategoryFromMockSourceUrlId = (sourceUrlId: string): string | nu
 
 /**
  * Get proposal details by ID. Looks up via the unified proposal list first
- * (so mocks and GovTools entries go through the same code path); falls back
- * to a fresh GovTools fetch if the id isn't in the list (e.g. very new
+ * (so mocks and API entries go through the same code path); falls back
+ * to a fresh API fetch if the id isn't in the list (e.g. very new
  * proposal not yet in the cache).
  */
 export const getProposalDetailsById = async (id: string): Promise<IProposalDetailsData | null> => {
@@ -499,13 +459,13 @@ export const getProposalDetailsById = async (id: string): Promise<IProposalDetai
         pledges: [],
       }
     }
-    // Real GovTools card: re-fetch full details by the source id.
+    // Real card: re-fetch full details by the source id.
     const lookupId = card.sourceUrlId ?? card.id
-    const proposal = await fetchGovToolsProposalById(lookupId)
+    const proposal = await fetchProposalById(lookupId)
     return proposal ? transformToProposalDetails(proposal) : null
   }
 
-  const proposal = await fetchGovToolsProposalById(id)
+  const proposal = await fetchProposalById(id)
   return proposal ? transformToProposalDetails(proposal) : null
 }
 

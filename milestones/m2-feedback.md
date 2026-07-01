@@ -230,7 +230,7 @@ The cmdk conflict is fixed and free-text search works. However:
 The tooltip explains that fees are protocol-set. However, when the transaction preview build fails (e.g., due to Blockfrost issues), the fallback fee estimate is **hardcoded at 2.5 ADA** (`ModalSponsor.tsx`), which is much higher than actual fees (~0.3-0.5 ADA). Tester 3 noticed this discrepancy. The fallback should be lowered or removed.
 
 ### #12 - Filters (Creator hardcoded, no empty state)
-- **Creator / dRep filter** still uses hardcoded test user data (`FilterPropCreator.tsx`) — needs real user/dRep data from the GovTools API or chain
+- **Creator / dRep filter** still uses hardcoded test user data (`FilterPropCreator.tsx`) — needs real user/dRep data from the cosponsor-api backend (2026-07-01: UI migrated off the external GovTools API) or chain
 - When all proposals in a category are filtered out, the **carousel section disappears entirely** with no feedback. Should show a "no matching proposals" message instead.
 - Filter state resets when the popover closes (state lives inside `ButtonProposalFilter`, not persisted to URL or parent)
 
