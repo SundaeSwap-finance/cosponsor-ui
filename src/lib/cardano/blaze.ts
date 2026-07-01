@@ -44,18 +44,36 @@ const createReadOnlyWallet = (): Wallet => {
   } as unknown as Wallet
 }
 
+// Module-level cache: the read-only Blaze is wallet-independent (same
+// network config, same stub wallet for the life of the page), so every
+// caller can share one Blockfrost provider instead of each constructing
+// its own — constructing a provider eagerly fetches protocol parameters,
+// which was firing once per category carousel on /all-proposals before
+// this cache existed. Concurrent callers share the same in-flight
+// promise; a failed construction clears the cache so the next call
+// retries instead of being stuck on a cached rejection.
+let cachedReadOnlyBlaze: Promise<Blaze<Provider, Wallet>> | undefined
+
 // Builds a Blaze instance with no wallet attached — usable for chain-state
 // queries (script address scans, params, etc.) but rejects every wallet
 // operation. Call this when no CIP-30 wallet is connected and you still
 // need to read on-chain data, e.g. proposal progress bars on /proposals.
-export const createReadOnlyBlaze = async (): Promise<Blaze<Provider, Wallet>> => {
-  const provider = await createProvider({
-    blockfrostApiKey: config.blockfrostApiKey,
-    network: config.blockfrostNetwork,
-  })
-  // `createProvider` returns the SDK's `Provider` (sourced from the SDK's
-  // own nested @blaze-cardano/query); `Blaze.from` is the UI's pinned
-  // 0.8.0 version. Same runtime class — see TODO.md "Tech Debt: Blaze
-  // Override Stack" (task #8) for why the type identity diverges.
-  return Blaze.from(provider as unknown as Provider, createReadOnlyWallet())
+export const createReadOnlyBlaze = (): Promise<Blaze<Provider, Wallet>> => {
+  if (!cachedReadOnlyBlaze) {
+    cachedReadOnlyBlaze = (async () => {
+      const provider = await createProvider({
+        blockfrostApiKey: config.blockfrostApiKey,
+        network: config.blockfrostNetwork,
+      })
+      // `createProvider` returns the SDK's `Provider` (sourced from the SDK's
+      // own nested @blaze-cardano/query); `Blaze.from` is the UI's pinned
+      // 0.8.0 version. Same runtime class — see TODO.md "Tech Debt: Blaze
+      // Override Stack" (task #8) for why the type identity diverges.
+      return Blaze.from(provider as unknown as Provider, createReadOnlyWallet())
+    })().catch((error: unknown) => {
+      cachedReadOnlyBlaze = undefined
+      throw error
+    })
+  }
+  return cachedReadOnlyBlaze
 }
