@@ -6,7 +6,7 @@ require (
 	github.com/SundaeSwap-finance/sundae-go-utils v0.0.0-20260504200003-2c0522286f0f
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/blinklabs-io/gouroboros v0.166.0
-	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/rs/zerolog v1.34.0
 	github.com/savaki/ddb v0.0.0-20231021205115-8066867efca2
