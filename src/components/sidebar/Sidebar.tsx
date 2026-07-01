@@ -75,12 +75,14 @@ export const Sidebar = ({
           </div>
         </div>
       </div>
-      <SidebarWallet sidebarExpanded={expanded} />
-      <div
-        title={buildInfo.commitHash || undefined}
-        className={`text-sun-muted sun-text-12-md px-4 pb-2 ${expanded ? 'flex' : 'hidden'}`}
-      >
-        v{buildInfo.buildId || 'dev'}
+      <div className="flex flex-col">
+        <SidebarWallet sidebarExpanded={expanded} />
+        <div
+          title={buildInfo.commitHash || undefined}
+          className={`text-sun-muted sun-text-12-md px-4 pb-2 ${expanded ? 'flex' : 'hidden'}`}
+        >
+          v{buildInfo.buildId || 'dev'}
+        </div>
       </div>
     </div>
   )
