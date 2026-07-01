@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -33,7 +34,10 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 }
 
 func (h *handlerDeps) health(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	writeJSON(w, http.StatusOK, map[string]string{
+		"status":  "ok",
+		"version": os.Getenv("VERSION"),
+	})
 }
 
 // listProposals implements GET /proposals.

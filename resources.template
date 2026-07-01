@@ -265,6 +265,7 @@ Resources:
       Environment:
         Variables:
           ENV: !Ref Env
+          VERSION: !Ref Version
       Tags:
         - Key: Version
           Value: !Ref Version

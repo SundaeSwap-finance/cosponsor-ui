@@ -5,6 +5,7 @@ import { Button } from '@/components/shadcn/button'
 import { ButtonSideNav } from '@/components/sidebar/ButtonSideNav'
 import { cn } from '@/lib/utils'
 import { SidebarWallet } from '@/components/sidebar/SidebarWallet'
+import { buildInfo } from '@/lib/buildInfo'
 
 export const Sidebar = ({
   onNavigate,
@@ -75,6 +76,12 @@ export const Sidebar = ({
         </div>
       </div>
       <SidebarWallet sidebarExpanded={expanded} />
+      <div
+        title={buildInfo.commitHash || undefined}
+        className={`text-sun-muted sun-text-12-md px-4 pb-2 ${expanded ? 'flex' : 'hidden'}`}
+      >
+        v{buildInfo.buildId || 'dev'}
+      </div>
     </div>
   )
 }
