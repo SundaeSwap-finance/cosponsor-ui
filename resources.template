@@ -20,7 +20,7 @@ Mappings:
       Domains: ["cosponsor.preview.sundae.fi"]
       ApiDomain: "api.cosponsor.preview.sundae.fi"
       DistributionCertificate: "arn:aws:acm:us-east-1:529991308818:certificate/4a27f695-dd6f-48d2-b132-89553d419c3c"
-      ApiCertificate: "arn:aws:acm:us-east-2:529991308818:certificate/d3f3d9c6-b9df-456d-98f0-7ad4fc663b0b"
+      ApiCertificate: "arn:aws:acm:us-east-2:529991308818:certificate/a197e4af-8609-4a36-889c-3e51d17604e1"
       HostedZoneId: "Z0609244DFBX99Y22ZA3"
       KinesisSyncV2StreamArn: "arn:aws:kinesis:us-east-2:529991308818:stream/preview-sundae-sync-v2--all"
     mainnet:
