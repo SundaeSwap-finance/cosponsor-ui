@@ -27,6 +27,13 @@ let cacheTimestamp: number = 0
 const CACHE_DURATION_MS = 5 * 60 * 1000 // 5 minutes
 const DEFAULT_PAGE_SIZE = 20
 
+// De-dupes concurrent callers made before the cache above is populated —
+// e.g. the "all proposals" page mounts one CarouselProposals per category,
+// each of which calls this on mount in the same tick. Without this, every
+// one of them would see an empty cache and independently page through
+// /proposals.
+let inFlightFetch: Promise<IProposalEnvelope[]> | undefined
+
 /**
  * Fetch all proposals from the API with pagination
  */
@@ -36,43 +43,55 @@ export const fetchAllProposals = async (limit: number = 100): Promise<IProposalE
     return cachedProposals
   }
 
-  const allProposals: IProposalEnvelope[] = []
-  let start = 0
-  let hasMore = true
-
-  while (hasMore) {
-    try {
-      const response = await cosponsorApi.get<TProposalsListResponse>('/proposals', {
-        params: {
-          'pagination[start]': start,
-          'pagination[limit]': limit,
-        },
-      })
-
-      const { data, meta } = response.data
-      allProposals.push(...data)
-
-      // Check if there are more pages
-      const totalFetched = start + data.length
-      hasMore = totalFetched < meta.pagination.total && data.length === limit
-      start = totalFetched
-
-      // Safety limit to prevent infinite loops and unnecessary load
-      if (allProposals.length >= 100) {
-        logger.warn('Reached safety limit of 100 proposals')
-        hasMore = false
-      }
-    } catch (error) {
-      logger.warn('Failed to fetch proposals from the API:', error)
-      hasMore = false
-    }
+  if (inFlightFetch) {
+    return inFlightFetch
   }
 
-  // Update cache
-  cachedProposals = allProposals
-  cacheTimestamp = Date.now()
+  inFlightFetch = (async () => {
+    const allProposals: IProposalEnvelope[] = []
+    let start = 0
+    let hasMore = true
 
-  return allProposals
+    while (hasMore) {
+      try {
+        const response = await cosponsorApi.get<TProposalsListResponse>('/proposals', {
+          params: {
+            'pagination[start]': start,
+            'pagination[limit]': limit,
+          },
+        })
+
+        const { data, meta } = response.data
+        allProposals.push(...data)
+
+        // Check if there are more pages
+        const totalFetched = start + data.length
+        hasMore = totalFetched < meta.pagination.total && data.length === limit
+        start = totalFetched
+
+        // Safety limit to prevent infinite loops and unnecessary load
+        if (allProposals.length >= 100) {
+          logger.warn('Reached safety limit of 100 proposals')
+          hasMore = false
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch proposals from the API:', error)
+        hasMore = false
+      }
+    }
+
+    // Update cache
+    cachedProposals = allProposals
+    cacheTimestamp = Date.now()
+
+    return allProposals
+  })()
+
+  try {
+    return await inFlightFetch
+  } finally {
+    inFlightFetch = undefined
+  }
 }
 
 /**

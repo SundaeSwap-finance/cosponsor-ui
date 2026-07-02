@@ -21,6 +21,17 @@ export interface IChainContext {
   walletConnected: boolean
 }
 
+// Module-level cache for the wallet-bound Blaze `loadChainContext` reads
+// from. Mirrors `createReadOnlyBlaze`'s cache: concurrent callers across
+// different component instances share one provider/params fetch instead of
+// each building their own. Deliberately separate from `createConfiguredBlaze`
+// itself — ModalSponsor/ModalWithdraw call that directly and uncached
+// because they need a fresh instance right before submitting a transaction;
+// this cache is only for `loadChainContext`'s read-only chain-state queries
+// (pledges, totals). Invalidated alongside the chain-plan cache whenever the
+// wallet identity changes.
+let cachedConfiguredBlaze: Promise<Blaze<Provider, Wallet>> | undefined
+
 /**
  * Chain-state loader shared by every proposal-data consumer: builds a
  * wallet-bound Blaze if a wallet is connected, otherwise the cached
@@ -32,11 +43,13 @@ export interface IChainContext {
  * paying for their own.
  */
 export const useChainState = (walletObserver: TWalletObserver) => {
-  // Drop the cached chain plan whenever the wallet API reference flips
-  // (connect / disconnect / wallet switch). Keeps the userTokens portion
-  // of the plan from going stale across wallet identity changes.
+  // Drop the cached chain plan and wallet-bound Blaze whenever the wallet
+  // API reference flips (connect / disconnect / wallet switch). Keeps the
+  // userTokens portion of the plan, and the Blaze instance itself, from
+  // going stale across wallet identity changes.
   useEffect(() => {
     invalidateChainPlanCache()
+    cachedConfiguredBlaze = undefined
   }, [walletObserver.api])
 
   const loadChainContext = useCallback(async (): Promise<IChainContext | undefined> => {
@@ -45,11 +58,19 @@ export const useChainState = (walletObserver: TWalletObserver) => {
       let blaze: Blaze<Provider, Wallet>
       if (walletConnected) {
         requireConnectedWallet(walletObserver)
-        // SDK's `createBlazeWithBrowserWallet` returns Blaze<Provider, Wallet>
-        // from the SDK's nested @blaze-cardano/sdk; the UI's Blaze type comes
-        // from its own 0.8.0 pin. Same shape at runtime — version-skew is
-        // TODO.md "Tech Debt: Blaze Override Stack" (task #8).
-        blaze = (await createConfiguredBlaze(walletObserver)) as unknown as Blaze<Provider, Wallet>
+        if (!cachedConfiguredBlaze) {
+          // SDK's `createBlazeWithBrowserWallet` returns Blaze<Provider, Wallet>
+          // from the SDK's nested @blaze-cardano/sdk; the UI's Blaze type comes
+          // from its own 0.8.0 pin. Same shape at runtime — version-skew is
+          // TODO.md "Tech Debt: Blaze Override Stack" (task #8).
+          cachedConfiguredBlaze = (createConfiguredBlaze(walletObserver) as Promise<unknown>).catch(
+            (error: unknown) => {
+              cachedConfiguredBlaze = undefined
+              throw error
+            }
+          ) as Promise<Blaze<Provider, Wallet>>
+        }
+        blaze = await cachedConfiguredBlaze
       } else {
         blaze = await createReadOnlyBlaze()
       }
