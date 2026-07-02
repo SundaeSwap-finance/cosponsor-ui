@@ -263,176 +263,34 @@ export const transformToProposalDetails = (proposal: IProposalEnvelope): IPropos
 }
 
 /**
- * Categories that get an injected mock proposal. Ensures every category
- * always has at least one browsable/testable example proposal, even when
- * the API has nothing indexed for it yet.
- */
-const MOCK_CATEGORIES = [
-  'Info Action',
-  'Treasury Withdrawal',
-  'Protocol Parameters',
-  'Hard Fork',
-  'No Confidence',
-  'Constitutional Committee',
-  'New Constitution',
-]
-
-/**
  * Get all proposals as CoSponsor card format. This is the canonical list:
  * any consumer that needs to look up a proposal by id (URL routing, on-chain
  * deposit → proposal matching, etc.) should go through here so the lookup is
  * sound and not duplicated across call sites.
+ *
+ * Categories with no real proposals yet get a "[TEST]" example proposal
+ * injected server-side (see cosponsor-api's demo.go) so every category
+ * stays browsable/testable — no client-side mock generation needed here.
  */
 export const getAllProposalsAsCards = async (): Promise<IProposalCardData[]> => {
-  const mockCards = MOCK_CATEGORIES.map((cat) => createMockProposal(cat))
-
   try {
     const proposals = await fetchAllProposals()
-    const realCards = proposals
+    return proposals
       .filter((p) => !p.attributes.content?.attributes?.is_draft)
       .map(transformToProposalCard)
-    return [...mockCards, ...realCards]
   } catch (error) {
     console.error('Failed to get proposals:', error)
-    return mockCards
+    return []
   }
 }
 
-// Mock proposal for testing (expires 30 days from now)
-// ID must be a valid 64-char hex string for transaction building
-const MOCK_PROPOSAL_ID_PREFIX = 'deadbeef0000000000000000000000000000000000000000000000000000'
-
 /**
- * Generate a mock proposal ID for a category
- * Each category gets a unique ID based on its name hash
- */
-const getMockProposalId = (categoryName: string): string => {
-  // Simple hash of category name to create unique suffix
-  let hash = 0
-  for (let i = 0; i < categoryName.length; i++) {
-    hash = (hash << 5) - hash + categoryName.charCodeAt(i)
-    hash = hash & hash // Convert to 32bit integer
-  }
-  const suffix = Math.abs(hash).toString(16).padStart(4, '0').slice(0, 4)
-  return MOCK_PROPOSAL_ID_PREFIX + suffix
-}
-
-/**
- * Create a mock proposal for any category
- * Includes test data appropriate for each governance action type
- */
-export const createMockProposal = (categoryName: string): IProposalCardData => {
-  const normalizedCategory = categoryName.toLowerCase()
-
-  // Check category types
-  const isTreasury =
-    normalizedCategory.includes('treasury') || normalizedCategory.includes('withdrawal')
-  const isHardFork =
-    normalizedCategory.includes('hard fork') || normalizedCategory.includes('hardfork')
-  const isConstitution =
-    normalizedCategory.includes('constitution') && !normalizedCategory.includes('committee')
-  const isNoConfidence = normalizedCategory.includes('no confidence')
-
-  const sourceUrlId = getMockProposalId(categoryName)
-
-  // Base mock proposal — `id` is filled in below after computing the
-  // on-chain hash from the full procedure data. We thread `sourceUrlId`
-  // separately so ModalSponsor can rebuild the same anchor URL.
-  const baseProposal: IProposalCardData = {
-    id: sourceUrlId,
-    sourceUrlId,
-    name: `[TEST] Sample ${categoryName} Proposal`,
-    ownerId: 'test-owner-123',
-    ownerName: 'Test User',
-    requestedBudget: 50000,
-    // Surface the live Conway gov_action_deposit if it's been fetched. This
-    // is what cosponsors are crowdfunding toward; useGovActionDeposit loads it
-    // at app start. Falls back to undefined (UI will hide the progress bar)
-    // when the param hasn't resolved yet.
-    cosponsorTarget: getCachedGovActionDepositAda() ?? undefined,
-    pledgedAmount: 0,
-    userPledged: 0,
-    initDate: new Date(),
-    expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-    companyName: categoryName,
-    companyDomain: 'test.cosponsor.io',
-    abstract: `This is a mock ${categoryName} proposal for testing the CoSponsor platform. It has a future expiry date so you can test sponsoring and withdrawing.`,
-    categoryName: categoryName,
-  }
-
-  // Add type-specific test data
-  if (isTreasury) {
-    // Treasury Withdrawal test data
-    baseProposal.withdrawals = [
-      {
-        // Test address on Preview testnet (enterprise address)
-        receivingAddress:
-          'addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp',
-        amount: 50000000000, // 50,000 ADA in lovelace
-      },
-    ]
-  } else if (isHardFork) {
-    // Hard Fork test data (next version after current Chang era)
-    baseProposal.hardForkVersion = {
-      major: 10,
-      minor: 0,
-    }
-  } else if (isConstitution) {
-    // New Constitution test data
-    baseProposal.constitutionUrl = 'https://constitution.gov.cardano.org/test-constitution.json'
-    // Sample 64-char hex hash
-    baseProposal.constitutionHash =
-      'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2'
-  } else if (isNoConfidence) {
-    // No Confidence doesn't need extra data (just ancestor which defaults to null)
-  }
-  // Note: ProtocolParameters and ConstitutionalCommittee don't need extra data
-  // as they use empty/default test values (no parameter changes, no member changes)
-
-  const identity = computeProposalIdentity({
-    sourceUrlId,
-    categoryName,
-    card: baseProposal,
-  })
-  if (identity) {
-    baseProposal.id = identity.proposalHash
-    baseProposal.existingCosponsoredProposal = identity.cosponsoredProposal
-  }
-
-  return baseProposal
-}
-
-/**
- * Check if a card was built from the mock factory.
- *
- * Post Stage-2 the routable `proposal.id` is the on-chain gADA token hash,
- * which carries no "mock" marker. The original mock-prefixed id lives on
- * the card as `sourceUrlId` — that's what we check here.
- */
-export const isMockProposalCard = (card: IProposalCardData): boolean => {
-  return !!card.sourceUrlId?.startsWith(MOCK_PROPOSAL_ID_PREFIX)
-}
-
-/**
- * Extract category name from a mock proposal's `sourceUrlId`. Returns null
- * when the id doesn't belong to any of the known mock categories — caller
- * decides on a fallback (the previous default of "Info Action" silently
- * hid bugs in lookups).
- */
-export const getCategoryFromMockSourceUrlId = (sourceUrlId: string): string | null => {
-  for (const cat of MOCK_CATEGORIES) {
-    if (getMockProposalId(cat) === sourceUrlId) {
-      return cat
-    }
-  }
-  return null
-}
-
-/**
- * Get proposal details by ID. Looks up via the unified proposal list first
- * (so mocks and API entries go through the same code path); falls back
- * to a fresh API fetch if the id isn't in the list (e.g. very new
- * proposal not yet in the cache).
+ * Get proposal details by ID. Looks up the matching envelope from the
+ * already-cached full proposal list (shared with getAllProposalsAsCards
+ * via fetchAllProposals's cache) so real and server-injected demo entries
+ * go through the same path with no extra round trip. Falls back to a
+ * direct by-id fetch if the id isn't in the cached list (e.g. very new
+ * proposal not yet cached).
  */
 export const getProposalDetailsById = async (id: string): Promise<IProposalDetailsData | null> => {
   const allProposals = await getAllProposalsAsCards()
@@ -442,24 +300,12 @@ export const getProposalDetailsById = async (id: string): Promise<IProposalDetai
   const card = allProposals.find((p) => p.id === id || p.sourceUrlId === id)
 
   if (card) {
-    if (isMockProposalCard(card)) {
-      const categoryName =
-        getCategoryFromMockSourceUrlId(card.sourceUrlId ?? '') ?? card.categoryName
-      return {
-        ...card,
-        companyCountry: 'Testland',
-        motivation: `This mock ${categoryName} proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.`,
-        rationale:
-          'Testing is essential to ensure the platform works correctly before mainnet launch.',
-        govActionId: card.id,
-        // Mock proposals have no real on-chain submission tx, so there's no
-        // valid CIP-129 id to show — leave empty (row hides) rather than
-        // echoing the gADA hash, which isn't a governance action id.
-        cip129ActionId: '',
-        pledges: [],
-      }
+    const envelopes = await fetchAllProposals()
+    const envelope = envelopes.find((e) => String(e.id) === card.sourceUrlId)
+    if (envelope) {
+      return transformToProposalDetails(envelope)
     }
-    // Real card: re-fetch full details by the source id.
+    // Not in the cached envelope list (rare) — direct fetch by id.
     const lookupId = card.sourceUrlId ?? card.id
     const proposal = await fetchProposalById(lookupId)
     return proposal ? transformToProposalDetails(proposal) : null

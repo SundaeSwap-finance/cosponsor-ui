@@ -13,6 +13,10 @@ Parameters:
   Version:
     Type: "String"
     Default: "latest"
+  DemoProposalsEnabled:
+    Type: "String"
+    Default: "true"
+    AllowedValues: ["true", "false"]
 
 Mappings:
   Env:
@@ -266,6 +270,7 @@ Resources:
         Variables:
           ENV: !Ref Env
           VERSION: !Ref Version
+          DEMO_PROPOSALS_ENABLED: !Ref DemoProposalsEnabled
       Tags:
         - Key: Version
           Value: !Ref Version

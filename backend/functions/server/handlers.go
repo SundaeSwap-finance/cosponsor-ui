@@ -91,6 +91,25 @@ func (h *handlerDeps) listProposals(w http.ResponseWriter, r *http.Request) {
 		envelopes = append(envelopes, toEnvelope(row))
 	}
 
+	// Fill categories with no real proposals with a demo/example entry
+	// so every governance-action type is always browsable. Only done on
+	// the first page so pagination totals stay consistent.
+	if start == 0 && demoProposalsEnabled() {
+		active, actErr := h.proposals.ActiveCategories(r.Context())
+		if actErr == nil {
+			for _, category := range demoCategories {
+				if actionType != "" && category != actionType {
+					continue
+				}
+				if active[category] {
+					continue
+				}
+				envelopes = append(envelopes, toEnvelope(buildDemoProposal(category)))
+				total++
+			}
+		}
+	}
+
 	writeJSON(w, http.StatusOK, paginatedResponse[proposalEnvelope]{
 		Data: envelopes,
 		Meta: paginationMeta{Pagination: paginationInfo{

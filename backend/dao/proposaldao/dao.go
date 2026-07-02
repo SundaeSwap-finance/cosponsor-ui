@@ -156,3 +156,25 @@ func (d *DAO) ListByActionType(ctx context.Context, actionType string) ([]Propos
 	}
 	return rows, nil
 }
+
+// ActiveCategories returns the set of gov_action_type values that
+// have at least one non-draft proposal. Used to decide which
+// categories still need a demo/example proposal injected into the
+// API response.
+func (d *DAO) ActiveCategories(ctx context.Context) (map[string]bool, error) {
+	active := map[string]bool{}
+	err := d.table.Scan().EachWithContext(ctx, func(item ddb.Item) (bool, error) {
+		var p Proposal
+		if err := item.Unmarshal(&p); err != nil {
+			return false, err
+		}
+		if !p.IsDraft {
+			active[p.GovActionType] = true
+		}
+		return true, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("scan proposals: %w", err)
+	}
+	return active, nil
+}
