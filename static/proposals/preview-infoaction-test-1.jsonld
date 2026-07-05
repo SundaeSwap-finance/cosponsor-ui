@@ -1,0 +1,35 @@
+{
+  "@context": {
+    "@language": "en-us",
+    "CIP100": "https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#",
+    "CIP108": "https://github.com/cardano-foundation/CIPs/blob/master/CIP-0108/README.md#",
+    "hashAlgorithm": "CIP100:hashAlgorithm",
+    "body": {
+      "@id": "CIP108:body",
+      "@context": {
+        "references": {
+          "@id": "CIP108:references",
+          "@container": "@set",
+          "@context": {
+            "GovernanceMetadata": "CIP100:GovernanceMetadataReference",
+            "Other": "CIP100:OtherReference",
+            "label": "CIP100:reference-label",
+            "uri": "CIP100:reference-uri"
+          }
+        },
+        "title": "CIP108:title",
+        "abstract": "CIP108:abstract",
+        "motivation": "CIP108:motivation",
+        "rationale": "CIP108:rationale"
+      }
+    }
+  },
+  "hashAlgorithm": "blake2b-256",
+  "body": {
+    "title": "CoSponsor tooling test (InfoAction) — please ignore",
+    "abstract": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
+    "motivation": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
+    "rationale": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
+    "references": []
+  }
+}

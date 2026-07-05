@@ -1,0 +1,2 @@
+# hash-locked CIP-108 anchor metadata: keep LF so the served bytes match the on-chain dataHash
+*.jsonld text eol=lf
