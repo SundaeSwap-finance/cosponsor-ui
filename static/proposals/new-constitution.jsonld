@@ -52,7 +52,17 @@
     "title": "CoSponsor tooling test - New Constitution (please ignore)",
     "abstract": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
     "motivation": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
-    "rationale": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal.",
-    "references": []
+    "rationale": "[INFO]: This proposal is not supposed to pass and purely posted to test new CoSponsor tooling. Please feel free to either downvote or ignore this proposal. The proposed constitution document is declared in the references below; verify the on-chain constitution anchor matches it (blake2b-256 18075c0bc7c6f23481739c78921ca6c74124d676be19680f90bee4857102b534).",
+    "references": [
+      {
+        "@type": "Other",
+        "label": "Proposed constitution document (test)",
+        "uri": "https://cosponsor.preview.sundae.fi/proposals/test-constitution.txt",
+        "referenceHash": {
+          "hashDigest": "18075c0bc7c6f23481739c78921ca6c74124d676be19680f90bee4857102b534",
+          "hashAlgorithm": "blake2b-256"
+        }
+      }
+    ]
   }
 }

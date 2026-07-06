@@ -1,0 +1,20 @@
+CoSponsor Test Constitution (Preview Testnet)
+
+[INFO]: This document is NOT a real constitution proposal. It exists purely to
+test CoSponsor's NewConstitution submission tooling on the Cardano preview
+testnet. Please feel free to either downvote or ignore the governance action
+that references this document.
+
+Article I — Purpose
+This test constitution changes nothing. It proposes to keep the existing
+guardrails script in force, unmodified.
+
+Article II — Guardrails
+The constitution guardrails script remains
+fa24fb305126805cf2164c161d852a0e7330cf988f1fe558cf7d4a64 (the interim
+constitution script baked into the Conway genesis).
+
+Article III — Disclaimer
+If this action were ever ratified, the practical effect on the preview
+network would be nil beyond replacing the constitution anchor with this
+document. It is not supposed to pass.
