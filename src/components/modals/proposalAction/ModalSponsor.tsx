@@ -30,6 +30,8 @@ import {
   buildGovernanceAction,
   mapCategoryToActionKind,
 } from '@/lib/cardano/governanceActions'
+import { ensureAncestors } from '@/lib/cardano/ancestorsCache'
+import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
@@ -112,7 +114,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       const rebuilt: ICosponsoredProposal = {
         deposit: procedureDeposit,
         anchor: {
-          url: Buffer.from(`https://cosponsor.app/proposal/${urlIdForAnchor}`).toString('hex'),
+          url: Buffer.from(proposalAnchorUrl(urlIdForAnchor)).toString('hex'),
           hash: urlIdForAnchor.padEnd(64, '0').slice(0, 64),
         },
         action: buildGovernanceAction(actionKind, proposal),
@@ -197,7 +199,7 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
   }
 
   // Check if proposal action type is supported for cosponsoring
-  // All 7 governance action types are now supported
+  // (HardFork is deliberately disabled — see DISABLED_ACTION_TYPES)
   const isActionTypeSupported = useMemo(() => {
     if (!proposal?.categoryName) {
       return true
@@ -231,6 +233,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         const blaze = await createConfiguredBlaze(walletObserver)
 
         const depositAmount = BigInt(Math.floor(userPledging * 1_000_000))
+        // Ancestor cache must be warm before building ancestor-threading
+        // actions (NoConfidence / ConstitutionalCommittee) — see ancestorsCache.
+        await ensureAncestors()
         const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
         let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
@@ -301,7 +306,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       // Never use preview transaction - it may have stale UTxOs from a previous action
       logger.debug('🔨 Building fresh transaction (ignoring any preview)...')
 
-      // Create the cosponsored proposal with user's pledge amount
+      // Create the cosponsored proposal with user's pledge amount (ancestor
+      // cache first — the resolved ancestor is baked into the gADA identity)
+      await ensureAncestors()
       const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
       logger.debug('Building transaction for deposit:', {

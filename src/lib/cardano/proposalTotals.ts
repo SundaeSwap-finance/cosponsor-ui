@@ -162,7 +162,7 @@ export const invalidateChainPlanCache = () => {
 /**
  * Recover the URL-space id from a deposit's anchor URL.
  *
- * Anchor URLs follow `https://cosponsor.app/proposal/<id>` where `<id>` is
+ * Anchor URLs follow `<config.appBaseUrl>/proposal/<id>` where `<id>` is
  * either the mock id (`deadbeef…<cat>`) or a GovTools proposal id once
  * that BE is wired. Anything that doesn't match returns undefined and the
  * caller falls back to the on-chain proposal hash.

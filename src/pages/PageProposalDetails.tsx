@@ -13,6 +13,8 @@ import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledT
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
+import { ButtonPropose } from '@/components/button/ButtonPropose'
+import { Send } from 'lucide-react'
 import { IProposalDetailsData } from '@/types/Proposal'
 import { Breadcrumbs, TBreadcrumbType } from '@/components/Breadcrumbs'
 import { useScreenSize } from '@/composables/useScreenSize'
@@ -58,6 +60,13 @@ export const PageProposalDetails = () => {
     }
     return 0
   }, [totalPledged, proposal?.cosponsorTarget])
+
+  // Funded gate for the on-chain submission button: only show it once the pool
+  // has reached (or exceeded) the gov_action_deposit target. Submission is
+  // permissionless once funded — any connected wallet may submit.
+  const isFunded = useMemo((): boolean => {
+    return proposal?.cosponsorTarget != null && totalPledged >= proposal.cosponsorTarget
+  }, [proposal?.cosponsorTarget, totalPledged])
 
   const expiryTitleTooltip = useMemo(() => {
     return `${(isExpired ? 'Expired on ' : 'Expires on ') + expiryDateTime} ${
@@ -189,6 +198,19 @@ export const PageProposalDetails = () => {
                 <>
                   <Vote />
                   Sponsor this proposal
+                </>
+              }
+            />
+          )}
+          {!isExpired && isFunded && (
+            <ButtonPropose
+              classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
+              proposalId={proposal.id}
+              proposal={proposal}
+              content={
+                <>
+                  <Send />
+                  Submit proposal
                 </>
               }
             />

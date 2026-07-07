@@ -22,6 +22,7 @@
 import { BROWSER_CONFIG, computeProposalAssetName } from '@sundaeswap/cosponsor-sdk/browser'
 import type { ICosponsoredProposal } from '@sundaeswap/cosponsor-sdk/validators'
 import { buildGovernanceAction, mapCategoryToActionKind } from '@/lib/cardano/governanceActions'
+import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
 import { getCachedGovActionDepositLovelace } from '@/composables/useGovActionDeposit'
 import { logger } from '@/lib/logger'
 import type { IProposalCardData } from '@/types/Proposal'
@@ -85,7 +86,7 @@ export const computeProposalIdentity = (
 
   // Anchor URL uses `sourceUrlId`, NOT `proposal.id` — the latter is what
   // we're about to compute. ModalSponsor mirrors this convention.
-  const anchorUrlHex = Buffer.from(`https://cosponsor.app/proposal/${sourceUrlId}`).toString('hex')
+  const anchorUrlHex = Buffer.from(proposalAnchorUrl(sourceUrlId)).toString('hex')
   const anchorHash = sourceUrlId.padEnd(64, '0').slice(0, 64)
 
   const cosponsoredProposal: ICosponsoredProposal = {

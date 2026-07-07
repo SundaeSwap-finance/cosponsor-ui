@@ -11,6 +11,13 @@ export interface IAppConfig {
   blockfrostApiKey: string
   blockfrostApiUrl: string
   ogmiosUrl?: string
+  /**
+   * Public origin of the deployed UI for this environment (e.g.
+   * `https://cosponsor.preview.sundae.fi`). Used to build proposal anchor URLs
+   * so indexers can fetch the CIP-108 metadata served under `/proposals/`.
+   * Env-specific — update when the domain changes.
+   */
+  appBaseUrl: string
 }
 
 declare global {

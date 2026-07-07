@@ -1,5 +1,7 @@
 import { GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { parseAddressToCredential } from '@sundaeswap/cosponsor-sdk/browser'
+import { GUARDRAILS_SCRIPT_HASH } from '@sundaeswap/cosponsor-sdk/utils'
+import { getCachedAncestorForKind } from '@/lib/cardano/ancestorsCache'
 import { IProposalCardData } from '@/types/Proposal'
 
 // Map UI category names to valid Aiken governance action kinds
@@ -18,15 +20,29 @@ export const CATEGORY_TO_ACTION_KIND: Record<string, string> = {
   nicepoll: 'NicePoll',
 }
 
-// All 7 governance action types supported for cosponsoring
+// Governance action types users can cosponsor through the UI.
 export const SUPPORTED_ACTION_TYPES = [
-  'ProtocolParameters', // Constructor 0: Protocol Parameters Update
-  'HardFork', // Constructor 1: Hard Fork Initiation
   'TreasuryWithdrawal', // Constructor 2: Treasury Withdrawal
   'NoConfidence', // Constructor 3: No Confidence Motion
   'ConstitutionalCommittee', // Constructor 4: Constitutional Committee Update
-  'NewConstitution', // Constructor 5: New Constitution
   'NicePoll', // Constructor 6: Info Action
+]
+
+// Types deliberately NOT offered for creation (parsing/display of existing
+// on-chain proposals still works via CATEGORY_TO_ACTION_KIND +
+// ACTION_TYPE_DISPLAY_NAMES).
+// - HardFork: no product use case for user-initiated hard forks.
+// - ProtocolParameters: the UI cannot source a real parameter-update map
+//   from card data yet; an empty update is ledger-rejected
+//   (MalformedProposal), so pledging toward an unsubmittable pool is worse
+//   than gating. Re-enable once param values are threaded through.
+// - NewConstitution: the propose step needs the constitution document
+//   anchor (SDK `constitutionAnchor`), which the UI doesn't extract from
+//   the proposal metadata yet — same unsubmittable-pool reasoning.
+export const DISABLED_ACTION_TYPES = [
+  'HardFork', // Constructor 1: Hard Fork Initiation
+  'ProtocolParameters', // Constructor 0: Protocol Parameters Update
+  'NewConstitution', // Constructor 5: New Constitution
 ]
 
 // User-friendly names for governance action types
@@ -60,6 +76,9 @@ export const buildGovernanceAction = (
   // Check if action type is supported
   if (!SUPPORTED_ACTION_TYPES.includes(actionKind)) {
     const displayName = ACTION_TYPE_DISPLAY_NAMES[actionKind] || actionKind
+    if (DISABLED_ACTION_TYPES.includes(actionKind)) {
+      throw new Error(`${displayName} proposals are not currently supported for cosponsoring.`)
+    }
     throw new Error(`Unknown governance action type: "${displayName}". Please report this issue.`)
   }
 
@@ -120,25 +139,35 @@ export const buildGovernanceAction = (
       return {
         kind: 'TreasuryWithdrawal',
         beneficiaries,
-        // guardRails is undefined = Option::None (don't set it)
+        // The ledger runs the enacted constitution's guardrails script for
+        // every TreasuryWithdrawal and requires the action to name its hash
+        // — `undefined` (Option::None) is rejected with
+        // InvalidGuardrailsScriptHash on any network with a constitution.
+        // The SDK propose builder witnesses the script automatically.
+        guardRails: GUARDRAILS_SCRIPT_HASH,
       } as GovernanceAction.ITreasuryWithdrawal
     }
 
     case 'NoConfidence': {
       // Constructor 3: No Confidence Motion
-      // Just needs ancestor (null for new proposals)
+      // The ancestor must be the currently-enacted Committee-purpose action
+      // — a null ancestor is ledger-rejected (InvalidPrevGovActionId) and
+      // burns the pooled gov deposit at submission. Resolved live via the
+      // SDK/Koios and cached (throws while the cache is cold; user-action
+      // paths await ensureAncestors() first).
       return {
         kind: 'NoConfidence',
-        ancestor: null,
+        ancestor: getCachedAncestorForKind('NoConfidence'),
       } as GovernanceAction.INoConfidence
     }
 
     case 'ConstitutionalCommittee': {
       // Constructor 4: Constitutional Committee Update
-      // For testing: empty member changes with 2/3 quorum
+      // For testing: empty member changes with 2/3 quorum. Ancestor: same
+      // Committee purpose as NoConfidence (see above).
       return {
         kind: 'ConstitutionalCommittee',
-        ancestor: null,
+        ancestor: getCachedAncestorForKind('ConstitutionalCommittee'),
         membersToRemove: [], // No members to remove
         membersToAdd: new Map(), // No members to add
         quorum: { numerator: 2n, denominator: 3n }, // 2/3 majority
