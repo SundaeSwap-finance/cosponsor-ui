@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/pop
 import { useMemo, useState } from 'react'
 import {
   FilterPropBudget,
-  FilterPropCreator,
   FilterPropExpiration,
   FilterPropFundProgress,
   FilterPropStatus,
@@ -77,7 +76,9 @@ export const ButtonProposalFilter = ({
         }}
       />
     ),
-    'Creator / dRep': <FilterPropCreator />,
+    // 'Creator / dRep' filter hidden for public testing: FilterPropCreator
+    // still renders a hardcoded fake user list and isn't wired to filtering
+    // (no applyFilter). Re-add here once it filters real creators.
   }
   const mainFilters = Object.keys(filterComponents)
   const activeFilterComponent = filterComponents[filterView] || null
