@@ -29,7 +29,8 @@ import {
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
-import { assertAncestorCurrent } from '@sundaeswap/cosponsor-sdk/utils'
+import { assertAncestorCurrent, blockfrostStateChainQueries } from '@sundaeswap/cosponsor-sdk/utils'
+import { config } from '@/lib/config'
 import { buildGovernanceAction, mapCategoryToActionKind } from '@/lib/cardano/governanceActions'
 import { ensureAncestors, koiosBaseUrl } from '@/lib/cardano/ancestorsCache'
 import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
@@ -200,6 +201,13 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
       const completedTx = (await browserPropose({
         blaze,
         cosponsoredProposal,
+        // Non-empty state trie (any deployment with >=1 prior propose) needs
+        // chain queries to reconstruct the MPF — browsers have no env
+        // fallback, so inject the config-driven Blockfrost backend.
+        stateChainQueries: blockfrostStateChainQueries(
+          config.blockfrostApiKey,
+          `cardano-${config.blockfrostNetwork}`
+        ),
       })) as unknown as Core.Transaction
 
       logger.debug('Propose transaction built, requesting signature from wallet...')

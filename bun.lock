@@ -28,7 +28,7 @@
         "@react-stately/calendar": "^3.8.3",
         "@react-stately/datepicker": "^3.15.0",
         "@sundaeswap/asset": "^1.0.11",
-        "@sundaeswap/cosponsor-sdk": "0.0.8",
+        "@sundaeswap/cosponsor-sdk": "0.0.9",
         "@sundaeswap/react-hooks": "^2.0.9",
         "@sundaeswap/ui-toolkit": "^2.3.6",
         "@sundaeswap/wallet-lite": "^0.0.92",
@@ -711,7 +711,7 @@
 
     "@sundaeswap/asset": ["@sundaeswap/asset@1.0.11", "", { "dependencies": { "@sundaeswap/fraction": "1.0.8" } }, "sha512-xbubSh7cm/0yb/8sHCw6ad03fS6L8/1tMiT9q7LeM9y8mn+xQ64ylJkCWWob1tVQDf6BaaWsKquhXlKhsn+70Q=="],
 
-    "@sundaeswap/cosponsor-sdk": ["@sundaeswap/cosponsor-sdk@0.0.8", "", { "dependencies": { "@aiken-lang/merkle-patricia-forestry": "^1.3.1", "@blaze-cardano/core": "^0.7.0", "@blaze-cardano/data": "^0.6.4", "@blaze-cardano/ogmios": "^0.0.7", "@blaze-cardano/sdk": "^0.2.43", "@blaze-cardano/uplc": "^0.3.2", "@scure/bip39": "^2.0.0", "dotenv": "^16.4.5", "ws": "^8.18.3" }, "peerDependencies": { "typescript": "^5" } }, "sha512-CX59jdDZN7fAaWvnLvh4JUF9hdovVq4/hzA0xKGxkGfNV0O7HYPnKDosq6Borkj8jBxUWO9MnjY5S6YQlCCBVQ=="],
+    "@sundaeswap/cosponsor-sdk": ["@sundaeswap/cosponsor-sdk@0.0.9", "", { "dependencies": { "@aiken-lang/merkle-patricia-forestry": "^1.3.1", "@blaze-cardano/core": "^0.7.0", "@blaze-cardano/data": "^0.6.4", "@blaze-cardano/ogmios": "^0.0.7", "@blaze-cardano/sdk": "^0.2.43", "@blaze-cardano/uplc": "^0.3.2", "@scure/bip39": "^2.0.0", "dotenv": "^16.4.5", "ws": "^8.18.3" }, "peerDependencies": { "typescript": "^5" } }, "sha512-E38hD5oXUeJPxC3/bFrtEeKY6DYLbbHJ8oxdpFsSkCn64GCiLDfhkxAWqouifxidP8SezoIjYvNfNULLAqjwMQ=="],
 
     "@sundaeswap/eslint-config": ["@sundaeswap/eslint-config@2.0.15", "", { "dependencies": { "eslint": "^9.4.0", "eslint-config-prettier": "^9.1.0", "eslint-plugin-import": "^2.29.1", "eslint-plugin-jest": "^28.6.0", "eslint-plugin-jsx-a11y": "^6.8.0", "eslint-plugin-prettier": "^5.1.3", "eslint-plugin-react": "^7.34.2", "eslint-plugin-react-hooks": "^4.6.2", "globals": "^15.6.0", "typescript-eslint": "^7.13.0" }, "peerDependencies": { "eslint": "^9.0.0", "prettier": "^3.0.0" } }, ""],
 
