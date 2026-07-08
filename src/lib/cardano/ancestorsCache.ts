@@ -20,6 +20,7 @@ import {
   type TAncestorPurpose,
 } from '@sundaeswap/cosponsor-sdk/utils'
 import type { GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
+import { cosponsorApi } from '@/api/cosponsorApi'
 import { config } from '@/lib/config'
 import { logger } from '@/lib/logger'
 
@@ -44,13 +45,37 @@ let inflight: Promise<void> | null = null
 
 const PURPOSES: TAncestorPurpose[] = ['Committee', 'Constitution', 'PParamUpdate', 'HardFork']
 
-/** Resolve all purposes once (single Koios query each; results cached). */
+/**
+ * Fetch all purposes from OUR backend's Koios proxy (GET /ancestors —
+ * koios.rest sends no CORS headers, so browsers can't query it directly).
+ */
+const fetchAncestorsFromBackend = async (): Promise<void> => {
+  const response = await cosponsorApi.get<Record<string, TAncestor>>('ancestors')
+  for (const purpose of PURPOSES) {
+    if (!(purpose in response.data)) {
+      throw new Error(`ancestors proxy response missing purpose ${purpose}`)
+    }
+    cache.set(purpose, response.data[purpose] ?? null)
+  }
+}
+
+/**
+ * Resolve all purposes once and cache. Primary source: the backend proxy;
+ * fallback: direct Koios (works in Node/dev tooling; CORS-blocked in
+ * browsers, which is exactly why the proxy is primary).
+ */
 export const ensureAncestors = async (): Promise<void> => {
   if (PURPOSES.every((purpose) => cache.has(purpose))) {
     return
   }
   if (!inflight) {
     inflight = (async () => {
+      try {
+        await fetchAncestorsFromBackend()
+        return
+      } catch (error) {
+        logger.warn('[ancestorsCache] backend /ancestors failed, trying Koios direct', error)
+      }
       const base = koiosBaseUrl()
       for (const purpose of PURPOSES) {
         cache.set(purpose, await resolveAncestor(purpose, { koiosBaseUrl: base }))
@@ -101,6 +126,38 @@ export const getCachedAncestorForKind = (actionKind: string): TAncestor => {
     )
   }
   return cache.get(purpose) ?? null
+}
+
+/**
+ * Staleness guard for the propose path, cache/proxy-backed (the SDK's
+ * `assertAncestorCurrent` queries Koios directly — CORS-blocked in
+ * browsers). The ancestor was baked into the pool at DEPOSIT time; if an
+ * enactment landed since, submitting burns the pooled gov deposit — refuse
+ * instead. No-op (no network) for kinds without an ancestor purpose.
+ */
+export const assertAncestorCurrentCached = async (
+  actionKind: string,
+  fixtureAncestor: TAncestor | undefined
+): Promise<void> => {
+  const purpose = ANCESTOR_PURPOSE_BY_KIND[actionKind]
+  if (!purpose) {
+    return
+  }
+  await ensureAncestorsForKind(actionKind)
+  const live = getCachedAncestorForKind(actionKind)
+  const same =
+    (live === null && !fixtureAncestor) ||
+    (live !== null &&
+      !!fixtureAncestor &&
+      live.txHash === fixtureAncestor.txHash &&
+      Number(live.index) === Number(fixtureAncestor.index))
+  if (!same) {
+    throw new Error(
+      `This pool was pledged against an outdated ${purpose} governance ancestor — ` +
+        'a newer action has since been enacted, so submitting now would be rejected ' +
+        'by the ledger and burn the pooled deposit. The pool can only be withdrawn.'
+    )
+  }
 }
 
 // Warm the cache alongside the initial data fetch so card identities for

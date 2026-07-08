@@ -27,6 +27,10 @@ func mountRoutes(r chi.Router, deps *handlerDeps) {
 	r.Put("/proposals/{id}", deps.updateProposal)
 	r.Delete("/proposals/{id}", deps.deleteProposal)
 
+	// Per-purpose prev-gov-action-ids (Koios proxied server-side —
+	// koios.rest has no CORS headers for browser callers).
+	r.Get("/ancestors", deps.getAncestors)
+
 	// On-chain CIP-184 feedback / addenda indexed by metadata
 	// label 1694 and surfaced threaded under a proposal.
 	r.Get("/proposals/{id}/onchain-docs", deps.listOnchainForProposal)

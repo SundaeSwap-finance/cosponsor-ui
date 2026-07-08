@@ -29,10 +29,10 @@ import {
 import { ICosponsoredProposal, GovernanceAction } from '@sundaeswap/cosponsor-sdk/validators'
 import { Core } from '@blaze-cardano/sdk'
 import { IProposalCardData } from '@/types/Proposal'
-import { assertAncestorCurrent, blockfrostStateChainQueries } from '@sundaeswap/cosponsor-sdk/utils'
+import { blockfrostStateChainQueries } from '@sundaeswap/cosponsor-sdk/utils'
 import { config } from '@/lib/config'
 import { buildGovernanceAction, mapCategoryToActionKind } from '@/lib/cardano/governanceActions'
-import { ensureAncestorsForKind, koiosBaseUrl } from '@/lib/cardano/ancestorsCache'
+import { assertAncestorCurrentCached, ensureAncestorsForKind } from '@/lib/cardano/ancestorsCache'
 import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
@@ -186,9 +186,7 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
       const action = cosponsoredProposal.action as { kind: string } & Partial<{
         ancestor: GovernanceAction.IGovernanceActionId | null
       }>
-      await assertAncestorCurrent(action.kind, action.ancestor, {
-        koiosBaseUrl: koiosBaseUrl(),
-      })
+      await assertAncestorCurrentCached(action.kind, action.ancestor)
 
       requireConnectedWallet(walletObserver)
       const blaze = await createConfiguredBlaze(walletObserver)
