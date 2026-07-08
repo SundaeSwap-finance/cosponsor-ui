@@ -27,6 +27,13 @@ var demoCategories = []string{
 	"New Constitution",
 }
 
+// demoGeneration is baked into every demo ProposalID (= the anchor's
+// sourceUrlId = the derived on-chain procedure identity). Increment it
+// whenever a demo pool has been consumed by a test submission — the
+// procedure hash is a one-shot key in the state MPF trie, so a submitted
+// demo identity can never be proposed again; a bump mints fresh ones.
+const demoGeneration = 2
+
 func demoProposalsEnabled() bool {
 	raw := os.Getenv("DEMO_PROPOSALS_ENABLED")
 	if raw == "" {
@@ -45,8 +52,8 @@ func demoProposalsEnabled() bool {
 // proposal resolves consistently across requests.
 func buildDemoProposal(category string) proposaldao.Proposal {
 	p := proposaldao.Proposal{
-		ProposalID:    "demo-" + slugify(category),
-		Name:          "[TEST] Sample " + category + " Proposal",
+		ProposalID:    "demo-" + slugify(category) + "-" + strconv.Itoa(demoGeneration),
+		Name:          "[TEST] Sample " + category + " Proposal #" + strconv.Itoa(demoGeneration),
 		Abstract:      "This is a demo " + category + " proposal for testing the CoSponsor platform. It has a future expiry date so you can test sponsoring and withdrawing.",
 		Motivation:    "This demo proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.",
 		Rationale:     "Testing is essential to ensure the platform works correctly before mainnet launch.",
