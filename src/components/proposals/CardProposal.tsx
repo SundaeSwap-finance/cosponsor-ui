@@ -83,6 +83,16 @@ export const CardProposal = ({
     return 'n/a'
   }, [proposal.pledgedAmount, proposal.cosponsorTarget])
 
+  // Fully-sponsored pools take no further pledges — mirror
+  // PageProposalDetails' funded gate.
+  const isFunded = useMemo(
+    () =>
+      proposal.cosponsorTarget != null &&
+      proposal.cosponsorTarget > 0 &&
+      (proposal.pledgedAmount ?? 0) >= proposal.cosponsorTarget,
+    [proposal.pledgedAmount, proposal.cosponsorTarget]
+  )
+
   useEffect(() => {
     if (!proposal || isExpired) {
       return
@@ -186,13 +196,20 @@ export const CardProposal = ({
           ) : proposal.userPledged > 0 ? (
             // User has an active pledge: surface Withdraw alongside Sponsor!
             // and promote View Details to a full-width primary action above.
+            // Fully-sponsored pools take no more pledges (hide Sponsor!).
             <>
               <Button size="lg" className={'w-full'} asChild>
                 <Link to={`/proposal/${proposal.id}`}>View Details</Link>
               </Button>
               <div className={'flex w-full flex-row gap-2'}>
                 <ButtonWithdraw proposal={proposal} content={'Withdraw'} classButton={'flex-1'} />
-                <ButtonSponsor proposalId={proposal.id} proposal={proposal} content={'Sponsor!'} />
+                {!isFunded && (
+                  <ButtonSponsor
+                    proposalId={proposal.id}
+                    proposal={proposal}
+                    content={'Sponsor!'}
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -200,7 +217,9 @@ export const CardProposal = ({
               <Button size="lg" className={'flex-1'} asChild>
                 <Link to={`/proposal/${proposal.id}`}>View Details</Link>
               </Button>
-              <ButtonSponsor proposalId={proposal.id} proposal={proposal} content={'Sponsor!'} />
+              {!isFunded && (
+                <ButtonSponsor proposalId={proposal.id} proposal={proposal} content={'Sponsor!'} />
+              )}
             </div>
           )}
         </div>

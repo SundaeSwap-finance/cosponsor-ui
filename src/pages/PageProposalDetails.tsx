@@ -189,7 +189,9 @@ export const PageProposalDetails = () => {
               Back
             </Link>
           </Button>
-          {!isExpired && (
+          {/* Fully-sponsored pools need no more pledges — the Submit button
+              takes over (extra pledges would only become propose leftover). */}
+          {!isExpired && !isFunded && (
             <ButtonSponsor
               classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
               proposalId={proposal.id}
