@@ -11,6 +11,7 @@ import { CardUserPledgeSimple } from '@/components/proposals/pageDetails/CardUse
 import { CardProposalPledgeSingle } from '@/components/proposals/pageDetails/CardProposalPledgeSingle'
 import { LabeledTextProposal } from '@/components/proposals/pageDetails/LabeledTextProposal'
 import { BannerProposalExpired } from '@/components/proposals/pageDetails/BannerProposalExpired'
+import { BannerProposalSubmitted } from '@/components/proposals/pageDetails/BannerProposalSubmitted'
 import { BannerProposalProgress } from '@/components/proposals/pageDetails/BannerProposalProgress'
 import { ButtonSponsor } from '@/components/button/ButtonSponsor'
 import { ButtonPropose } from '@/components/button/ButtonPropose'
@@ -67,6 +68,11 @@ export const PageProposalDetails = () => {
   const isFunded = useMemo((): boolean => {
     return proposal?.cosponsorTarget != null && totalPledged >= proposal.cosponsorTarget
   }, [proposal?.cosponsorTarget, totalPledged])
+
+  // Already submitted on-chain: the propose tx consumed the pool, so there is
+  // nothing left to sponsor or withdraw, and the procedure hash can never be
+  // proposed again — hide both action buttons and show the submitted banner.
+  const isSubmitted = !!proposal?.isSubmitted
 
   const expiryTitleTooltip = useMemo(() => {
     return `${(isExpired ? 'Expired on ' : 'Expires on ') + expiryDateTime} ${
@@ -191,7 +197,7 @@ export const PageProposalDetails = () => {
           </Button>
           {/* Fully-sponsored pools need no more pledges — the Submit button
               takes over (extra pledges would only become propose leftover). */}
-          {!isExpired && !isFunded && (
+          {!isExpired && !isFunded && !isSubmitted && (
             <ButtonSponsor
               classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
               proposalId={proposal.id}
@@ -204,7 +210,7 @@ export const PageProposalDetails = () => {
               }
             />
           )}
-          {!isExpired && isFunded && (
+          {!isExpired && isFunded && !isSubmitted && (
             <ButtonPropose
               classButton={'h-12 !px-5 lg:flex-1 sun-text-16-rg'}
               proposalId={proposal.id}
@@ -222,7 +228,15 @@ export const PageProposalDetails = () => {
       <div className={'flex w-full flex-col gap-12 lg:flex-row'}>
         <div className={'flex w-full flex-col gap-6 md:min-w-100'}>
           <>
-            {isExpired ? (
+            {/* Submitted wins over expired: the expired banner invites a
+                withdrawal, which is impossible once the propose tx spent the
+                pool's UTxOs. */}
+            {isSubmitted ? (
+              <BannerProposalSubmitted
+                userPledge={proposal.userPledged}
+                submissionTxHash={proposal.submissionTxHash}
+              />
+            ) : isExpired ? (
               <BannerProposalExpired userPledge={proposal.userPledged} proposal={proposal} />
             ) : (
               <BannerProposalProgress

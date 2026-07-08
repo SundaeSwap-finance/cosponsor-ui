@@ -89,6 +89,11 @@ export const useGetProposalData = () => {
         constitutionHash: proposalData?.constitutionHash,
         constitutionUrl: proposalData?.constitutionUrl,
         sourceUrlId: proposalData?.sourceUrlId,
+        // Submission status comes from the API listing — the wallet's gADA
+        // holdings alone can't tell whether the pool was already proposed
+        // (the tokens outlive the propose tx as redemption receipts).
+        isSubmitted: proposalData?.isSubmitted,
+        submissionTxHash: proposalData?.submissionTxHash,
         proposalHash,
       }
     },

@@ -93,6 +93,11 @@ export const CardProposal = ({
     [proposal.pledgedAmount, proposal.cosponsorTarget]
   )
 
+  // Submitted on-chain: the pool was consumed by the propose tx, so both
+  // Sponsor (nothing to pledge into) and Withdraw (Before UTxOs are spent;
+  // gADA now represents a future redemption claim) are off the table.
+  const isSubmitted = !!proposal.isSubmitted
+
   useEffect(() => {
     if (!proposal || isExpired) {
       return
@@ -132,7 +137,11 @@ export const CardProposal = ({
             @{proposal?.ownerName?.slice(0, 16)}
           </div>
         </div>
-        <BadgeProposalPercent percentage={completionPercentage} isExpired={isExpired} />
+        <BadgeProposalPercent
+          percentage={completionPercentage}
+          isExpired={isExpired}
+          isSubmitted={isSubmitted}
+        />
       </div>
 
       <div className={'flex min-h-25 w-full grow flex-col gap-4 overflow-hidden px-6 py-4'}>
@@ -191,7 +200,12 @@ export const CardProposal = ({
       </div>
       {!isExpired || proposal.userPledged > 0 ? (
         <div className={'flex w-full flex-col gap-2 px-6 py-4'}>
-          {isExpired && proposal.userPledged > 0 ? (
+          {isSubmitted ? (
+            // Submitted on-chain: no pledging, no withdrawing — only details.
+            <Button size="lg" className={'w-full'} asChild>
+              <Link to={`/proposal/${proposal.id}`}>View Details</Link>
+            </Button>
+          ) : isExpired && proposal.userPledged > 0 ? (
             <ButtonWithdraw proposal={proposal} content={'Withdraw Your Pledge'} />
           ) : proposal.userPledged > 0 ? (
             // User has an active pledge: surface Withdraw alongside Sponsor!

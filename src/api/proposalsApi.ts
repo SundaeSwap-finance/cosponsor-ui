@@ -217,6 +217,11 @@ export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalC
   const metadataUrl = content?.prop_metadata_url || undefined
   const metadataHash = content?.prop_metadata_hash || undefined
 
+  // On-chain submission status — drives the "no more pledges / no re-submit"
+  // gating on every action surface.
+  const isSubmitted = !!(content?.prop_submitted || content?.prop_submission_tx_hash)
+  const submissionTxHash = content?.prop_submission_tx_hash || undefined
+
   // Identity = on-chain gADA token hash (same as what ModalSponsor would
   // mint). Falls back to `sourceUrlId` when the action data is incomplete
   // — the card is still routable, just without on-chain hash alignment.
@@ -262,6 +267,8 @@ export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalC
     sourceUrlId,
     metadataUrl,
     metadataHash,
+    isSubmitted,
+    submissionTxHash,
     existingCosponsoredProposal: identity?.cosponsoredProposal,
   }
 }

@@ -64,6 +64,13 @@ export interface IProposalCardData {
   // See deriveProposalAnchor in proposalIdentity.ts.
   metadataUrl?: string
   metadataHash?: string
+  // True once the governance action was submitted on-chain (the propose tx
+  // consumed the pool). Submitted proposals take no further pledges, can't
+  // be withdrawn from (the Before UTxOs are spent), and can never be
+  // re-submitted (the procedure hash is a one-shot key in the state trie) —
+  // every action surface gates on this.
+  isSubmitted?: boolean
+  submissionTxHash?: string
 }
 
 // Data for the individual Proposal page to view details.

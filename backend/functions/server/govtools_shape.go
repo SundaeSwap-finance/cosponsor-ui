@@ -112,6 +112,11 @@ type govActionTypeAttributes struct {
 // same numeric handle within a frontend session. The real identity
 // is the uuid in proposal_id.
 func toEnvelope(p proposaldao.Proposal) proposalEnvelope {
+	// Chain-truth submission status: if a governance action anchored to this
+	// proposal exists on-chain, surface it as submitted regardless of what
+	// the stored record says (see submissions.go).
+	overlaySubmission(&p)
+
 	createdAt := p.CreatedAt.UTC().Format(time.RFC3339Nano)
 	updatedAt := p.UpdatedAt.UTC().Format(time.RFC3339Nano)
 

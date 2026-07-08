@@ -3,18 +3,24 @@ import { cn } from '@/lib/utils'
 export const BadgeProposalPercent = ({
   percentage,
   isExpired,
+  isSubmitted,
   className,
 }: {
   percentage: string
   isExpired?: boolean
+  isSubmitted?: boolean
   className?: string
 }) => {
-  // Handle 'n/a' or invalid percentages for on-chain proposals without budget data
-  const displayText = isExpired
-    ? 'EXPIRED'
-    : percentage === 'n/a'
-      ? 'On-chain'
-      : `${percentage}% Funded`
+  // Handle 'n/a' or invalid percentages for on-chain proposals without budget data.
+  // Submitted wins over the percentage: the propose tx consumed the pool, so
+  // the chain-state total reads 0% even though the action is live on-chain.
+  const displayText = isSubmitted
+    ? 'Submitted'
+    : isExpired
+      ? 'EXPIRED'
+      : percentage === 'n/a'
+        ? 'On-chain'
+        : `${percentage}% Funded`
 
   return (
     <div
