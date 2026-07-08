@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -64,6 +64,9 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [txHash, setTxHash] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [fees, setFees] = useState<number>(0)
+  const [isLoadingFees, setIsLoadingFees] = useState<boolean>(false)
 
   // Build the cosponsored proposal from the card data. This mirrors
   // ModalSponsor.buildCosponsoredProposal EXACTLY — the on-chain procedure we
@@ -155,6 +158,87 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
     }
   }
 
+  // Build the complete propose transaction. Shared between the fee preview
+  // (dialog open) and the actual submission — the preview builds a REAL
+  // transaction, so the fee it reads is exact, and any build failure the
+  // submission would hit surfaces before the user clicks.
+  const buildProposeTx = async (): Promise<Core.Transaction> => {
+    // Build the cosponsored proposal (validates the procedure against the
+    // on-chain hash before we touch the chain). Warm the ancestor cache
+    // ONLY for kinds that need it — a governance-state lookup failure must
+    // never block InfoAction / TreasuryWithdrawal submission. The
+    // existing-procedure path reuses the recovered action verbatim and
+    // needs no cache.
+    if (!proposal?.existingCosponsoredProposal) {
+      await ensureAncestorsForKind(mapCategoryToActionKind(proposal?.categoryName || 'NicePoll'))
+    }
+    const cosponsoredProposal = buildCosponsoredProposal()
+
+    // Ancestor-staleness guard: the ancestor was baked into the pool at
+    // DEPOSIT time, but the ledger checks it against LIVE governance state
+    // at submission — a mismatch (an enactment happened in between) burns
+    // the entire pooled gov deposit. Refuse instead.
+    const action = cosponsoredProposal.action as { kind: string } & Partial<{
+      ancestor: GovernanceAction.IGovernanceActionId | null
+    }>
+    await assertAncestorCurrentCached(action.kind, action.ancestor)
+
+    requireConnectedWallet(walletObserver)
+    const blaze = await createConfiguredBlaze(walletObserver)
+
+    // browserPropose builds AND completes the transaction internally — it
+    // selects the pooled cosponsor UTxOs, wires its own evaluator and
+    // collateral, and returns a complete, CBOR-spliced `Core.Transaction`.
+    // The modal therefore does NOT set an evaluator or collateral itself
+    // (unlike the Sponsor/Withdraw preview paths which build the tx in-UI).
+    logger.debug('Building propose transaction via browserPropose...')
+    // The SDK returns a Transaction from its nested `@cardano-sdk/core` (0.45)
+    // tree; the UI's `Core.Transaction` is pinned to 0.46.12. Structurally
+    // identical at runtime — TS rejects only on the `#private` field identity
+    // check. See TODO.md "Tech Debt: Blaze Override Stack".
+    return (await browserPropose({
+      blaze,
+      cosponsoredProposal,
+      // Non-empty state trie (any deployment with >=1 prior propose) needs
+      // chain queries to reconstruct the MPF — browsers have no env
+      // fallback, so inject the config-driven Blockfrost backend.
+      stateChainQueries: blockfrostStateChainQueries(
+        config.blockfrostApiKey,
+        `cardano-${config.blockfrostNetwork}`
+      ),
+    })) as unknown as Core.Transaction
+  }
+
+  // Fee preview: build the real transaction once when the dialog opens so
+  // "You Pay" shows the actual network fee instead of a placeholder.
+  useEffect(() => {
+    if (!isOpen || !walletObserver.api || txHash) {
+      return
+    }
+    let cancelled = false
+    setIsLoadingFees(true)
+    ;(async () => {
+      try {
+        const previewTx = await buildProposeTx()
+        if (!cancelled) {
+          setFees(Number(previewTx.body().fee()) / 1_000_000)
+        }
+      } catch (previewError) {
+        // The preview failing usually means the submission would too — keep
+        // the fee at 0 and let the submit click surface the mapped error.
+        logger.debug('[ModalPropose] fee preview failed:', previewError)
+      } finally {
+        if (!cancelled) {
+          setIsLoadingFees(false)
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, walletObserver.api])
+
   const handlePropose = async () => {
     if (!walletObserver.api) {
       setError('Please connect your wallet first')
@@ -168,50 +252,7 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
     try {
       logger.debug('Starting proposal submission...')
 
-      // Build the cosponsored proposal (validates the procedure against the
-      // on-chain hash before we touch the chain). Warm the ancestor cache
-      // ONLY for kinds that need it — a governance-state lookup failure must
-      // never block InfoAction / TreasuryWithdrawal submission. The
-      // existing-procedure path reuses the recovered action verbatim and
-      // needs no cache.
-      if (!proposal?.existingCosponsoredProposal) {
-        await ensureAncestorsForKind(mapCategoryToActionKind(proposal?.categoryName || 'NicePoll'))
-      }
-      const cosponsoredProposal = buildCosponsoredProposal()
-
-      // Ancestor-staleness guard: the ancestor was baked into the pool at
-      // DEPOSIT time, but the ledger checks it against LIVE governance state
-      // at submission — a mismatch (an enactment happened in between) burns
-      // the entire pooled gov deposit. Refuse instead.
-      const action = cosponsoredProposal.action as { kind: string } & Partial<{
-        ancestor: GovernanceAction.IGovernanceActionId | null
-      }>
-      await assertAncestorCurrentCached(action.kind, action.ancestor)
-
-      requireConnectedWallet(walletObserver)
-      const blaze = await createConfiguredBlaze(walletObserver)
-
-      // browserPropose builds AND completes the transaction internally — it
-      // selects the pooled cosponsor UTxOs, wires its own evaluator and
-      // collateral, and returns a complete, CBOR-spliced `Core.Transaction`.
-      // The modal therefore does NOT set an evaluator or collateral itself
-      // (unlike the Sponsor/Withdraw preview paths which build the tx in-UI).
-      logger.debug('Building propose transaction via browserPropose...')
-      // The SDK returns a Transaction from its nested `@cardano-sdk/core` (0.45)
-      // tree; the UI's `Core.Transaction` is pinned to 0.46.12. Structurally
-      // identical at runtime — TS rejects only on the `#private` field identity
-      // check. See TODO.md "Tech Debt: Blaze Override Stack".
-      const completedTx = (await browserPropose({
-        blaze,
-        cosponsoredProposal,
-        // Non-empty state trie (any deployment with >=1 prior propose) needs
-        // chain queries to reconstruct the MPF — browsers have no env
-        // fallback, so inject the config-driven Blockfrost backend.
-        stateChainQueries: blockfrostStateChainQueries(
-          config.blockfrostApiKey,
-          `cardano-${config.blockfrostNetwork}`
-        ),
-      })) as unknown as Core.Transaction
+      const completedTx = await buildProposeTx()
 
       logger.debug('Propose transaction built, requesting signature from wallet...')
 
@@ -303,10 +344,12 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
   return (
     <Dialog
       onOpenChange={(open) => {
+        setIsOpen(open)
         if (open) {
           setTxHash(null)
           setError(null)
           setIsProcessing(false)
+          setFees(0)
         }
       }}
     >
@@ -327,7 +370,12 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
           </DialogDescription>
         </DialogHeader>
         <div className={'flex flex-col gap-4 px-4'}>
-          <div className={'sun-text-16-md text-sun-header'}>Submission Details</div>
+          <div className={'sun-text-16-md text-sun-header'}>
+            Submission Details
+            {isLoadingFees && (
+              <span className="text-sun-muted sun-text-12-rg ml-2">(calculating fees...)</span>
+            )}
+          </div>
           <div className={'flex flex-col gap-4 md:gap-3'}>
             <LineOrderDetails
               label={`Deposit Target`}
@@ -352,7 +400,7 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
             />
             <LineOrderDetails
               label={`You Pay`}
-              labelIcon={<Fuel />}
+              labelIcon={isLoadingFees ? <LoaderCircle className="animate-spin" /> : <Fuel />}
               labelTooltip={
                 'You only cover the Cardano network fee and collateral for submitting the ' +
                 'transaction. The gov_action_deposit is funded entirely from the pool.'
@@ -363,7 +411,7 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
                   className={'bg-sun-action-tertiary fill-sun-white-pure size-4 rounded-full'}
                 />
               }
-              currencyValue={0}
+              currencyValue={fees}
               classNameCurrency={'text-sun-default'}
               largestTextInList={largestStringInList}
             />
