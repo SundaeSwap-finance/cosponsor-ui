@@ -8,7 +8,19 @@ import tailwindcss from '@tailwindcss/vite'
 import wasm from 'vite-plugin-wasm'
 import topLevelAwait from 'vite-plugin-top-level-await'
 
-const polyfills: PolyfillOptions['include'] = ['stream', 'util', 'crypto', 'path', 'vm']
+// 'assert' + 'buffer': @aiken-lang/merkle-patricia-forestry (the propose
+// flow's MPF proof builder) imports node:assert / node:buffer directly —
+// without the module polyfills its assert calls arrive as non-callable
+// shims ("G is not a function" at Trie construction in production).
+const polyfills: PolyfillOptions['include'] = [
+  'assert',
+  'buffer',
+  'stream',
+  'util',
+  'crypto',
+  'path',
+  'vm',
+]
 
 if (process.env.NODE_ENV === 'production') {
   polyfills.push('fs')
