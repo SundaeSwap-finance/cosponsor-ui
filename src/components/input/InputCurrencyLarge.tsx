@@ -11,6 +11,11 @@ interface ICurrencyLargeInputProps extends React.ComponentProps<'input'> {
   currencyAvailable: bigint
   // Optional callback when value changes (not needed for disabled/display-only inputs)
   onChangeSanitized?: (value: number) => void
+  // Optional hard cap (in display units, e.g. ADA) beyond the available
+  // balance — e.g. "what the pool still needs". Values above it warn and are
+  // not propagated, mirroring the balance check.
+  maxValue?: number
+  maxValueWarning?: string
 }
 
 export const InputCurrencyLarge = ({
@@ -19,6 +24,8 @@ export const InputCurrencyLarge = ({
   currencyIcon,
   currencyAvailable,
   onChangeSanitized,
+  maxValue,
+  maxValueWarning,
   className,
   // Default value is in ADA not in lovelace
   defaultValue,
@@ -37,14 +44,20 @@ export const InputCurrencyLarge = ({
       // Strip leading zeros only when they precede another digit, so "05"
       // becomes "5" but "0", "0.5", and "0.05" are preserved as typed.
       const newValue = rawValue.replace(/^0+(?=\d)/, '')
-      if (Number(newValue) <= currencyToNumber()) {
-        setWarning('')
-        onChangeSanitized?.(Number(newValue))
+      const numeric = Number(newValue)
+      if (numeric > currencyToNumber()) {
         setValue(newValue)
+        setWarning(`Value exceeds available ${currencyLabel}`)
         return
       }
+      if (maxValue !== undefined && numeric > maxValue) {
+        setValue(newValue)
+        setWarning(maxValueWarning ?? `Value exceeds the maximum of ${maxValue}`)
+        return
+      }
+      setWarning('')
+      onChangeSanitized?.(numeric)
       setValue(newValue)
-      setWarning(`Value exceeds available ${currencyLabel}`)
     }
   }
 

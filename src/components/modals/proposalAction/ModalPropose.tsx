@@ -32,7 +32,7 @@ import { IProposalCardData } from '@/types/Proposal'
 import { assertAncestorCurrent, blockfrostStateChainQueries } from '@sundaeswap/cosponsor-sdk/utils'
 import { config } from '@/lib/config'
 import { buildGovernanceAction, mapCategoryToActionKind } from '@/lib/cardano/governanceActions'
-import { ensureAncestors, koiosBaseUrl } from '@/lib/cardano/ancestorsCache'
+import { ensureAncestorsForKind, koiosBaseUrl } from '@/lib/cardano/ancestorsCache'
 import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
@@ -169,9 +169,14 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
       logger.debug('Starting proposal submission...')
 
       // Build the cosponsored proposal (validates the procedure against the
-      // on-chain hash before we touch the chain). Ancestor cache must be warm
-      // for ancestor-threading kinds (NoConfidence / ConstitutionalCommittee).
-      await ensureAncestors()
+      // on-chain hash before we touch the chain). Warm the ancestor cache
+      // ONLY for kinds that need it — a governance-state lookup failure must
+      // never block InfoAction / TreasuryWithdrawal submission. The
+      // existing-procedure path reuses the recovered action verbatim and
+      // needs no cache.
+      if (!proposal?.existingCosponsoredProposal) {
+        await ensureAncestorsForKind(mapCategoryToActionKind(proposal?.categoryName || 'NicePoll'))
+      }
       const cosponsoredProposal = buildCosponsoredProposal()
 
       // Ancestor-staleness guard: the ancestor was baked into the pool at

@@ -63,10 +63,32 @@ export const ensureAncestors = async (): Promise<void> => {
 }
 
 /**
+ * Kind-aware warm-up: no-op (and no network) for kinds that thread no
+ * ancestor (NicePoll, TreasuryWithdrawal), so a Koios outage/CORS block can
+ * never break sponsoring or proposing those. Only NoConfidence /
+ * ConstitutionalCommittee genuinely require the resolution and surface its
+ * failure.
+ */
+export const ensureAncestorsForKind = async (actionKind: string): Promise<void> => {
+  if (!ANCESTOR_PURPOSE_BY_KIND[actionKind]) {
+    return
+  }
+  try {
+    await ensureAncestors()
+  } catch (error) {
+    throw new Error(
+      `Could not resolve the on-chain governance ancestor required for ${actionKind} ` +
+        `proposals (governance-state lookup failed). Please try again shortly. ` +
+        `(${error instanceof Error ? error.message : String(error)})`
+    )
+  }
+}
+
+/**
  * Synchronous cache read for `buildGovernanceAction`. Throws when the cache
  * is cold for an ancestor-threading kind — callers on user-action paths must
- * `await ensureAncestors()` first; the identity derivation treats the throw
- * as "identity not yet computable" and falls back gracefully.
+ * `await ensureAncestorsForKind()` first; the identity derivation treats the
+ * throw as "identity not yet computable" and falls back gracefully.
  */
 export const getCachedAncestorForKind = (actionKind: string): TAncestor => {
   const purpose = ANCESTOR_PURPOSE_BY_KIND[actionKind]

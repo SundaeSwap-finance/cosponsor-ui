@@ -30,7 +30,7 @@ import {
   buildGovernanceAction,
   mapCategoryToActionKind,
 } from '@/lib/cardano/governanceActions'
-import { ensureAncestors } from '@/lib/cardano/ancestorsCache'
+import { ensureAncestorsForKind } from '@/lib/cardano/ancestorsCache'
 import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
@@ -193,9 +193,19 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
     }
   }
 
+  // Cap pledges at what the pool still needs: pledging past the target only
+  // creates surplus the propose step routes back to the pool as leftover.
+  const remainingNeedAda = useMemo(() => {
+    const target = proposal?.cosponsorTarget ?? 0
+    const pledged = proposal?.pledgedAmount ?? 0
+    return target > 0 ? Math.max(0, target - pledged) : undefined
+  }, [proposal?.cosponsorTarget, proposal?.pledgedAmount])
+
   const onInputChanged = (value: number) => {
-    setUserPledging(value)
-    setUserReceive(value)
+    // Defensive clamp — the input already refuses values above the cap.
+    const capped = remainingNeedAda !== undefined ? Math.min(value, remainingNeedAda) : value
+    setUserPledging(capped)
+    setUserReceive(capped)
   }
 
   // Check if proposal action type is supported for cosponsoring
@@ -233,9 +243,14 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         const blaze = await createConfiguredBlaze(walletObserver)
 
         const depositAmount = BigInt(Math.floor(userPledging * 1_000_000))
-        // Ancestor cache must be warm before building ancestor-threading
-        // actions (NoConfidence / ConstitutionalCommittee) — see ancestorsCache.
-        await ensureAncestors()
+        // Warm the ancestor cache ONLY for kinds that need it (NoConfidence /
+        // ConstitutionalCommittee) — a governance-state lookup failure must
+        // never block InfoAction / TreasuryWithdrawal sponsoring.
+        if (!proposal?.existingCosponsoredProposal) {
+          await ensureAncestorsForKind(
+            mapCategoryToActionKind(proposal?.categoryName || 'NicePoll')
+          )
+        }
         const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
         let txBuilder = await browserDeposit({ blaze, cosponsoredProposal, depositAmount })
@@ -306,9 +321,12 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
       // Never use preview transaction - it may have stale UTxOs from a previous action
       logger.debug('🔨 Building fresh transaction (ignoring any preview)...')
 
-      // Create the cosponsored proposal with user's pledge amount (ancestor
-      // cache first — the resolved ancestor is baked into the gADA identity)
-      await ensureAncestors()
+      // Create the cosponsored proposal with user's pledge amount. Ancestor
+      // cache first for ancestor-threading kinds only (the resolved ancestor
+      // is baked into the gADA identity); rebuilt-from-card path only.
+      if (!proposal?.existingCosponsoredProposal) {
+        await ensureAncestorsForKind(mapCategoryToActionKind(proposal?.categoryName || 'NicePoll'))
+      }
       const cosponsoredProposal = buildCosponsoredProposal(depositAmount)
 
       logger.debug('Building transaction for deposit:', {
@@ -503,6 +521,12 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
             placeholder={'0.0'}
             currencyLabel={'ADA'}
             currencyAvailable={walletHook.adaBalance.amount}
+            maxValue={remainingNeedAda}
+            maxValueWarning={
+              remainingNeedAda !== undefined
+                ? `The pool only needs ${remainingNeedAda} more ADA`
+                : undefined
+            }
             currencyIcon={
               <IconCardano className={'bg-sun-ada fill-sun-white-pure size-6.5 rounded-full'} />
             }
