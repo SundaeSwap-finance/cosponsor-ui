@@ -34,18 +34,27 @@ var demoCategories = []string{
 // generation to mint fresh ones.
 //
 // OLDER generations are kept (not removed) when they carry on-chain history:
-// their cards must keep matching existing pools for withdrawals, which also
-// means they keep the LEGACY sourceUrlId-derived anchor — toEnvelope omits
-// the prop_metadata_url/hash fields for them (see demoLegacyIDs) so the
-// frontend's identity derivation stays byte-compatible with what was
-// pledged. Only the LAST (current) generation gets BE-served CIP-108
-// metadata anchors.
-var demoGenerations = []int{2, 3}
+// their cards must keep matching existing pools for withdrawals, which means
+// each generation keeps the anchor convention its pools were pledged under —
+// forever (the anchor is hashed into the on-chain identity).
+var demoGenerations = []int{2, 3, 4, 5}
 
-// demoLegacyIDs — ProposalIDs of all non-current demo generations.
+// legacyAnchorMaxGeneration: generations pledged BEFORE BE-served CIP-108
+// metadata existed keep the legacy sourceUrlId-derived anchor — toEnvelope
+// omits prop_metadata_url/hash for them so the frontend's identity
+// derivation stays byte-compatible with what was pledged. This cutoff is
+// about the anchor convention, NOT about being the newest generation:
+// gen-3+ pools were pledged under metadata anchors and must keep them even
+// once newer generations exist.
+const legacyAnchorMaxGeneration = 2
+
+// demoLegacyIDs — ProposalIDs of the legacy-anchor demo generations.
 var demoLegacyIDs = func() map[string]bool {
 	legacy := make(map[string]bool)
-	for _, generation := range demoGenerations[:len(demoGenerations)-1] {
+	for _, generation := range demoGenerations {
+		if generation > legacyAnchorMaxGeneration {
+			continue
+		}
 		for _, category := range demoCategories {
 			legacy[demoProposalID(category, generation)] = true
 		}
