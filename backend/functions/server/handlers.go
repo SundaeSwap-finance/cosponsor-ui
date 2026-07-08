@@ -104,8 +104,13 @@ func (h *handlerDeps) listProposals(w http.ResponseWriter, r *http.Request) {
 				if active[category] {
 					continue
 				}
-				envelopes = append(envelopes, toEnvelope(buildDemoProposal(category)))
-				total++
+				// All generations: the current one is sponsorable; older
+				// ones stay listed so their on-chain pools keep a matching
+				// card (withdrawals). See demo.go.
+				for _, generation := range demoGenerations {
+					envelopes = append(envelopes, toEnvelope(buildDemoProposal(category, generation)))
+					total++
+				}
 			}
 		}
 	}

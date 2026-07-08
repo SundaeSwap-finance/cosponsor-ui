@@ -39,8 +39,44 @@ interface IProposalIdentityInputs {
   categoryName: string
   card: Pick<
     IProposalCardData,
-    'withdrawals' | 'hardForkVersion' | 'constitutionHash' | 'constitutionUrl'
+    | 'withdrawals'
+    | 'hardForkVersion'
+    | 'constitutionHash'
+    | 'constitutionUrl'
+    | 'metadataUrl'
+    | 'metadataHash'
   >
+}
+
+/**
+ * Single source of truth for the on-chain anchor every mint/identity path
+ * must derive identically (it is hashed into the gADA token name).
+ *
+ * Preferred: the BE-served CIP-108 metadata document (`metadataUrl` +
+ * blake2b-256 of its exact bytes) so explorers can fetch + verify real
+ * governance metadata for UI-submitted actions.
+ *
+ * Legacy fallback (cards without BE metadata — e.g. kept-around demo
+ * generations whose pools were pledged before this existed): the SPA route
+ * URL + padded pseudo-hash. Changing a card's convention changes its
+ * procedure hash and orphans existing pledges — which is exactly why the BE
+ * omits the metadata fields for legacy entries.
+ */
+export const deriveProposalAnchor = (
+  sourceUrlId: string,
+  metadataUrl?: string,
+  metadataHash?: string
+): { url: string; hash: string } => {
+  if (metadataUrl && metadataHash && /^[0-9a-fA-F]{64}$/.test(metadataHash)) {
+    return {
+      url: Buffer.from(metadataUrl).toString('hex'),
+      hash: metadataHash.toLowerCase(),
+    }
+  }
+  return {
+    url: Buffer.from(proposalAnchorUrl(sourceUrlId)).toString('hex'),
+    hash: sourceUrlId.padEnd(64, '0').slice(0, 64),
+  }
 }
 
 export interface IProposalIdentity {
@@ -84,14 +120,14 @@ export const computeProposalIdentity = (
 
   const deposit = getCachedGovActionDepositLovelace() ?? FALLBACK_GOV_ACTION_DEPOSIT_LOVELACE
 
-  // Anchor URL uses `sourceUrlId`, NOT `proposal.id` — the latter is what
-  // we're about to compute. ModalSponsor mirrors this convention.
-  const anchorUrlHex = Buffer.from(proposalAnchorUrl(sourceUrlId)).toString('hex')
-  const anchorHash = sourceUrlId.padEnd(64, '0').slice(0, 64)
+  // Anchor via the shared derivation (BE metadata anchor when present,
+  // legacy sourceUrlId convention otherwise). ModalSponsor/ModalPropose use
+  // the same helper so every path hashes the identical procedure.
+  const anchor = deriveProposalAnchor(sourceUrlId, card.metadataUrl, card.metadataHash)
 
   const cosponsoredProposal: ICosponsoredProposal = {
     deposit,
-    anchor: { url: anchorUrlHex, hash: anchorHash },
+    anchor,
     action,
   }
 

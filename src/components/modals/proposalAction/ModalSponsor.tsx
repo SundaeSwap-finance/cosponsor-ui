@@ -31,7 +31,7 @@ import {
   mapCategoryToActionKind,
 } from '@/lib/cardano/governanceActions'
 import { ensureAncestorsForKind } from '@/lib/cardano/ancestorsCache'
-import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
+import { deriveProposalAnchor } from '@/lib/cardano/proposalIdentity'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
@@ -113,10 +113,9 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
 
       const rebuilt: ICosponsoredProposal = {
         deposit: procedureDeposit,
-        anchor: {
-          url: Buffer.from(proposalAnchorUrl(urlIdForAnchor)).toString('hex'),
-          hash: urlIdForAnchor.padEnd(64, '0').slice(0, 64),
-        },
+        // Shared derivation: BE-served CIP-108 metadata anchor when the card
+        // carries one, legacy sourceUrlId convention otherwise.
+        anchor: deriveProposalAnchor(urlIdForAnchor, proposal.metadataUrl, proposal.metadataHash),
         action: buildGovernanceAction(actionKind, proposal),
       }
 

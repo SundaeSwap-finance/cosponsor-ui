@@ -27,12 +27,48 @@ var demoCategories = []string{
 	"New Constitution",
 }
 
-// demoGeneration is baked into every demo ProposalID (= the anchor's
-// sourceUrlId = the derived on-chain procedure identity). Increment it
-// whenever a demo pool has been consumed by a test submission — the
-// procedure hash is a one-shot key in the state MPF trie, so a submitted
-// demo identity can never be proposed again; a bump mints fresh ones.
-const demoGeneration = 2
+// demoGenerations: every demo generation still served. The generation is
+// baked into each demo ProposalID (= the derived on-chain procedure
+// identity); the procedure hash is a one-shot key in the state MPF trie, so
+// a submitted demo identity can never be proposed again — append a new
+// generation to mint fresh ones.
+//
+// OLDER generations are kept (not removed) when they carry on-chain history:
+// their cards must keep matching existing pools for withdrawals, which also
+// means they keep the LEGACY sourceUrlId-derived anchor — toEnvelope omits
+// the prop_metadata_url/hash fields for them (see demoLegacyIDs) so the
+// frontend's identity derivation stays byte-compatible with what was
+// pledged. Only the LAST (current) generation gets BE-served CIP-108
+// metadata anchors.
+var demoGenerations = []int{2, 3}
+
+// demoLegacyIDs — ProposalIDs of all non-current demo generations.
+var demoLegacyIDs = func() map[string]bool {
+	legacy := make(map[string]bool)
+	for _, generation := range demoGenerations[:len(demoGenerations)-1] {
+		for _, category := range demoCategories {
+			legacy[demoProposalID(category, generation)] = true
+		}
+	}
+	return legacy
+}()
+
+func demoProposalID(category string, generation int) string {
+	return "demo-" + slugify(category) + "-" + strconv.Itoa(generation)
+}
+
+// demoProposalByID resolves any generation's demo entry (used by the
+// metadata endpoint, since demos exist only as list-time injections).
+func demoProposalByID(id string) (proposaldao.Proposal, bool) {
+	for _, generation := range demoGenerations {
+		for _, category := range demoCategories {
+			if demoProposalID(category, generation) == id {
+				return buildDemoProposal(category, generation), true
+			}
+		}
+	}
+	return proposaldao.Proposal{}, false
+}
 
 func demoProposalsEnabled() bool {
 	raw := os.Getenv("DEMO_PROPOSALS_ENABLED")
@@ -50,10 +86,10 @@ func demoProposalsEnabled() bool {
 // ProposalID (and therefore the derived envelope id and on-chain
 // identity hash) is deterministic per category so the same demo
 // proposal resolves consistently across requests.
-func buildDemoProposal(category string) proposaldao.Proposal {
+func buildDemoProposal(category string, generation int) proposaldao.Proposal {
 	p := proposaldao.Proposal{
-		ProposalID:    "demo-" + slugify(category) + "-" + strconv.Itoa(demoGeneration),
-		Name:          "[TEST] Sample " + category + " Proposal #" + strconv.Itoa(demoGeneration),
+		ProposalID:    demoProposalID(category, generation),
+		Name:          "[TEST] Sample " + category + " Proposal #" + strconv.Itoa(generation),
 		Abstract:      "This is a demo " + category + " proposal for testing the CoSponsor platform. It has a future expiry date so you can test sponsoring and withdrawing.",
 		Motivation:    "This demo proposal demonstrates the CoSponsor platform functionality. Use it to test depositing and withdrawing ADA.",
 		Rationale:     "Testing is essential to ensure the platform works correctly before mainnet launch.",
@@ -82,6 +118,14 @@ func buildDemoProposal(category string) proposaldao.Proposal {
 			ConstitutionURL:  "https://constitution.gov.cardano.org/test-constitution.json",
 			ConstitutionHash: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
 		}
+	}
+
+	// Generation-2 Info Action was submitted on-chain via the browser E2E
+	// (2026-07-08) — reflect that so the UI doesn't offer re-pledging into a
+	// consumed (unproposable) identity.
+	if category == "Info Action" && generation == 2 {
+		p.IsSubmitted = true
+		p.SubmissionTxHash = "3b457abc9238a5ff47bcd57b1f4dc8a234cc5205338b7707b9a192b8897c2edb"
 	}
 
 	return p

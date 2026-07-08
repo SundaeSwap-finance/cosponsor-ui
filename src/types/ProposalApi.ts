@@ -88,6 +88,11 @@ export interface IProposalContentAttributes {
   proposal_constitution_content: IConstitutionContent | null
   proposal_hard_fork_content: IHardForkContent | null
   gov_action_type: IGovActionType
+  // BE-served CIP-108 anchor: metadata document URL + blake2b-256 of its
+  // exact bytes. Absent for legacy entries pledged under the old
+  // sourceUrlId anchor convention.
+  prop_metadata_url?: string
+  prop_metadata_hash?: string
 }
 
 export interface IProposalContent {

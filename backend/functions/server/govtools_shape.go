@@ -83,6 +83,13 @@ type proposalContentAttributes struct {
 	ProposalConstitutionContent *proposaldao.ConstitutionContent `json:"proposal_constitution_content"`
 	ProposalHardForkContent     *proposaldao.HardForkContent `json:"proposal_hard_fork_content"`
 	GovActionType               govActionType                `json:"gov_action_type"`
+	// CIP-108 anchor for the on-chain procedure: the BE-served metadata
+	// document URL + blake2b-256 of its exact bytes (see metadata.go).
+	// OMITTED for legacy demo generations whose pools were pledged under
+	// the old sourceUrlId anchor convention — the frontend falls back to
+	// that derivation when these are absent, keeping identities stable.
+	PropMetadataURL  string `json:"prop_metadata_url,omitempty"`
+	PropMetadataHash string `json:"prop_metadata_hash,omitempty"`
 }
 
 type govActionType struct {
@@ -119,6 +126,16 @@ func toEnvelope(p proposaldao.Proposal) proposalEnvelope {
 
 	numericID := fnv64(p.ProposalID)
 
+	// CIP-108 anchor fields — skipped for legacy demo generations (their
+	// identities predate BE-served metadata; see demo.go demoLegacyIDs).
+	metaURL, metaHash := "", ""
+	if !demoLegacyIDs[p.ProposalID] {
+		if _, hash, err := buildProposalMetadata(p); err == nil {
+			metaURL = metadataURLFor(p.ProposalID)
+			metaHash = hash
+		}
+	}
+
 	return proposalEnvelope{
 		ID: numericID,
 		Attributes: proposalAttributes{
@@ -151,6 +168,8 @@ func toEnvelope(p proposaldao.Proposal) proposalEnvelope {
 					ProposalWithdrawals:         p.Withdrawals,
 					ProposalConstitutionContent: p.ConstitutionContent,
 					ProposalHardForkContent:     p.HardForkContent,
+					PropMetadataURL:             metaURL,
+					PropMetadataHash:            metaHash,
 					GovActionType: govActionType{
 						ID: fnv64(p.GovActionType),
 						Attributes: govActionTypeAttributes{

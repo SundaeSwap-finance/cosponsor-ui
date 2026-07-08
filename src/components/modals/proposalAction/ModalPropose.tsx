@@ -33,7 +33,7 @@ import { blockfrostStateChainQueries } from '@sundaeswap/cosponsor-sdk/utils'
 import { config } from '@/lib/config'
 import { buildGovernanceAction, mapCategoryToActionKind } from '@/lib/cardano/governanceActions'
 import { assertAncestorCurrentCached, ensureAncestorsForKind } from '@/lib/cardano/ancestorsCache'
-import { proposalAnchorUrl } from '@/lib/cardano/proposalAnchor'
+import { deriveProposalAnchor } from '@/lib/cardano/proposalIdentity'
 import { getExplorerTxUrl } from '@/lib/cardano/cardanoscan'
 import { signAndSubmitTransaction } from '@/lib/cardano/transactionSigner'
 import { requireConnectedWallet } from '@/lib/cardano/walletGuard'
@@ -96,10 +96,10 @@ export const ModalPropose = ({ modalTrigger, proposal }: IModalProposeProps) => 
 
       const rebuilt: ICosponsoredProposal = {
         deposit: procedureDeposit,
-        anchor: {
-          url: Buffer.from(proposalAnchorUrl(urlIdForAnchor)).toString('hex'),
-          hash: urlIdForAnchor.padEnd(64, '0').slice(0, 64),
-        },
+        // Shared derivation: BE-served CIP-108 metadata anchor when the card
+        // carries one, legacy sourceUrlId convention otherwise. Must match
+        // ModalSponsor/proposalIdentity byte-for-byte.
+        anchor: deriveProposalAnchor(urlIdForAnchor, proposal.metadataUrl, proposal.metadataHash),
         action: buildGovernanceAction(actionKind, proposal),
       }
 

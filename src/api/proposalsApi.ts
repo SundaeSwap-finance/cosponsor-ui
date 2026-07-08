@@ -213,6 +213,10 @@ export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalC
   const sourceUrlId = String(proposal.id)
   const categoryName = content?.gov_action_type?.attributes?.gov_action_type_name || 'Info Action'
 
+  // BE-served CIP-108 anchor (absent for legacy entries → legacy derivation).
+  const metadataUrl = content?.prop_metadata_url || undefined
+  const metadataHash = content?.prop_metadata_hash || undefined
+
   // Identity = on-chain gADA token hash (same as what ModalSponsor would
   // mint). Falls back to `sourceUrlId` when the action data is incomplete
   // — the card is still routable, just without on-chain hash alignment.
@@ -224,6 +228,8 @@ export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalC
       hardForkVersion,
       constitutionHash,
       constitutionUrl,
+      metadataUrl,
+      metadataHash,
     },
   })
 
@@ -254,6 +260,8 @@ export const transformToProposalCard = (proposal: IProposalEnvelope): IProposalC
     constitutionHash,
     constitutionUrl,
     sourceUrlId,
+    metadataUrl,
+    metadataHash,
     existingCosponsoredProposal: identity?.cosponsoredProposal,
   }
 }

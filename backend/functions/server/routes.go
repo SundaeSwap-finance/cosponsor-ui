@@ -24,6 +24,8 @@ func mountRoutes(r chi.Router, deps *handlerDeps) {
 	r.Get("/proposals", deps.listProposals)
 	r.Post("/proposals", deps.createProposal)
 	r.Get("/proposals/{id}", deps.getProposal)
+	// BE-generated CIP-108 anchor document (byte-stable; see metadata.go).
+	r.Get("/proposals/{id}/metadata.jsonld", deps.getProposalMetadata)
 	r.Put("/proposals/{id}", deps.updateProposal)
 	r.Delete("/proposals/{id}", deps.deleteProposal)
 

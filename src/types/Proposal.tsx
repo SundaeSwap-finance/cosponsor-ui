@@ -58,6 +58,12 @@ export interface IProposalCardData {
   // depend on `id`, which becomes the computed hash post Stage-2 — a
   // circular dependency.
   sourceUrlId?: string
+  // Optional: BE-served CIP-108 metadata anchor (url + blake2b-256 of the
+  // exact served bytes). When BOTH are present the anchor derivation uses
+  // them; otherwise it falls back to the legacy sourceUrlId convention.
+  // See deriveProposalAnchor in proposalIdentity.ts.
+  metadataUrl?: string
+  metadataHash?: string
 }
 
 // Data for the individual Proposal page to view details.
