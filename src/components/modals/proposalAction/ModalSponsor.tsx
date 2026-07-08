@@ -43,6 +43,8 @@ import { applyPureAdaCollateral } from '@/lib/cardano/collateral'
 import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/cardano/blaze-patches'
 import { useGovActionDeposit } from '@/composables/useGovActionDeposit'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
+import { useOptimisticPledges } from '@/composables/useOptimisticPledges'
+import { overlayPledgedLovelace, recordOptimisticPledge } from '@/lib/cardano/optimisticPledges'
 
 // Ogmios URL from runtime config for script evaluation
 const OGMIOS_URL = config.ogmiosUrl
@@ -192,13 +194,29 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
     }
   }
 
+  // Keys this proposal's pool total is tracked under in the optimistic
+  // store — the card id, the source id and the on-chain hash all reach the
+  // same pool via different views.
+  const pledgeKeys = useMemo(
+    () => [proposal?.id, proposal?.sourceUrlId, proposal?.proposalHash],
+    [proposal?.id, proposal?.sourceUrlId, proposal?.proposalHash]
+  )
+
   // Cap pledges at what the pool still needs: pledging past the target only
   // creates surplus the propose step routes back to the pool as leftover.
+  // Overlaid with this session's own submitted pledges — the chain scan
+  // lags a block behind, and without the overlay the same wallet could
+  // pledge the full remaining need repeatedly until a hard refresh.
+  const optimisticPledges = useOptimisticPledges()
   const remainingNeedAda = useMemo(() => {
     const target = proposal?.cosponsorTarget ?? 0
-    const pledged = proposal?.pledgedAmount ?? 0
-    return target > 0 ? Math.max(0, target - pledged) : undefined
-  }, [proposal?.cosponsorTarget, proposal?.pledgedAmount])
+    if (target <= 0) {
+      return undefined
+    }
+    const chainLovelace = BigInt(Math.round((proposal?.pledgedAmount ?? 0) * 1_000_000))
+    const pledgedLovelace = overlayPledgedLovelace(optimisticPledges, pledgeKeys, chainLovelace)
+    return Math.max(0, target - Number(pledgedLovelace) / 1_000_000)
+  }, [proposal?.cosponsorTarget, proposal?.pledgedAmount, optimisticPledges, pledgeKeys])
 
   const onInputChanged = (value: number) => {
     // Defensive clamp — the input already refuses values above the cap.
@@ -456,6 +474,16 @@ export const ModalSponsor = ({ modalTrigger, proposal }: IModalSponsorProps) => 
         // so the next page load sees this deposit instead of the pre-submit
         // snapshot still inside the TTL window.
         invalidateChainPlanCache()
+
+        // Even a fresh scan won't see this deposit until it's in a block —
+        // pin the pool total optimistically so every view (and this modal's
+        // own cap) immediately reflects the pledge instead of offering the
+        // full remaining need again.
+        const chainLovelaceNow = BigInt(Math.round((proposal?.pledgedAmount ?? 0) * 1_000_000))
+        recordOptimisticPledge(
+          pledgeKeys,
+          overlayPledgedLovelace(optimisticPledges, pledgeKeys, chainLovelaceNow) + depositAmount
+        )
 
         setTxHash(submittedTxHash)
         setIsProcessing(false)

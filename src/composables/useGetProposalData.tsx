@@ -8,6 +8,8 @@ import { ACTION_TYPE_DISPLAY_NAMES } from '@/lib/cardano/governanceActions'
 import { useChainState } from '@/composables/useChainState'
 import { ensureGovActionDepositAda, useGovActionDeposit } from '@/composables/useGovActionDeposit'
 import { deriveUserDeposits, lovelaceToAda } from '@/lib/cardano/proposalTotals'
+import { useOptimisticPledges } from '@/composables/useOptimisticPledges'
+import { overlayPledgedLovelace } from '@/lib/cardano/optimisticPledges'
 import {
   getAllProposalsAsCards,
   getProposalDetailsById as fetchProposalDetails,
@@ -22,6 +24,11 @@ export const useGetProposalData = () => {
   const walletObserver = walletHook.observer
   const { depositAda: cosponsorTarget } = useGovActionDeposit()
   const { loadChainContext } = useChainState(walletObserver)
+  // Session-local pledges submitted but not yet visible to the chain scan.
+  // A new snapshot after each pledge — its presence in the useCallback deps
+  // below gives every consumer a fresh callback identity, which re-runs
+  // their fetch effects the moment a pledge lands. See optimisticPledges.ts.
+  const optimisticPledges = useOptimisticPledges()
 
   // Transform IUserDeposit to IProposalCardData
   // Optionally pass API proposal data to enrich the proposal with proper category info
@@ -213,6 +220,16 @@ export const useGetProposalData = () => {
         if (chainLovelace > 0n) {
           chainPledgedAda = lovelaceToAda(chainLovelace)
         }
+        // Overlay this session's just-submitted pledges — the chain scan
+        // lags a block behind the tx submission (see optimisticPledges.ts).
+        const overlaidLovelace = overlayPledgedLovelace(
+          optimisticPledges,
+          [id, apiProposal?.id, apiProposal?.sourceUrlId, apiProposal?.proposalHash],
+          chainLovelace
+        )
+        if (overlaidLovelace > chainLovelace) {
+          chainPledgedAda = lovelaceToAda(overlaidLovelace)
+        }
       }
 
       if (apiProposal) {
@@ -257,7 +274,7 @@ export const useGetProposalData = () => {
       logger.warn(`Proposal not found with id: ${id}`)
       return undefined
     },
-    [loadChainContext, transformDepositToProposalDetails]
+    [loadChainContext, transformDepositToProposalDetails, optimisticPledges]
   )
 
   // Check if category has any proposals
@@ -378,10 +395,15 @@ export const useGetProposalData = () => {
         // Overlay chain-state total across all cosponsors. Prefer the
         // canonical URL id (matches the listings) and fall back to the
         // on-chain hash for proposals whose anchor URL never decoded.
-        const lovelace =
+        const chainLovelace =
           (canonicalUrlId ? totals.byUrlId.get(canonicalUrlId) : undefined) ??
           totals.byProposalHash.get(groupKey) ??
           0n
+        const lovelace = overlayPledgedLovelace(
+          optimisticPledges,
+          [groupKey, canonicalUrlId, proposalMatch?.id, proposalMatch?.sourceUrlId],
+          chainLovelace
+        )
         if (lovelace > 0n) {
           card.pledgedAmount = lovelaceToAda(lovelace)
         }
@@ -401,7 +423,7 @@ export const useGetProposalData = () => {
       // Fall back to empty array on error
       return []
     }
-  }, [walletObserver.api, loadChainContext, transformDepositToProposal])
+  }, [walletObserver.api, loadChainContext, transformDepositToProposal, optimisticPledges])
 
   // Get random proposals (for "similar proposals" section etc.)
   const getRandomProposals = useCallback(
@@ -429,13 +451,18 @@ export const useGetProposalData = () => {
     async (page: IPaginatedProposals): Promise<IPaginatedProposals> => {
       const [ctx, targetAda] = await Promise.all([loadChainContext(), ensureGovActionDepositAda()])
       const totals = ctx?.totals
-      if (!totals && targetAda === null) {
+      if (!totals && targetAda === null && optimisticPledges.size === 0) {
         return page
       }
       return {
         ...page,
         proposals: page.proposals.map((p) => {
-          const lovelace = totals?.byUrlId.get(p.id) ?? totals?.byProposalHash.get(p.id) ?? 0n
+          const chainLovelace = totals?.byUrlId.get(p.id) ?? totals?.byProposalHash.get(p.id) ?? 0n
+          const lovelace = overlayPledgedLovelace(
+            optimisticPledges,
+            [p.id, p.sourceUrlId, p.proposalHash],
+            chainLovelace
+          )
           const pledgedAmount = lovelace > 0n ? lovelaceToAda(lovelace) : p.pledgedAmount
           const cosponsorTargetAda = p.cosponsorTarget ?? targetAda ?? undefined
           if (pledgedAmount === p.pledgedAmount && cosponsorTargetAda === p.cosponsorTarget) {
@@ -445,7 +472,7 @@ export const useGetProposalData = () => {
         }),
       }
     },
-    [loadChainContext]
+    [loadChainContext, optimisticPledges]
   )
 
   // Lazy load proposals with pagination (no category filter)

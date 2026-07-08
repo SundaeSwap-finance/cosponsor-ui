@@ -12,8 +12,8 @@ interface ICurrencyLargeInputProps extends React.ComponentProps<'input'> {
   // Optional callback when value changes (not needed for disabled/display-only inputs)
   onChangeSanitized?: (value: number) => void
   // Optional hard cap (in display units, e.g. ADA) beyond the available
-  // balance — e.g. "what the pool still needs". Values above it warn and are
-  // not propagated, mirroring the balance check.
+  // balance — e.g. "what the pool still needs". Input above it is clamped to
+  // the cap (the field snaps back) with a warning explaining why.
   maxValue?: number
   maxValueWarning?: string
 }
@@ -51,8 +51,12 @@ export const InputCurrencyLarge = ({
         return
       }
       if (maxValue !== undefined && numeric > maxValue) {
-        setValue(newValue)
+        // Clamp instead of just warning: leaving the over-max text in the
+        // field while the modal state holds the old value lets the user
+        // submit a tx that doesn't match what the input displays.
+        setValue(String(maxValue))
         setWarning(maxValueWarning ?? `Value exceeds the maximum of ${maxValue}`)
+        onChangeSanitized?.(maxValue)
         return
       }
       setWarning('')

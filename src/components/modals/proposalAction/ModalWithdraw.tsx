@@ -35,6 +35,7 @@ import { buildChainedTxEvaluator, wrapEvaluatorWithWalletUtxos } from '@/lib/car
 import { createConfiguredBlaze } from '@/lib/cardano/blaze'
 import { applyPureAdaCollateral } from '@/lib/cardano/collateral'
 import { invalidateChainPlanCache } from '@/lib/cardano/proposalTotals'
+import { clearOptimisticPledges } from '@/lib/cardano/optimisticPledges'
 
 // Get Ogmios URL from runtime config for script evaluation (has mempool access)
 const OGMIOS_URL = config.ogmiosUrl
@@ -209,6 +210,10 @@ export const ModalWithdraw = ({
       // so the next page load sees the post-withdraw state rather than the
       // pre-withdraw snapshot still inside the TTL window.
       invalidateChainPlanCache()
+      // The pool total went DOWN — drop any optimistic pins for this
+      // proposal so the UI falls back to chain truth instead of holding the
+      // pre-withdrawal maximum.
+      clearOptimisticPledges([proposal.id, proposal.sourceUrlId, proposal.proposalHash])
 
       setTxHash(submittedTxHash)
       setIsProcessing(false)
